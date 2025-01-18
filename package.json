@@ -1,0 +1,30 @@
+{
+  "name": "curati-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.13.0",
+    "@aws-amplify/backend-cli": "^1.4.6",
+    "@types/aws-lambda": "^8.10.147",
+    "aws-cdk": "^2.175.1",
+    "aws-cdk-lib": "^2.175.1",
+    "constructs": "^10.4.2",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@algolia/client-search": "^5.15.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.726.1",
+    "aws-amplify": "^6.12.1",
+    "stream-chat": "^8.49.0",
+    "uuidv7": "^1.0.2"
+  }
+}

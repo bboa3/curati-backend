@@ -1,0 +1,22 @@
+{
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit",
+    },
+    "diffEditor.codeLens": true,
+    "cSpell.words": [
+        "curati",
+        "Cúrati",
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/node_modules/*/**": true,
+        "**/.amplify/*/**": true,
+        "**/build/*/**": true,
+        "**/out/*/**": true,
+        "**/dist/*/**": true
+    }
+}
