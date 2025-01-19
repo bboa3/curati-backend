@@ -30,7 +30,7 @@ const reminderStatus = ['PENDING', 'COMPLETED', 'SKIPPED'] as const;
 const repeatType = ['NONE', 'DAILY', 'WEEKLY', 'CUSTOM'] as const;
 const contractType = ['ONE_TIME', 'MONTHLY', 'SEMI_ANNUALLY', 'ANNUALLY'] as const;
 const contractStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'ACTIVE', 'EXPIRED', 'TERMINATED', 'REJECTED', 'SUSPENDED'] as const;
-// const language = ['PORTUGUESE', 'ENGLISH', 'TSONGA', 'CHANGANA', 'MAKHUWA', 'SENA', 'NDAU']  as const;
+const language = ['PORTUGUESE', 'ENGLISH', 'TSONGA', 'CHANGANA', 'MAKHUWA', 'SENA', 'NDAU'] as const;
 
 const recurrenceType = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'NONE'] as const;
 const serviceFeasibility = ["LOW", "MEDIUM", "HIGH"] as const;
@@ -39,7 +39,8 @@ const cardBrand = ['MASTERCARD', 'VISA'] as const;
 const mobileProviderName = ['M_PESA', 'E_MOLA', 'M_KESH'] as const;
 const paymentTermsType = ['NET_1', 'NET_7', 'NET_30'] as const;
 const paymentMethodType = ['CREDIT_CARD', 'DEBIT_CARD', 'MOBILE_PAYMENT'] as const;
-const invoiceStatus = ['PAID', 'UNPAID', 'OVERDUE', 'CANCELLED'] as const;
+const invoiceStatus = ['PENDING', 'PAID', 'PARTIALLY_PAID', 'FAILED', 'OVERDUE'] as const;
+const paymentTransactionStatus = ['SUCCESS', 'FAILED', 'PENDING', 'REFUNDED'] as const;
 
 const pricingCondition = [
   // Base Prices
@@ -60,11 +61,14 @@ const pricingCondition = [
   "ANNUALLY_DISCOUNTED",
   "CANCELLATION"
 ] as const;
-const addressType = ['HOME', 'WORK', 'PHARMACY', 'CLINIC', 'OTHER'] as const;
-const consultationStatus = ['PENDING_CONFIRMATION', 'SCHEDULED', 'COMPLETED', 'CANCELLED'] as const;
+const addressType = ['HOME', 'WORK', 'PHARMACY', 'HOSPITAL', 'COURIER', 'SHIPPING', 'BILLING'] as const;
+const consultationType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
 const outcome = ['NOT_COMPLETED', 'SUCCESSFUL', 'FOLLOW_UP_REQUIRED', 'REFERRAL_REQUIRED'] as const;
 const prescriptionStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', "PENDING_VALIDATION"] as const;
 const prescriptionType = ['INPATIENT', 'OUTPATIENT'] as const;
+
+const appointmentStatus = ['PENDING', 'CONFIRMED', 'RESCHEDULED', 'CANCELLED', 'COMPLETED'] as const;
+const appointmentType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
 
 const licenseStatus = ['ACTIVE', 'SUSPENDED', 'EXPIRED'] as const;
 const professionalStatus = ['ONLINE', 'OFFLINE', 'ON_BREAK', 'BUSY'] as const;
@@ -73,6 +77,7 @@ const articleStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
 const mediaTypes = ['IMAGE', 'VIDEO'] as const;
 const categoryTypes = ['ARTICLE'] as const;
 const medicationRecordType = ['MEDICATION', 'VACCINATION', 'OTHER'] as const;
+const medicationRecordStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', "PENDING_VALIDATION"] as const;
 const medicationFrequencyType = ['DAILY', 'WEEKLY', 'MONTHLY', 'AS_NEEDED'] as const;
 
 const professionalType = ['DOCTOR', 'NURSE', 'PHARMACIST', 'DRIVER'] as const;
@@ -142,24 +147,19 @@ const schema = a.schema({
   user: a.model({
     id: a.id().required(),
     authId: a.string().required(),
-    phone: a.string().required(),
-    email: a.string(),
-    name: a.string(),
     role: a.enum(userRoles),
-    gender: a.enum(gender),
-    dateOfBirth: a.datetime(),
-    lastLogin: a.datetime(),
-    profilePicture: a.string(),
-    bio: a.string(),
+    email: a.string(),
+    phone: a.string(),
+    name: a.string(),
     expoPushTokens: a.string().required().array(),
     isDeleted: a.boolean().required().default(false),
     notifications: a.hasMany('notification', 'userId'),
-    // view: a.hasMany('view', 'userId'),
+    //view: a.hasMany('view', 'userId'),
     // articles: a.hasMany('article', 'authorId'),
-    // articleLikes: a.hasMany('articleLike', 'userId'),
+    //articleLikes: a.hasMany('articleLike', 'userId'),
     businessLikes: a.hasMany('businessLike', 'userId'),
     medicineLikes: a.hasMany('medicineLike', 'userId'),
-    address: a.hasOne('address', 'userId'),
+    address: a.hasMany('address', 'userId'),
     ratings: a.hasMany('rating', 'userId'),
     reminders: a.hasMany('reminder', 'userId'),
     professional: a.hasOne('professional', 'userId'),
@@ -168,60 +168,107 @@ const schema = a.schema({
     allow.authenticated().to(['read']),
     allow.ownerDefinedIn('authId').to(['create', 'read', 'update']),
     allow.groups(['ADMIN']).to(['read', 'create', 'update']),
-  ]),
+  ]).disableOperations(['subscriptions']),
 
   patient: a.model({
     id: a.id().required(),
     userId: a.id().required(),
-    insuranceProvider: a.string(),
-    insurancePolicyNumber: a.string(),
+    phone: a.string().required(),
+    email: a.string(),
+    name: a.string().required(),
+    gender: a.enum(gender),
+    preferredLanguage: a.enum(language),
+    dateOfBirth: a.datetime(),
+    lastLogin: a.datetime(),
+    profilePicture: a.string(),
     nationalID: a.string(),
     contracts: a.hasMany('contract', 'patientId'),
     medicineOrders: a.hasMany('medicineOrder', 'patientId'),
     invoices: a.hasMany('invoice', 'patientId'),
     paymentMethods: a.hasMany('paymentMethod', 'patientId'),
-    patientHealthStatus: a.hasOne('patientHealthStatus', 'patientId'),
+    //  patientHealthStatus: a.hasOne('patientHealthStatus', 'patientId'),
+    //  insurance: a.hasOne('insurance', 'patientId'),
     medications: a.hasMany('medicationRecord', 'patientId'),
     prescriptions: a.hasMany('prescription', 'patientId'),
-    consultations: a.hasMany('consultation', 'patientId'),
+    consultationRecords: a.hasMany('consultationRecord', 'patientId'),
+    appointments: a.hasMany('appointment', 'patientId'),
     user: a.belongsTo('user', 'userId'),
     deliveries: a.hasMany('delivery', 'patientId'),
   }).authorization(allow => [
     allow.owner().to(['read', 'create', 'update']),
     allow.group('PROFESSIONAL').to(['read']),
     allow.group('ADMIN').to(['read', 'update']),
-  ]),
+  ]).disableOperations(['subscriptions']),
 
-  patientHealthStatus: a.model({
-    id: a.id().required(),
-    patientId: a.id().required(),
-    heartRate: a.integer(),
-    caloriesBurned: a.integer(),
-    weight: a.float(),
-    systolicPressure: a.integer(),
-    diastolicPressure: a.integer(),
-    bloodSugarLevels: a.float().array(),
-    cholesterolTotal: a.float(),
-    cholesterolLDL: a.float(),
-    cholesterolHDL: a.float(),
-    bodyMassIndex: a.float(),
-    bodyFatPercentage: a.float(),
-    hydrationLevel: a.float(),
-    sleepQuality: a.enum(sleepQuality),
-    physicalActivityLevel: a.enum(physicalActivityLevel),
-    variabilityMetrics: a.json(),
-    socialActivityFeatures: a.string().array(),
-    predictiveHealthScores: a.json(),
-    engagementStrategies: a.string().array(),
-    additionalMetrics: a.json(),
-    medicationAllergies: a.string().array().required(),
-    patient: a.belongsTo('patient', 'patientId'),
-  })
-    .authorization(allow => [
-      allow.owner().to(['read', 'create', 'update']),
-      allow.group('PROFESSIONAL').to(['read', 'update']),
-      allow.group('ADMIN').to(['read']),
-    ]).disableOperations(['subscriptions']),
+  // insurance: a.model({
+  //   id: a.id().required(),
+  //   patientId: a.id().required(),
+  //   provider: a.string().required(),
+  //   policyNumber: a.string().required(),
+  //   groupNumber: a.string(),
+  //   effectiveDate: a.date(),
+  //   expirationDate: a.date(),
+  //   memberID: a.string(),
+  //   isVerified: a.boolean().default(false),
+  //   patient: a.belongsTo('patient', 'patientId'),
+  // }).authorization(allow => [
+  //   allow.owner().to(['read', 'create', 'update']),
+  //   allow.group('PROFESSIONAL').to(['read']),
+  //   allow.group('ADMIN').to(['read', 'update']),
+  // ]).disableOperations(['subscriptions']),
+
+  // patientHealthStatus: a.model({
+  //   id: a.id().required(),
+  //   patientId: a.id().required(),
+  //   caloriesBurned: a.integer(),
+  //   weight: a.float(),
+  //   cholesterolTotal: a.float(),
+  //   cholesterolLDL: a.float(),
+  //   cholesterolHDL: a.float(),
+  //   bodyMassIndex: a.float(),
+  //   bodyFatPercentage: a.float(),
+  //   hydrationLevel: a.float(),
+  //   sleepQuality: a.enum(sleepQuality),
+  //   physicalActivityLevel: a.enum(physicalActivityLevel),
+  //   variabilityMetrics: a.json(),
+  //   socialActivityFeatures: a.string().array(),
+  //   predictiveHealthScores: a.json(),
+  //   engagementStrategies: a.string().array(),
+  //   additionalMetrics: a.json(),
+  //   medicationAllergies: a.string().array().required(),
+  //   patient: a.belongsTo('patient', 'patientId'),
+  //   heartRateRecords: a.hasMany('heartRateRecord', 'patientHealthStatusId'),
+  //   bloodSugarRecords: a.hasMany('bloodSugarRecord', 'patientHealthStatusId'),
+  // })
+  //   .authorization(allow => [
+  //     allow.owner().to(['read', 'create', 'update']),
+  //     allow.group('PROFESSIONAL').to(['read', 'update']),
+  //     allow.group('ADMIN').to(['read']),
+  //   ]).disableOperations(['subscriptions']),
+
+  // heartRateRecord: a.model({
+  //   id: a.id().required(),
+  //   patientHealthStatusId: a.id().required(),
+  //   heartRate: a.integer().required(),
+  //   timestamp: a.datetime().required(),
+  //   patientHealthStatus: a.belongsTo('patientHealthStatus', 'patientHealthStatusId'),
+  // }).authorization(allow => [
+  //   allow.owner().to(['read', 'create', 'update']),
+  //   allow.group('PROFESSIONAL').to(['read', 'update']),
+  //   allow.group('ADMIN').to(['read']),
+  // ]),
+
+  // bloodSugarRecord: a.model({
+  //   id: a.id().required(),
+  //   patientHealthStatusId: a.id().required(),
+  //   bloodSugarLevel: a.float().required(),
+  //   timestamp: a.datetime().required(),
+  //   patientHealthStatus: a.belongsTo('patientHealthStatus', 'patientHealthStatusId'),
+  // }).authorization(allow => [
+  //   allow.owner().to(['read', 'create', 'update']),
+  //   allow.group('PROFESSIONAL').to(['read', 'update']),
+  //   allow.group('ADMIN').to(['read']),
+  // ]),
 
   prescription: a.model({
     id: a.id().required(),
@@ -237,16 +284,20 @@ const schema = a.schema({
     notes: a.string(),
     refillsAllowed: a.integer().required(),
     refillsRemaining: a.integer().required(),
+    isRenewable: a.boolean().required().default(false),
+    renewalAt: a.datetime(),
     patient: a.belongsTo('patient', 'patientId'),
     prescriber: a.belongsTo('professional', 'prescriberId'),
     items: a.hasMany('prescriptionItem', 'prescriptionId'),
     orders: a.hasMany('medicineOrder', 'prescriptionId'),
+    medicationRecords: a.hasMany('medicationRecord', 'prescriptionId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read', 'update']),
-    ]),
+    ])
+    .disableOperations(['subscriptions']),
 
   prescriptionItem: a.model({
     id: a.id().required(),
@@ -254,7 +305,12 @@ const schema = a.schema({
     prescriptionId: a.id().required(),
     name: a.string().required(),
     dosage: a.string().required(),
-    frequency: a.string().required(),
+    frequency: a.customType({
+      type: a.enum(medicationFrequencyType),
+      daysOfWeek: a.integer().array(),
+      daysOfMonth: a.integer().array(),
+      specificTimes: a.string().array(),
+    }),
     quantity: a.integer().required(),
     notes: a.string(),
     medicine: a.belongsTo('medicine', 'medicineId'),
@@ -265,15 +321,18 @@ const schema = a.schema({
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read', 'update']),
-    ]),
+    ])
+    .disableOperations(['subscriptions']),
 
   medicationRecord: a.model({
     id: a.id().required(),
+    prescriptionId: a.id().required(),
     prescriptionItemId: a.id().required(),
     pharmacyInventoryId: a.id().required(),
     patientId: a.id().required(),
     administeredById: a.id(),
     recordType: a.enum(medicationRecordType),
+    status: a.enum(medicationRecordStatus),
     name: a.string().required(),
     dosage: a.string(),
     frequency: a.customType({
@@ -292,21 +351,23 @@ const schema = a.schema({
     nextDoseNumber: a.integer(), // For vaccinations
     administeredBy: a.belongsTo('professional', 'administeredById'),
     patient: a.belongsTo('patient', 'patientId'),
+    prescription: a.belongsTo('prescription', 'prescriptionId'),
     prescriptionItem: a.belongsTo('prescriptionItem', 'prescriptionItemId'),
     pharmacyInventory: a.belongsTo('pharmacyInventory', 'pharmacyInventoryId'),
+    reminders: a.hasMany('reminder', 'medicationRecordId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   medicineOrder: a.model({
     id: a.id().required(),
     orderNumber: a.string().required(),
     patientId: a.id().required(),
     pharmacyId: a.id().required(),
-    prescriptionId: a.id().required(),
+    prescriptionId: a.id(),
     isForPatient: a.boolean().required().default(true),
     status: a.enum(medicineOrderStatus),
     patient: a.belongsTo('patient', 'patientId'),
@@ -319,7 +380,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   medicineOrderItem: a.model({
     id: a.id().required(),
@@ -327,14 +388,14 @@ const schema = a.schema({
     pharmacyInventoryId: a.id().required(),
     description: a.string().required(),
     quantity: a.integer().required(),
-    price: a.float().required(),
+    unitPrice: a.float().required(),
     order: a.belongsTo('medicineOrder', 'orderId'),
     pharmacyInventory: a.belongsTo('pharmacyInventory', 'pharmacyInventoryId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   contract: a.model({
     id: a.id().required(),
@@ -354,12 +415,13 @@ const schema = a.schema({
     patient: a.belongsTo('patient', 'patientId'),
     business: a.belongsTo('business', 'businessId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
-    consultations: a.hasMany('consultation', 'contractId'),
+    appointments: a.hasMany('appointment', 'contractId'),
+    invoices: a.hasMany('invoice', 'contractId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   service: a.model({
     id: a.id().required(),
@@ -393,19 +455,20 @@ const schema = a.schema({
     businessLatitude: a.float().required(),
     businessLongitude: a.float().required(),
     isDeleted: a.boolean().default(false),
-    consultations: a.hasMany('consultation', 'businessServiceId'),
-    contracts: a.hasMany('contract', 'businessServiceId'),
     ratings: a.hasMany('rating', 'businessServiceId'),
     pricing: a.hasMany('businessServicePricing', 'businessServiceId'),
     service: a.belongsTo('service', 'serviceId'),
     business: a.belongsTo('business', 'businessId'),
+    contracts: a.hasMany('contract', 'businessServiceId'),
     professional: a.belongsTo('professional', 'professionalId'),
+    consultationRecords: a.hasMany('consultationRecord', 'businessServiceId'),
+    appointments: a.hasMany('appointment', 'businessServiceId')
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read', 'update']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   businessServicePricing: a.model({
     id: a.id().required(),
@@ -421,32 +484,58 @@ const schema = a.schema({
       allow.group('ADMIN').to(['read', 'update']),
     ]).disableOperations(['subscriptions']),
 
-  consultation: a.model({
+  appointment: a.model({
     id: a.id().required(),
-    contractNumber: a.string().required(),
+    contractId: a.id().required(),
+    patientId: a.id().required(),
+    professionalId: a.id().required(),
+    businessServiceId: a.id().required(),
+    appointmentDateTime: a.datetime().required(),
+    duration: a.integer().required(),
+    status: a.enum(appointmentStatus),
+    type: a.enum(appointmentType),
+    reason: a.string(),
+    notes: a.string(),
+    patientRescheduledCount: a.integer().default(0),
+    professionalRescheduledCount: a.integer().default(0),
+    isConfirmed: a.boolean().default(false),
+    confirmationDateTime: a.datetime(),
+    cancellationReason: a.string(),
+    contract: a.belongsTo('contract', 'contractId'),
+    patient: a.belongsTo('patient', 'patientId'),
+    professional: a.belongsTo('professional', 'professionalId'),
+    businessService: a.belongsTo('businessService', 'businessServiceId'),
+    consultationRecord: a.hasOne('consultationRecord', 'appointmentId'),
+    reminders: a.hasMany('reminder', 'appointmentId'),
+  })
+    .authorization(allow => [
+      allow.owner().to(['read', 'create', 'update']),
+      allow.group('PROFESSIONAL').to(['read', 'create', 'update']),
+      allow.group('ADMIN').to(['read', 'update']),
+    ]).disableOperations(['subscriptions']),
+
+  consultationRecord: a.model({
+    id: a.id().required(),
     patientId: a.id().required(),
     businessId: a.id().required(),
     professionalId: a.id().required(),
     businessServiceId: a.id().required(),
-    contractId: a.id().required(),
-    consultationLocationType: a.enum(addressType),
+    appointmentId: a.id().required(),
+    type: a.enum(consultationType),
     purpose: a.string(),
     notes: a.string(),
-    status: a.enum(consultationStatus),
-    startAt: a.datetime().required(),
-    endAt: a.datetime(),
     outcome: a.enum(outcome),
     patient: a.belongsTo('patient', 'patientId'),
     business: a.belongsTo('business', 'businessId'),
     professional: a.belongsTo('professional', 'professionalId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
-    contract: a.belongsTo('contract', 'contractId'),
+    appointment: a.belongsTo('appointment', 'appointmentId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'create', 'update']),
       allow.group('ADMIN').to(['read']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   // category: a.model({
   //   id: a.id().required(),
@@ -544,14 +633,15 @@ const schema = a.schema({
     contracts: a.hasMany('contract', 'businessId'),
     pharmacy: a.hasOne('pharmacy', 'businessId'),
     hospital: a.hasOne('hospital', 'businessId'),
-    // certifications: a.hasMany('certification', 'businessId'),
+    certifications: a.hasMany('certification', 'businessId'),
     licenses: a.hasMany('license', 'businessId'),
     businessOpeningHour: a.hasOne('businessOpeningHour', 'businessId'),
     likes: a.hasMany('businessLike', 'businessId'),
     ratings: a.hasMany('rating', 'businessId'),
     courier: a.hasOne('courier', 'businessId'),
-    consultations: a.hasMany('consultation', 'businessId'),
+    consultationRecords: a.hasMany('consultationRecord', 'businessId'),
     businessServices: a.hasMany('businessService', 'businessId'),
+    invoices: a.hasMany('invoice', 'businessId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
@@ -588,7 +678,7 @@ const schema = a.schema({
 
   hospital: a.model({
     businessId: a.id().required(),
-    ambulances: a.hasMany('ambulance', 'hospitalId'),
+    // ambulances: a.hasMany('ambulance', 'hospitalId'),
     business: a.belongsTo('business', 'businessId'),
     doctors: a.hasMany('doctor', 'hospitalId'),
   }).identifier(['businessId'])
@@ -601,27 +691,32 @@ const schema = a.schema({
   professional: a.model({
     id: a.id().required(),
     userId: a.id().required(),
-    name: a.string().required(),
-    email: a.string().required(),
+    professionalRegistrationNumber: a.string().required(),
     phone: a.string().required(),
-    profilePhoto: a.string().required(),
+    email: a.string().required(),
+    name: a.string().required(),
+    gender: a.enum(gender),
+    dateOfBirth: a.datetime(),
+    lastLogin: a.datetime(),
+    profilePicture: a.string().required(),
+    bio: a.string(),
     type: a.enum(professionalType),
     role: a.enum(professionalRole),
     isActive: a.boolean().default(true),
     status: a.enum(professionalStatus),
-    bio: a.string().required(),
     languagesSpoken: a.string().required().array().required(),
     specialties: a.string().required().array().required(),
     education: a.string().required().array().required(),
     careerStartDate: a.datetime().required(),
     availability: a.hasOne('professionalAvailability', 'professionalId'),
-    // certifications: a.hasMany('certification', 'professionalId'),
+    certifications: a.hasMany('certification', 'professionalId'),
     licenses: a.hasMany('license', 'professionalId'),
     ratings: a.hasMany('rating', 'professionalId'),
     user: a.belongsTo('user', 'userId'),
     prescriptions: a.hasMany('prescription', 'prescriberId'),
     services: a.hasMany('businessService', 'professionalId'),
-    consultations: a.hasMany('consultation', 'professionalId'),
+    consultationRecords: a.hasMany('consultationRecord', 'professionalId'),
+    appointments: a.hasMany('appointment', 'professionalId'),
     driver: a.hasOne('driver', 'professionalId'),
     pharmacist: a.hasOne('pharmacist', 'professionalId'),
     doctor: a.hasOne('doctor', 'professionalId'),
@@ -706,7 +801,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   vehicle: a.model({
     id: a.id().required(),
@@ -727,7 +822,6 @@ const schema = a.schema({
     id: a.id().required(),
     patientId: a.id().required(),
     orderId: a.id().required(),
-    addressId: a.id().required(),
     orderNumber: a.string().required(),
     driverId: a.id(),
     courierId: a.id(),
@@ -740,8 +834,12 @@ const schema = a.schema({
     specialHandlingFee: a.float().required(),
     driverCommission: a.float(),
     notes: a.string(),
+    preferredDeliveryTimeStartAt: a.datetime().required(),
+    preferredDeliveryTimeEndAt: a.datetime().required(),
     pickedUpAt: a.datetime(),
     deliveredAt: a.datetime(),
+    signatureImage: a.string(),
+    deliveryConfirmationCode: a.string(),
     order: a.belongsTo('medicineOrder', 'orderId'),
     driver: a.belongsTo('driver', 'driverId'),
     courier: a.belongsTo('courier', 'courierId'),
@@ -752,31 +850,31 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
-  ambulance: a.model({
-    id: a.id().required(),
-    hospitalId: a.id().required(),
-    hospitalName: a.string().required(),
-    vehiclePlate: a.string().required(),
-    vehicleModel: a.string().required(),
-    vehicleYear: a.integer().required(),
-    vehicleColor: a.string().required(),
-    vehicleType: a.string().required(),
-    status: a.enum(ambulanceStatus),
-    medicalEquipment: a.string().array(),
-    crewMembers: a.string().array(),
-    currentLatitude: a.float().required(),
-    currentLongitude: a.float().required(),
-    serviceArea: a.string().array(),
-    contactNumber: a.string().required(),
-    image: a.string().required(),
-    hospital: a.belongsTo('hospital', 'hospitalId'),
-  })
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]),
+  // ambulance: a.model({
+  //   id: a.id().required(),
+  //   hospitalId: a.id().required(),
+  //   hospitalName: a.string().required(),
+  //   vehiclePlate: a.string().required(),
+  //   vehicleModel: a.string().required(),
+  //   vehicleYear: a.integer().required(),
+  //   vehicleColor: a.string().required(),
+  //   vehicleType: a.string().required(),
+  //   status: a.enum(ambulanceStatus),
+  //   medicalEquipment: a.string().array(),
+  //   crewMembers: a.string().array(),
+  //   currentLatitude: a.float().required(),
+  //   currentLongitude: a.float().required(),
+  //   serviceArea: a.string().array(),
+  //   contactNumber: a.string().required(),
+  //   image: a.string().required(),
+  //   hospital: a.belongsTo('hospital', 'hospitalId'),
+  // })
+  //   .authorization(allow => [
+  //     allow.authenticated().to(['read']),
+  //     allow.group('ADMIN').to(['read', 'create', 'update']),
+  //   ]),
 
   medicineCategory: a.model({
     id: a.id().required(),
@@ -853,7 +951,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'create', 'update']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   notification: a.model({
     id: a.id().required(),
@@ -872,7 +970,7 @@ const schema = a.schema({
   }).authorization(allow => [
     allow.authenticated().to(['read']),
     allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
-  ]),
+  ]).disableOperations(['subscriptions']),
 
   // view: a.model({
   //   id: a.id().required(),
@@ -888,7 +986,7 @@ const schema = a.schema({
   //     allow.guest().to(['read', 'create']),
   //     allow.authenticated().to(['read', 'create']),
   //   ])
-  //   .disableOperations(['update', 'delete', 'onUpdate', 'onDelete']),
+  //   .disableOperations(['update', 'delete', 'subscriptions']),
 
   // articleLike: a.model({
   //   userId: a.id().required(),
@@ -899,7 +997,7 @@ const schema = a.schema({
   //   .authorization(allow => [
   //     allow.authenticated().to(['read']),
   //     allow.owner().to(['create', 'read', 'update', 'delete']),
-  //   ]).disableOperations(['onCreate', 'onUpdate', 'onDelete']),
+  //   ]).disableOperations(['subscriptions']),
 
   medicineLike: a.model({
     userId: a.id().required(),
@@ -910,7 +1008,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
-    ]).disableOperations(['onCreate', 'onUpdate', 'onDelete']),
+    ]).disableOperations(['subscriptions']),
 
   businessLike: a.model({
     userId: a.id().required(),
@@ -921,10 +1019,13 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
-    ]).disableOperations(['onCreate', 'onUpdate', 'onDelete']),
+    ]).disableOperations(['subscriptions']),
 
   address: a.model({
     id: a.id().required(),
+    userId: a.id(),
+    businessId: a.id(),
+    deliveryId: a.id(),
     addressLine1: a.string().required(),
     neighborhoodOrDistrict: a.string().required(),
     city: a.string().required(),
@@ -933,9 +1034,7 @@ const schema = a.schema({
     country: a.string().required(),
     latitude: a.float(),
     longitude: a.float(),
-    userId: a.id(),
-    businessId: a.id(),
-    deliveryId: a.id(),
+    type: a.enum(addressType),
     user: a.belongsTo('user', 'userId'),
     business: a.belongsTo('business', 'businessId'),
     delivery: a.belongsTo('delivery', 'deliveryId'),
@@ -944,22 +1043,22 @@ const schema = a.schema({
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update']),
       allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
-  // certification: a.model({
-  //   id: a.id().required(),
-  //   issuedBy: a.string().required(),
-  //   name: a.string().required(),
-  //   description: a.string(),
-  //   professionalId: a.id(),
-  //   businessId: a.id(),
-  //   professional: a.belongsTo('professional', 'professionalId'),
-  //   business: a.belongsTo('business', 'businessId'),
-  // })
-  //   .authorization(allow => [
-  //     allow.authenticated().to(['create', 'read', 'update', 'delete']),
-  //     allow.group('ADMIN').to(['read', 'create', 'update']),
-  //   ]),
+  certification: a.model({
+    id: a.id().required(),
+    issuedBy: a.string().required(),
+    name: a.string().required(),
+    description: a.string(),
+    professionalId: a.id(),
+    businessId: a.id(),
+    professional: a.belongsTo('professional', 'professionalId'),
+    business: a.belongsTo('business', 'businessId'),
+  })
+    .authorization(allow => [
+      allow.authenticated().to(['create', 'read', 'update', 'delete']),
+      allow.group('ADMIN').to(['read', 'create', 'update']),
+    ]).disableOperations(['subscriptions']),
 
   license: a.model({
     id: a.id().required(),
@@ -1048,11 +1147,13 @@ const schema = a.schema({
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
       allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   reminder: a.model({
     id: a.id().required(),
     userId: a.id().required(),
+    appointmentId: a.id(),
+    medicationRecordId: a.id(),
     type: a.enum(reminderType),
     title: a.string().required(),
     message: a.string().required(),
@@ -1060,18 +1161,21 @@ const schema = a.schema({
     status: a.enum(reminderStatus),
     repeat: a.enum(repeatType),
     user: a.belongsTo('user', 'userId'),
+    appointment: a.belongsTo('appointment', 'appointmentId'),
+    medicationRecord: a.belongsTo('medicationRecord', 'medicationRecordId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update', 'delete']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create', 'delete']),
-    ]),
+    ]).disableOperations(['subscriptions']),
 
   invoice: a.model({
     id: a.id().required(),
     invoiceNumber: a.string().required(),
     patientId: a.id().required(),
+    businessId: a.id().required(),
     medicineOrderId: a.id(),
-    paymentMethodId: a.id().required(),
+    contractId: a.id(),
     orderNumber: a.string().required(),
     paymentMethodType: a.enum(paymentMethodType),
     subTotal: a.float().required(),
@@ -1082,13 +1186,32 @@ const schema = a.schema({
     dueDate: a.datetime().required(),
     status: a.enum(invoiceStatus),
     patient: a.belongsTo('patient', 'patientId'),
-    paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
     medicineOrder: a.belongsTo('medicineOrder', 'medicineOrderId'),
+    contract: a.belongsTo('contract', 'contractId'),
+    business: a.belongsTo('business', 'businessId'),
+    transactions: a.hasMany('paymentTransaction', 'invoiceId'),
   })
     .authorization(allow => [
       allow.owner().to(['create', 'read', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create']),
-    ]),
+    ]).disableOperations(['subscriptions']),
+
+  paymentTransaction: a.model({
+    id: a.id().required(),
+    invoiceId: a.id().required(),
+    paymentMethodId: a.id().required(),
+    transactionID: a.string(),
+    amount: a.float().required(),
+    transactionDate: a.datetime().required(),
+    status: a.enum(paymentTransactionStatus),
+    notes: a.string(),
+    invoice: a.belongsTo('invoice', 'invoiceId'),
+    paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
+  })
+    .authorization(allow => [
+      allow.owner().to(['read', 'create', 'update']),
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update']),
+    ]).disableOperations(['subscriptions']),
 
   paymentMethod: a.model({
     id: a.id().required(),
@@ -1106,7 +1229,7 @@ const schema = a.schema({
       mobileProviderName: a.enum(mobileProviderName),
     }),
     patient: a.belongsTo('patient', 'patientId'),
-    invoices: a.hasMany('invoice', 'paymentMethodId'),
+    transactions: a.hasMany('paymentTransaction', 'paymentMethodId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
