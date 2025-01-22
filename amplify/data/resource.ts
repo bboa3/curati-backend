@@ -10,6 +10,11 @@ const ambulanceStatus = ['AVAILABLE', 'ON_TRIP', 'MAINTENANCE', 'OUT_OF_SERVICE'
 const sleepQuality = ['POOR', 'AVERAGE', 'GOOD', 'EXCELLENT'] as const;
 const physicalActivityLevel = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE'] as const;
 const gender = ['MALE', 'FEMALE', 'OTHER', 'UNKNOWN'] as const;
+const likedItemType = ['ARTICLE', 'MEDICINE'] as const;
+const viewedItemType = ['ARTICLE', 'MEDICINE'] as const;
+const ratedItemType = ['BUSINESS', 'PROFESSIONAL', 'MEDICINE', 'BUSINESSSERVICE'] as const;
+const certifiedItemType = ['PROFESSIONAL', 'BUSINESS'] as const;
+const licensedItemType = ['PROFESSIONAL', 'BUSINESS'] as const
 
 // const theme = ['LIGHT', 'DARK']  as const;
 const deliveryStatus = ['PENDING', 'PHARMACY_CONFIRMED', 'PHARMACY_REJECTED', 'DRIVER_CONFIRMED', 'DISPATCHED', 'ONTHEWAY', 'DELIVERED', 'DELAYED', 'CANCELED', 'NOT_DELIVERED', 'PICKUP_CONFIRMED'] as const;
@@ -17,15 +22,9 @@ const deliveryType = ['PICKUP', 'DELIVERY'] as const;
 const medicineOrderStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'CONFIRMED', 'REJECTED', 'DISPATCHED', 'DELIVERED', 'CANCELED'] as const;
 
 const notificationType = ['GENERAL', 'PERSONAL', 'PROMOTIONAL', 'UPDATE'] as const;
-const targetAction = [
-  'VIEW_PRESCRIPTION', 'SCHEDULE_APPOINTMENT', 'REFILL_MEDICATION', 'CONSULTATION_REMINDER', 'MEDICATION_REMINDER',
-  'PROMOTIONAL_OFFERS', 'FEEDBACK_REQUEST', 'HEALTH_TIPS_AND_ARTICLES', 'UPDATE_PERSONAL_HEALTH_PROFILE', 'JOIN_HEALTH_PROGRAMS',
-  'ORDER_TRACKING', 'UPDATE_INSURANCE_INFO', 'NEW_HEALTH_SERVICES', 'JOIN_COMMUNITY_EVENTS', 'REVIEW_LAB_RESULTS',
-  'MANAGE_SUBSCRIPTIONS', 'SEASONAL_HEALTH_TIPS', 'VIEW_NEW_MESSAGE', 'CHAT_WITH_DOCTOR', 'CHAT_WITH_PHARMACIST',
-  'RESPOND_TO_CHATBOT', 'DISCUSS_APPOINTMENT', 'CLARIFY_PRESCRIPTION', 'URGENT_NOTIFICATION'
-] as const;
+const notificationRelatedItemType = ['ORDER', 'PRESCRIPTION', 'APPOINTMENT', 'ARTICLE', 'MEDICINE', 'CONTRACT', 'OTHER'] as const;
 const priority = ['LOW', 'MEDIUM', 'HIGH'] as const;
-const reminderType = ['MEDICATION', 'REFILL', 'APPOINTMENT'] as const;
+const remindedItemType = ['APPOINTMENT', 'MEDICATION', 'DELIVERY', 'MEDICINE_ORDER'] as const;
 const reminderStatus = ['PENDING', 'COMPLETED', 'SKIPPED'] as const;
 const repeatType = ['NONE', 'DAILY', 'WEEKLY', 'CUSTOM'] as const;
 const contractType = ['ONE_TIME', 'MONTHLY', 'SEMI_ANNUALLY', 'ANNUALLY'] as const;
@@ -154,11 +153,9 @@ const schema = a.schema({
     expoPushTokens: a.string().required().array(),
     isDeleted: a.boolean().required().default(false),
     notifications: a.hasMany('notification', 'userId'),
-    //view: a.hasMany('view', 'userId'),
+    view: a.hasMany('view', 'userId'),
+    likes: a.hasMany('like', 'userId'),
     articles: a.hasMany('article', 'authorId'),
-    articleLikes: a.hasMany('articleLike', 'userId'),
-    businessLikes: a.hasMany('businessLike', 'userId'),
-    medicineLikes: a.hasMany('medicineLike', 'userId'),
     address: a.hasMany('address', 'userId'),
     ratings: a.hasMany('rating', 'userId'),
     reminders: a.hasMany('reminder', 'userId'),
@@ -186,8 +183,8 @@ const schema = a.schema({
     medicineOrders: a.hasMany('medicineOrder', 'patientId'),
     invoices: a.hasMany('invoice', 'patientId'),
     paymentMethods: a.hasMany('paymentMethod', 'patientId'),
-    //  patientHealthStatus: a.hasOne('patientHealthStatus', 'patientId'),
-    //  insurance: a.hasOne('insurance', 'patientId'),
+    patientHealthStatus: a.hasOne('patientHealthStatus', 'patientId'),
+    insurance: a.hasOne('insurance', 'patientId'),
     medications: a.hasMany('medicationRecord', 'patientId'),
     prescriptions: a.hasMany('prescription', 'patientId'),
     consultationRecords: a.hasMany('consultationRecord', 'patientId'),
@@ -200,75 +197,75 @@ const schema = a.schema({
     allow.group('ADMIN').to(['read', 'update']),
   ]).disableOperations(['subscriptions', 'delete']),
 
-  // insurance: a.model({
-  //   id: a.id().required(),
-  //   patientId: a.id().required(),
-  //   provider: a.string().required(),
-  //   policyNumber: a.string().required(),
-  //   groupNumber: a.string(),
-  //   effectiveDate: a.date(),
-  //   expirationDate: a.date(),
-  //   memberID: a.string(),
-  //   isVerified: a.boolean().default(false),
-  //   patient: a.belongsTo('patient', 'patientId'),
-  // }).authorization(allow => [
-  //   allow.owner().to(['read', 'create', 'update']),
-  //   allow.group('PROFESSIONAL').to(['read']),
-  //   allow.group('ADMIN').to(['read', 'update']),
-  // ]).disableOperations(['subscriptions']),
+  insurance: a.model({
+    id: a.id().required(),
+    patientId: a.id().required(),
+    provider: a.string().required(),
+    policyNumber: a.string().required(),
+    groupNumber: a.string(),
+    effectiveDate: a.date(),
+    expirationDate: a.date(),
+    memberID: a.string(),
+    isVerified: a.boolean().default(false),
+    patient: a.belongsTo('patient', 'patientId'),
+  }).authorization(allow => [
+    allow.owner().to(['read', 'create', 'update']),
+    allow.group('PROFESSIONAL').to(['read']),
+    allow.group('ADMIN').to(['read', 'update']),
+  ]).disableOperations(['subscriptions']),
 
-  // patientHealthStatus: a.model({
-  //   id: a.id().required(),
-  //   patientId: a.id().required(),
-  //   caloriesBurned: a.integer(),
-  //   weight: a.float(),
-  //   cholesterolTotal: a.float(),
-  //   cholesterolLDL: a.float(),
-  //   cholesterolHDL: a.float(),
-  //   bodyMassIndex: a.float(),
-  //   bodyFatPercentage: a.float(),
-  //   hydrationLevel: a.float(),
-  //   sleepQuality: a.enum(sleepQuality),
-  //   physicalActivityLevel: a.enum(physicalActivityLevel),
-  //   variabilityMetrics: a.json(),
-  //   socialActivityFeatures: a.string().array(),
-  //   predictiveHealthScores: a.json(),
-  //   engagementStrategies: a.string().array(),
-  //   additionalMetrics: a.json(),
-  //   medicationAllergies: a.string().array().required(),
-  //   patient: a.belongsTo('patient', 'patientId'),
-  //   heartRateRecords: a.hasMany('heartRateRecord', 'patientHealthStatusId'),
-  //   bloodSugarRecords: a.hasMany('bloodSugarRecord', 'patientHealthStatusId'),
-  // })
-  //   .authorization(allow => [
-  //     allow.owner().to(['read', 'create', 'update']),
-  //     allow.group('PROFESSIONAL').to(['read', 'update']),
-  //     allow.group('ADMIN').to(['read']),
-  //   ]).disableOperations(['subscriptions']),
+  patientHealthStatus: a.model({
+    id: a.id().required(),
+    patientId: a.id().required(),
+    caloriesBurned: a.integer(),
+    weight: a.float(),
+    cholesterolTotal: a.float(),
+    cholesterolLDL: a.float(),
+    cholesterolHDL: a.float(),
+    bodyMassIndex: a.float(),
+    bodyFatPercentage: a.float(),
+    hydrationLevel: a.float(),
+    sleepQuality: a.enum(sleepQuality),
+    physicalActivityLevel: a.enum(physicalActivityLevel),
+    variabilityMetrics: a.json(),
+    socialActivityFeatures: a.string().array(),
+    predictiveHealthScores: a.json(),
+    engagementStrategies: a.string().array(),
+    additionalMetrics: a.json(),
+    medicationAllergies: a.string().array().required(),
+    patient: a.belongsTo('patient', 'patientId'),
+    heartRateRecords: a.hasMany('heartRateRecord', 'patientHealthStatusId'),
+    bloodSugarRecords: a.hasMany('bloodSugarRecord', 'patientHealthStatusId'),
+  })
+    .authorization(allow => [
+      allow.owner().to(['read', 'create', 'update']),
+      allow.group('PROFESSIONAL').to(['read', 'update']),
+      allow.group('ADMIN').to(['read']),
+    ]).disableOperations(['subscriptions']),
 
-  // heartRateRecord: a.model({
-  //   id: a.id().required(),
-  //   patientHealthStatusId: a.id().required(),
-  //   heartRate: a.integer().required(),
-  //   timestamp: a.datetime().required(),
-  //   patientHealthStatus: a.belongsTo('patientHealthStatus', 'patientHealthStatusId'),
-  // }).authorization(allow => [
-  //   allow.owner().to(['read', 'create', 'update']),
-  //   allow.group('PROFESSIONAL').to(['read', 'update']),
-  //   allow.group('ADMIN').to(['read']),
-  // ]),
+  heartRateRecord: a.model({
+    id: a.id().required(),
+    patientHealthStatusId: a.id().required(),
+    heartRate: a.integer().required(),
+    timestamp: a.datetime().required(),
+    patientHealthStatus: a.belongsTo('patientHealthStatus', 'patientHealthStatusId'),
+  }).authorization(allow => [
+    allow.owner().to(['read', 'create', 'update']),
+    allow.group('PROFESSIONAL').to(['read', 'update']),
+    allow.group('ADMIN').to(['read']),
+  ]),
 
-  // bloodSugarRecord: a.model({
-  //   id: a.id().required(),
-  //   patientHealthStatusId: a.id().required(),
-  //   bloodSugarLevel: a.float().required(),
-  //   timestamp: a.datetime().required(),
-  //   patientHealthStatus: a.belongsTo('patientHealthStatus', 'patientHealthStatusId'),
-  // }).authorization(allow => [
-  //   allow.owner().to(['read', 'create', 'update']),
-  //   allow.group('PROFESSIONAL').to(['read', 'update']),
-  //   allow.group('ADMIN').to(['read']),
-  // ]),
+  bloodSugarRecord: a.model({
+    id: a.id().required(),
+    patientHealthStatusId: a.id().required(),
+    bloodSugarLevel: a.float().required(),
+    timestamp: a.datetime().required(),
+    patientHealthStatus: a.belongsTo('patientHealthStatus', 'patientHealthStatusId'),
+  }).authorization(allow => [
+    allow.owner().to(['read', 'create', 'update']),
+    allow.group('PROFESSIONAL').to(['read', 'update']),
+    allow.group('ADMIN').to(['read']),
+  ]),
 
   prescription: a.model({
     id: a.id().required(),
@@ -354,7 +351,6 @@ const schema = a.schema({
     prescription: a.belongsTo('prescription', 'prescriptionId'),
     prescriptionItem: a.belongsTo('prescriptionItem', 'prescriptionItemId'),
     pharmacyInventory: a.belongsTo('pharmacyInventory', 'pharmacyInventoryId'),
-    reminders: a.hasMany('reminder', 'medicationRecordId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
@@ -455,7 +451,7 @@ const schema = a.schema({
     businessLatitude: a.float().required(),
     businessLongitude: a.float().required(),
     isDeleted: a.boolean().default(false),
-    ratings: a.hasMany('rating', 'businessServiceId'),
+    ratings: a.hasMany('rating', 'ratedItemId'),
     pricing: a.hasMany('businessServicePricing', 'businessServiceId'),
     service: a.belongsTo('service', 'serviceId'),
     business: a.belongsTo('business', 'businessId'),
@@ -506,7 +502,6 @@ const schema = a.schema({
     professional: a.belongsTo('professional', 'professionalId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
     consultationRecord: a.hasOne('consultationRecord', 'appointmentId'),
-    reminders: a.hasMany('reminder', 'appointmentId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
@@ -577,8 +572,8 @@ const schema = a.schema({
     likeCount: a.integer().required().default(0),
     isDeleted: a.boolean().default(false),
     featuredImage: a.hasOne('media', 'articleId'),
-    likes: a.hasMany('articleLike', 'articleId'),
-    //views: a.hasMany('view', 'articleId'),
+    // likes: a.hasMany('like', 'likedItemId'),
+    // views: a.hasMany('view', 'viewedItemId'),
     author: a.belongsTo('user', 'authorId'),
     contentBlocks: a.hasMany('contentBlock', 'articleId'),
     categories: a.hasMany('articleCategory', 'articleId'),
@@ -631,11 +626,10 @@ const schema = a.schema({
     establishedDate: a.datetime(),
     address: a.hasOne('address', 'businessId'),
     contracts: a.hasMany('contract', 'businessId'),
-    // certifications: a.hasMany('certification', 'businessId'),
-    licenses: a.hasMany('license', 'businessId'),
+    // certifications: a.hasMany('certification', 'certifiedItemId'),
+    // licenses: a.hasMany('license', 'licensedItemId'),
     businessOpeningHour: a.hasOne('businessOpeningHour', 'businessId'),
-    likes: a.hasMany('businessLike', 'businessId'),
-    ratings: a.hasMany('rating', 'businessId'),
+    ratings: a.hasMany('rating', 'ratedItemId'),
     consultationRecords: a.hasMany('consultationRecord', 'businessId'),
     businessServices: a.hasMany('businessService', 'businessId'),
     invoices: a.hasMany('invoice', 'businessId'),
@@ -644,7 +638,7 @@ const schema = a.schema({
     pharmacyDeliveries: a.hasMany('delivery', 'pharmacyId'),
     pharmacyInventoryItems: a.hasMany('pharmacyInventory', 'pharmacyId'),
     medicineOrders: a.hasMany('medicineOrder', 'businessId'),
-    // hospitalAmbulances: a.hasMany('ambulance', 'hospitalId'),
+    hospitalAmbulances: a.hasMany('ambulance', 'hospitalId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
@@ -674,9 +668,9 @@ const schema = a.schema({
     education: a.string().required().array().required(),
     careerStartDate: a.datetime().required(),
     availability: a.hasOne('professionalAvailability', 'professionalId'),
-    // certifications: a.hasMany('certification', 'professionalId'),
-    licenses: a.hasMany('license', 'professionalId'),
-    ratings: a.hasMany('rating', 'professionalId'),
+    // certifications: a.hasMany('certification', 'certifiedItemId'),
+    // licenses: a.hasMany('license', 'licensedItemId'),
+    ratings: a.hasMany('rating', 'ratedItemId'),
     user: a.belongsTo('user', 'userId'),
     business: a.belongsTo('business', 'businessId'),
     prescriptions: a.hasMany('prescription', 'prescriberId'),
@@ -785,29 +779,29 @@ const schema = a.schema({
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
     ]).disableOperations(['subscriptions', 'delete']),
 
-  // ambulance: a.model({
-  //   id: a.id().required(),
-  //   hospitalId: a.id().required(),
-  //   hospitalName: a.string().required(),
-  //   vehiclePlate: a.string().required(),
-  //   vehicleModel: a.string().required(),
-  //   vehicleYear: a.integer().required(),
-  //   vehicleColor: a.string().required(),
-  //   vehicleType: a.string().required(),
-  //   status: a.enum(ambulanceStatus),
-  //   medicalEquipment: a.string().array(),
-  //   crewMembers: a.string().array(),
-  //   currentLatitude: a.float().required(),
-  //   currentLongitude: a.float().required(),
-  //   serviceArea: a.string().array(),
-  //   contactNumber: a.string().required(),
-  //   image: a.string().required(),
-  //   hospital: a.belongsTo('business', 'hospitalId'),
-  // })
-  //   .authorization(allow => [
-  //     allow.authenticated().to(['read']),
-  //     allow.group('ADMIN').to(['read', 'create', 'update']),
-  //   ]).disableOperations(['subscriptions', 'delete']),
+  ambulance: a.model({
+    id: a.id().required(),
+    hospitalId: a.id().required(),
+    hospitalName: a.string().required(),
+    vehiclePlate: a.string().required(),
+    vehicleModel: a.string().required(),
+    vehicleYear: a.integer().required(),
+    vehicleColor: a.string().required(),
+    vehicleType: a.string().required(),
+    status: a.enum(ambulanceStatus),
+    medicalEquipment: a.string().array(),
+    crewMembers: a.string().array(),
+    currentLatitude: a.float().required(),
+    currentLongitude: a.float().required(),
+    serviceArea: a.string().array(),
+    contactNumber: a.string().required(),
+    image: a.string().required(),
+    hospital: a.belongsTo('business', 'hospitalId'),
+  })
+    .authorization(allow => [
+      allow.authenticated().to(['read']),
+      allow.group('ADMIN').to(['read', 'create', 'update']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   medicineCategory: a.model({
     id: a.id().required(),
@@ -857,9 +851,9 @@ const schema = a.schema({
     category: a.belongsTo('medicineCategory', 'categoryId'),
     prescriptionItems: a.hasMany('prescriptionItem', 'medicineId'),
     pharmacyInventories: a.hasMany('pharmacyInventory', 'medicineId'),
-    //views: a.hasMany('view', 'medicineId'),
-    likes: a.hasMany('medicineLike', 'medicineId'),
-    ratings: a.hasMany('rating', 'medicineId'),
+    // views: a.hasMany('view', 'viewedItemId'),
+    // likes: a.hasMany('like', 'likedItemId'),
+    ratings: a.hasMany('rating', 'ratedItemId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
@@ -888,71 +882,76 @@ const schema = a.schema({
 
   notification: a.model({
     id: a.id().required(),
+    userId: a.id().required(),
+    relatedItemId: a.id(),
     title: a.string().required(),
     message: a.string().required(),
     type: a.enum(notificationType),
-    targetAction: a.enum(targetAction),
     priority: a.enum(priority),
     payload: a.customType({
       href: a.string()
     }),
+    relatedItemType: a.enum(notificationRelatedItemType),
     expiresAt: a.datetime().required(),
     isRead: a.boolean().required().default(false),
-    userId: a.id().required(),
     user: a.belongsTo('user', 'userId'),
   }).authorization(allow => [
     allow.authenticated().to(['read']),
     allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
   ]).disableOperations(['subscriptions']),
 
-  // view: a.model({
-  //   id: a.id().required(),
-  //   userId: a.id(),
-  //   identityId: a.string(),
-  //   articleId: a.id(),
-  //   medicineId: a.id(),
-  //   user: a.belongsTo('user', 'userId'),
-  //   article: a.belongsTo('article', 'articleId'),
-  //   medicine: a.belongsTo('medicine', 'medicineId'),
-  // })
-  //   .authorization(allow => [
-  //     allow.guest().to(['read', 'create']),
-  //     allow.authenticated().to(['read', 'create']),
-  //   ])
-  //   .disableOperations(['update', 'delete', 'subscriptions']),
-
-  articleLike: a.model({
-    userId: a.id().required(),
-    articleId: a.id().required(),
+  view: a.model({
+    id: a.id().required(),
+    userId: a.id(),
+    identityId: a.string(),
+    viewedItemId: a.id().required(),
+    viewedItemType: a.enum(viewedItemType),
+    timestamp: a.datetime().required(),
     user: a.belongsTo('user', 'userId'),
-    article: a.belongsTo('article', 'articleId'),
-  }).identifier(['articleId', 'userId'])
+    // article: a.belongsTo('article', 'viewedItemId'),
+    // medicine: a.belongsTo('medicine', 'viewedItemId'),
+  }).identifier(['viewedItemId'])
+    .authorization(allow => [
+      allow.authenticated().to(['read']),
+      allow.groups(['ADMIN']).to(['read']),
+    ]).disableOperations(['subscriptions', 'update', 'delete']),
+
+  like: a.model({
+    id: a.id().required(),
+    userId: a.id().required(),
+    likedItemId: a.id().required(),
+    likedItemType: a.enum(likedItemType),
+    user: a.belongsTo('user', 'userId'),
+    // article: a.belongsTo('article', 'likedItemId'),
+    // medicine: a.belongsTo('medicine', 'likedItemId'),
+  }).identifier(['likedItemId'])
+    .authorization(allow => [
+      allow.authenticated().to(['read']),
+      allow.owner().to(['create', 'read', 'delete']),
+    ]).disableOperations(['subscriptions', 'update']),
+
+  rating: a.model({
+    id: a.id().required(),
+    userId: a.id().required(),
+    ratedItemId: a.id().required(),
+    ratedItemType: a.enum(ratedItemType),
+    rating: a.integer().required(),
+    comment: a.string(),
+    verifiedPurchase: a.boolean().required().default(false),
+    responseComment: a.string(),
+    responseCreatedAt: a.datetime(),
+    user: a.belongsTo('user', 'userId'),
+    business: a.belongsTo('business', 'ratedItemId'),
+    professional: a.belongsTo('professional', 'ratedItemId'),
+    medicine: a.belongsTo('medicine', 'ratedItemId'),
+    businessService: a.belongsTo('businessService', 'ratedItemId'),
+  })
+    .identifier(['ratedItemId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
-    ]).disableOperations(['subscriptions']),
-
-  medicineLike: a.model({
-    userId: a.id().required(),
-    medicineId: a.id().required(),
-    user: a.belongsTo('user', 'userId'),
-    medicine: a.belongsTo('medicine', 'medicineId'),
-  }).identifier(['medicineId', 'userId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.owner().to(['create', 'read', 'update', 'delete']),
-    ]).disableOperations(['subscriptions']),
-
-  businessLike: a.model({
-    userId: a.id().required(),
-    businessId: a.id().required(),
-    user: a.belongsTo('user', 'userId'),
-    business: a.belongsTo('business', 'businessId'),
-  }).identifier(['businessId', 'userId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.owner().to(['create', 'read', 'update', 'delete']),
-    ]).disableOperations(['subscriptions']),
+      allow.group('ADMIN').to(['read', 'create', 'update']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   address: a.model({
     id: a.id().required(),
@@ -978,34 +977,36 @@ const schema = a.schema({
       allow.group('ADMIN').to(['read', 'create', 'update']),
     ]).disableOperations(['subscriptions']),
 
-  // certification: a.model({
-  //   id: a.id().required(),
-  //   issuedBy: a.string().required(),
-  //   name: a.string().required(),
-  //   description: a.string(),
-  //   professionalId: a.id(),
-  //   businessId: a.id(),
-  //   professional: a.belongsTo('professional', 'professionalId'),
-  //   business: a.belongsTo('business', 'businessId'),
-  // })
-  //   .authorization(allow => [
-  //     allow.authenticated().to(['create', 'read', 'update', 'delete']),
-  //     allow.group('ADMIN').to(['read', 'create', 'update']),
-  //   ]).disableOperations(['subscriptions']),
+  certification: a.model({
+    id: a.id().required(),
+    certifiedItemId: a.id().required(),
+    issuedBy: a.string().required(),
+    name: a.string().required(),
+    description: a.string(),
+    certifiedItemType: a.enum(certifiedItemType),
+    // professional: a.belongsTo('professional', 'certifiedItemId'),
+    // business: a.belongsTo('business', 'certifiedItemId'),
+  })
+    .identifier(['certifiedItemId'])
+    .authorization(allow => [
+      allow.authenticated().to(['create', 'read', 'update', 'delete']),
+      allow.group('ADMIN').to(['read', 'create', 'update']),
+    ]).disableOperations(['subscriptions']),
 
   license: a.model({
     id: a.id().required(),
+    licensedItemId: a.id().required(),
     issuedBy: a.string().required(),
     licenseNumber: a.string().required(),
     issueDate: a.datetime().required(),
     status: a.enum(licenseStatus),
     expiryDate: a.datetime(),
     description: a.string(),
-    businessId: a.id(),
-    professionalId: a.id(),
-    professional: a.belongsTo('professional', 'professionalId'),
-    business: a.belongsTo('business', 'businessId'),
+    licensedItemType: a.enum(licensedItemType),
+    // professional: a.belongsTo('professional', 'licensedItemId'),
+    // business: a.belongsTo('business', 'licensedItemId'),
   })
+    .identifier(['licensedItemId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
@@ -1058,49 +1059,23 @@ const schema = a.schema({
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
     ]).disableOperations(['subscriptions']),
 
-  rating: a.model({
-    id: a.id().required(),
-    userId: a.id().required(),
-    comment: a.string().required(),
-    rating: a.integer().required(),
-    verifiedPurchase: a.boolean(),
-    responseComment: a.string(),
-    responseCreatedAt: a.datetime(),
-    businessId: a.id(),
-    professionalId: a.id(),
-    medicineId: a.id(),
-    businessServiceId: a.id(),
-    medicine: a.belongsTo('medicine', 'medicineId'),
-    businessService: a.belongsTo('businessService', 'businessServiceId'),
-    business: a.belongsTo('business', 'businessId'),
-    professional: a.belongsTo('professional', 'professionalId'),
-    user: a.belongsTo('user', 'userId'),
-  })
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.owner().to(['create', 'read', 'update', 'delete']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
-
   reminder: a.model({
     id: a.id().required(),
     userId: a.id().required(),
-    appointmentId: a.id(),
-    medicationRecordId: a.id(),
-    type: a.enum(reminderType),
+    remindedItemId: a.id().required(),
+    remindedItemType: a.enum(remindedItemType),
     title: a.string().required(),
     message: a.string().required(),
     dateTime: a.datetime().required(),
     status: a.enum(reminderStatus),
     repeat: a.enum(repeatType),
     user: a.belongsTo('user', 'userId'),
-    appointment: a.belongsTo('appointment', 'appointmentId'),
-    medicationRecord: a.belongsTo('medicationRecord', 'medicationRecordId'),
   })
+    .identifier(['remindedItemId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update', 'delete']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create', 'delete']),
-    ]).disableOperations(['subscriptions']),
+    ]),
 
   invoice: a.model({
     id: a.id().required(),
@@ -1178,5 +1153,6 @@ export const data = defineData({
   schema,
   authorizationModes: {
     defaultAuthorizationMode: 'userPool',
-  },
+  },y
+  
 });
