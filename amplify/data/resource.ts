@@ -155,8 +155,8 @@ const schema = a.schema({
     isDeleted: a.boolean().required().default(false),
     notifications: a.hasMany('notification', 'userId'),
     //view: a.hasMany('view', 'userId'),
-    // articles: a.hasMany('article', 'authorId'),
-    //articleLikes: a.hasMany('articleLike', 'userId'),
+    articles: a.hasMany('article', 'authorId'),
+    articleLikes: a.hasMany('articleLike', 'userId'),
     businessLikes: a.hasMany('businessLike', 'userId'),
     medicineLikes: a.hasMany('medicineLike', 'userId'),
     address: a.hasMany('address', 'userId'),
@@ -168,7 +168,7 @@ const schema = a.schema({
     allow.authenticated().to(['read']),
     allow.ownerDefinedIn('authId').to(['create', 'read', 'update']),
     allow.groups(['ADMIN']).to(['read', 'create', 'update']),
-  ]).disableOperations(['subscriptions']),
+  ]).disableOperations(['subscriptions', 'delete']),
 
   patient: a.model({
     id: a.id().required(),
@@ -198,7 +198,7 @@ const schema = a.schema({
     allow.owner().to(['read', 'create', 'update']),
     allow.group('PROFESSIONAL').to(['read']),
     allow.group('ADMIN').to(['read', 'update']),
-  ]).disableOperations(['subscriptions']),
+  ]).disableOperations(['subscriptions', 'delete']),
 
   // insurance: a.model({
   //   id: a.id().required(),
@@ -297,7 +297,7 @@ const schema = a.schema({
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read', 'update']),
     ])
-    .disableOperations(['subscriptions']),
+    .disableOperations(['subscriptions', 'delete']),
 
   prescriptionItem: a.model({
     id: a.id().required(),
@@ -322,7 +322,7 @@ const schema = a.schema({
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read', 'update']),
     ])
-    .disableOperations(['subscriptions']),
+    .disableOperations(['subscriptions', 'delete']),
 
   medicationRecord: a.model({
     id: a.id().required(),
@@ -360,13 +360,13 @@ const schema = a.schema({
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   medicineOrder: a.model({
     id: a.id().required(),
     orderNumber: a.string().required(),
     patientId: a.id().required(),
-    pharmacyId: a.id().required(),
+    businessId: a.id().required(),
     prescriptionId: a.id(),
     isForPatient: a.boolean().required().default(true),
     status: a.enum(medicineOrderStatus),
@@ -374,13 +374,13 @@ const schema = a.schema({
     prescription: a.belongsTo('prescription', 'prescriptionId'),
     items: a.hasMany('medicineOrderItem', 'orderId'),
     delivery: a.hasOne('delivery', 'orderId'),
-    pharmacy: a.belongsTo('pharmacy', 'pharmacyId'),
+    pharmacy: a.belongsTo('business', 'businessId'),
     invoices: a.hasMany('invoice', 'medicineOrderId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   medicineOrderItem: a.model({
     id: a.id().required(),
@@ -395,7 +395,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   contract: a.model({
     id: a.id().required(),
@@ -421,7 +421,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   service: a.model({
     id: a.id().required(),
@@ -443,7 +443,7 @@ const schema = a.schema({
       allow.authenticated().to(['read']),
       allow.group('PROFESSIONAL').to(['read']),
       allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   businessService: a.model({
     id: a.id().required(),
@@ -468,7 +468,7 @@ const schema = a.schema({
       allow.authenticated().to(['read']),
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   businessServicePricing: a.model({
     id: a.id().required(),
@@ -512,7 +512,7 @@ const schema = a.schema({
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'create', 'update']),
       allow.group('ADMIN').to(['read', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   consultationRecord: a.model({
     id: a.id().required(),
@@ -535,88 +535,88 @@ const schema = a.schema({
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'create', 'update']),
       allow.group('ADMIN').to(['read']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
-  // category: a.model({
-  //   id: a.id().required(),
-  //   type: a.enum(categoryTypes),
-  //   name: a.string().required(),
-  //   slug: a.string().required(),
-  //   description: a.string(),
-  //   isDeleted: a.boolean().required().default(false),
-  //   subCategories: a.string().required().array(),
-  //   articles: a.hasMany('articleCategory', 'categoryId'),
-  // }).authorization(allow => [
-  //   allow.guest().to(['read']),
-  //   allow.authenticated().to(['read']),
-  //   allow.groups(['ADMIN']).to(['create', 'read', 'update', 'delete']),
-  // ]),
+  category: a.model({
+    id: a.id().required(),
+    type: a.enum(categoryTypes),
+    name: a.string().required(),
+    slug: a.string().required(),
+    description: a.string(),
+    isDeleted: a.boolean().required().default(false),
+    subCategories: a.string().required().array(),
+    articles: a.hasMany('articleCategory', 'categoryId'),
+  }).authorization(allow => [
+    allow.guest().to(['read']),
+    allow.authenticated().to(['read']),
+    allow.groups(['ADMIN']).to(['create', 'read', 'update', 'delete']),
+  ]).disableOperations(['subscriptions']),
 
-  // articleCategory: a.model({
-  //   id: a.id().required(),
-  //   articleId: a.id().required(),
-  //   categoryId: a.id().required(),
-  //   article: a.belongsTo('article', 'articleId'),
-  //   category: a.belongsTo('category', 'categoryId'),
-  // }).identifier(['articleId', 'categoryId']).authorization(allow => [
-  //   allow.guest().to(['read']),
-  //   allow.authenticated().to(['read']),
-  //   allow.groups(['ADMIN']).to(['create', 'read', 'delete']),
-  // ]).disableOperations(['update']),
+  articleCategory: a.model({
+    id: a.id().required(),
+    articleId: a.id().required(),
+    categoryId: a.id().required(),
+    article: a.belongsTo('article', 'articleId'),
+    category: a.belongsTo('category', 'categoryId'),
+  }).identifier(['articleId', 'categoryId']).authorization(allow => [
+    allow.guest().to(['read']),
+    allow.authenticated().to(['read']),
+    allow.groups(['ADMIN']).to(['create', 'read', 'delete']),
+  ]).disableOperations(['update', 'subscriptions']),
 
-  // article: a.model({
-  //   id: a.id().required(),
-  //   title: a.string().required(),
-  //   slug: a.string().required(),
-  //   excerpt: a.string(),
-  //   authorId: a.id().required(),
-  //   status: a.enum(articleStatus),
-  //   tags: a.string().required().array().required(),
-  //   publishedAt: a.datetime().required(),
-  //   viewCount: a.integer().required().default(0),
-  //   likeCount: a.integer().required().default(0),
-  //   isDeleted: a.boolean().default(false),
-  //   featuredImage: a.hasOne('media', 'articleId'),
-  //   likes: a.hasMany('articleLike', 'articleId'),
-  //   views: a.hasMany('view', 'articleId'),
-  //   author: a.belongsTo('user', 'authorId'),
-  //   contentBlocks: a.hasMany('contentBlock', 'articleId'),
-  //   categories: a.hasMany('articleCategory', 'articleId'),
-  // }).authorization(allow => [
-  //   allow.guest().to(['read']),
-  //   allow.authenticated().to(['read']),
-  //   allow.groups(['ADMIN']).to(['create', 'read', 'update', 'delete']),
-  // ]),
+  article: a.model({
+    id: a.id().required(),
+    title: a.string().required(),
+    slug: a.string().required(),
+    excerpt: a.string(),
+    authorId: a.id().required(),
+    status: a.enum(articleStatus),
+    tags: a.string().required().array().required(),
+    publishedAt: a.datetime().required(),
+    viewCount: a.integer().required().default(0),
+    likeCount: a.integer().required().default(0),
+    isDeleted: a.boolean().default(false),
+    featuredImage: a.hasOne('media', 'articleId'),
+    likes: a.hasMany('articleLike', 'articleId'),
+    //views: a.hasMany('view', 'articleId'),
+    author: a.belongsTo('user', 'authorId'),
+    contentBlocks: a.hasMany('contentBlock', 'articleId'),
+    categories: a.hasMany('articleCategory', 'articleId'),
+  }).authorization(allow => [
+    allow.guest().to(['read']),
+    allow.authenticated().to(['read']),
+    allow.groups(['ADMIN']).to(['create', 'read', 'update', 'delete']),
+  ]).disableOperations(['subscriptions']),
 
-  // contentBlock: a.model({
-  //   id: a.id().required(),
-  //   articleId: a.id().required(),
-  //   title: a.string(),
-  //   content: a.string().required(),
-  //   order: a.integer().required(),
-  //   article: a.belongsTo('article', 'articleId'),
-  //   medias: a.hasMany('media', 'contentBlockId'),
-  // }).authorization(allow => [
-  //   allow.guest().to(['read']),
-  //   allow.authenticated().to(['read']),
-  //   allow.groups(['ADMIN']).to(['create', 'read', 'update', 'delete']),
-  // ]),
+  contentBlock: a.model({
+    id: a.id().required(),
+    articleId: a.id().required(),
+    title: a.string(),
+    content: a.string().required(),
+    order: a.integer().required(),
+    article: a.belongsTo('article', 'articleId'),
+    medias: a.hasMany('media', 'contentBlockId'),
+  }).authorization(allow => [
+    allow.guest().to(['read']),
+    allow.authenticated().to(['read']),
+    allow.groups(['ADMIN']).to(['create', 'read', 'update', 'delete']),
+  ]).disableOperations(['subscriptions']),
 
-  // media: a.model({
-  //   id: a.id().required(),
-  //   url: a.string().required(),
-  //   thumbnailUrl: a.string(),
-  //   type: a.enum(mediaTypes),
-  //   fileSize: a.integer(),
-  //   mimeType: a.string(),
-  //   articleId: a.id(),
-  //   contentBlockId: a.id(),
-  //   article: a.belongsTo('article', 'articleId'),
-  //   contentBlock: a.belongsTo('contentBlock', 'contentBlockId'),
-  // }).authorization(allow => [
-  //   allow.guest().to(['read']),
-  //   allow.authenticated().to(['create', 'read', 'update', 'delete']),
-  // ]),
+  media: a.model({
+    id: a.id().required(),
+    url: a.string().required(),
+    thumbnailUrl: a.string(),
+    type: a.enum(mediaTypes),
+    fileSize: a.integer(),
+    mimeType: a.string(),
+    articleId: a.id(),
+    contentBlockId: a.id(),
+    article: a.belongsTo('article', 'articleId'),
+    contentBlock: a.belongsTo('contentBlock', 'contentBlockId'),
+  }).authorization(allow => [
+    allow.guest().to(['read']),
+    allow.authenticated().to(['create', 'read', 'update', 'delete']),
+  ]).disableOperations(['subscriptions']),
 
   business: a.model({
     id: a.id().required(),
@@ -631,66 +631,31 @@ const schema = a.schema({
     establishedDate: a.datetime(),
     address: a.hasOne('address', 'businessId'),
     contracts: a.hasMany('contract', 'businessId'),
-    pharmacy: a.hasOne('pharmacy', 'businessId'),
-    hospital: a.hasOne('hospital', 'businessId'),
-    certifications: a.hasMany('certification', 'businessId'),
+    // certifications: a.hasMany('certification', 'businessId'),
     licenses: a.hasMany('license', 'businessId'),
     businessOpeningHour: a.hasOne('businessOpeningHour', 'businessId'),
     likes: a.hasMany('businessLike', 'businessId'),
     ratings: a.hasMany('rating', 'businessId'),
-    courier: a.hasOne('courier', 'businessId'),
     consultationRecords: a.hasMany('consultationRecord', 'businessId'),
     businessServices: a.hasMany('businessService', 'businessId'),
     invoices: a.hasMany('invoice', 'businessId'),
+    professionals: a.hasMany('professional', 'businessId'),
+    courierDeliveries: a.hasMany('delivery', 'courierId'),
+    pharmacyDeliveries: a.hasMany('delivery', 'pharmacyId'),
+    pharmacyInventoryItems: a.hasMany('pharmacyInventory', 'pharmacyId'),
+    medicineOrders: a.hasMany('medicineOrder', 'businessId'),
+    // hospitalAmbulances: a.hasMany('ambulance', 'hospitalId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.group('PROFESSIONAL').to(['read', 'update']),
       allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
-
-  pharmacy: a.model({
-    businessId: a.id().required(),
-    pharmacists: a.hasMany('pharmacist', 'pharmacyId'),
-    inventoryItems: a.hasMany('pharmacyInventory', 'pharmacyId'),
-    business: a.belongsTo('business', 'businessId'),
-    deliveries: a.hasMany('delivery', 'pharmacyId'),
-    orders: a.hasMany('medicineOrder', 'pharmacyId'),
-  }).identifier(['businessId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.group('PROFESSIONAL').to(['read', 'update']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
-
-  courier: a.model({
-    businessId: a.id().required(),
-    drivers: a.hasMany('driver', 'courierId'),
-    business: a.belongsTo('business', 'businessId'),
-    deliveries: a.hasMany('delivery', 'courierId'),
-  })
-    .identifier(['businessId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.group('PROFESSIONAL').to(['read', 'update']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
-
-  hospital: a.model({
-    businessId: a.id().required(),
-    // ambulances: a.hasMany('ambulance', 'hospitalId'),
-    business: a.belongsTo('business', 'businessId'),
-    doctors: a.hasMany('doctor', 'hospitalId'),
-  }).identifier(['businessId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.group('PROFESSIONAL').to(['read', 'update']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   professional: a.model({
     id: a.id().required(),
     userId: a.id().required(),
+    businessId: a.id().required(),
     professionalRegistrationNumber: a.string().required(),
     phone: a.string().required(),
     email: a.string().required(),
@@ -709,23 +674,24 @@ const schema = a.schema({
     education: a.string().required().array().required(),
     careerStartDate: a.datetime().required(),
     availability: a.hasOne('professionalAvailability', 'professionalId'),
-    certifications: a.hasMany('certification', 'professionalId'),
+    // certifications: a.hasMany('certification', 'professionalId'),
     licenses: a.hasMany('license', 'professionalId'),
     ratings: a.hasMany('rating', 'professionalId'),
     user: a.belongsTo('user', 'userId'),
+    business: a.belongsTo('business', 'businessId'),
     prescriptions: a.hasMany('prescription', 'prescriberId'),
     services: a.hasMany('businessService', 'professionalId'),
     consultationRecords: a.hasMany('consultationRecord', 'professionalId'),
     appointments: a.hasMany('appointment', 'professionalId'),
-    driver: a.hasOne('driver', 'professionalId'),
-    pharmacist: a.hasOne('pharmacist', 'professionalId'),
-    doctor: a.hasOne('doctor', 'professionalId'),
     medicationsAdministered: a.hasMany('medicationRecord', 'administeredById'),
+    vehicles: a.hasMany('vehicle', 'driverId'),
+    driverDeliveries: a.hasMany('delivery', 'driverId'),
+    driverLocationHistories: a.hasMany('driverLocationHistory', 'driverId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   professionalAvailability: a.model({
     id: a.id().required(),
@@ -755,48 +721,12 @@ const schema = a.schema({
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
     ]).disableOperations(['subscriptions']),
 
-  pharmacist: a.model({
-    professionalId: a.id().required(),
-    pharmacyId: a.id().required(),
-    pharmacy: a.belongsTo('pharmacy', 'pharmacyId'),
-    professional: a.belongsTo('professional', 'professionalId'),
-  }).identifier(['professionalId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
-
-  doctor: a.model({
-    professionalId: a.id().required(),
-    hospitalId: a.id().required(),
-    hospital: a.belongsTo('hospital', 'hospitalId'),
-    professional: a.belongsTo('professional', 'professionalId'),
-  }).identifier(['professionalId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
-
-  driver: a.model({
-    professionalId: a.id().required(),
-    courierId: a.id().required(),
-    delivery: a.hasMany('delivery', 'driverId'),
-    vehicle: a.hasMany('vehicle', 'driverId'),
-    locationsHistory: a.hasMany('driverLocationHistory', 'driverId'),
-    professional: a.belongsTo('professional', 'professionalId'),
-    courier: a.belongsTo('courier', 'courierId'),
-  }).identifier(['professionalId'])
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
-
   driverLocationHistory: a.model({
     driverId: a.id().required(),
     latitude: a.float().required(),
     longitude: a.float().required(),
     timestamp: a.datetime().required(),
-    driver: a.belongsTo('driver', 'driverId'),
+    driver: a.belongsTo('professional', 'driverId'),
   }).identifier(['driverId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
@@ -811,12 +741,13 @@ const schema = a.schema({
     year: a.integer().required(),
     color: a.string().required(),
     type: a.string().required(),
-    driver: a.belongsTo('driver', 'driverId'),
+    driver: a.belongsTo('professional', 'driverId'),
+    deliveries: a.hasMany('delivery', 'vehicleId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   delivery: a.model({
     id: a.id().required(),
@@ -824,6 +755,7 @@ const schema = a.schema({
     orderId: a.id().required(),
     orderNumber: a.string().required(),
     driverId: a.id(),
+    vehicleId: a.id(),
     courierId: a.id(),
     pharmacyId: a.id().required(),
     status: a.enum(deliveryStatus),
@@ -841,16 +773,17 @@ const schema = a.schema({
     signatureImage: a.string(),
     deliveryConfirmationCode: a.string(),
     order: a.belongsTo('medicineOrder', 'orderId'),
-    driver: a.belongsTo('driver', 'driverId'),
-    courier: a.belongsTo('courier', 'courierId'),
-    pharmacy: a.belongsTo('pharmacy', 'pharmacyId'),
+    driver: a.belongsTo('professional', 'driverId'),
+    courier: a.belongsTo('business', 'courierId'),
+    vehicle: a.belongsTo('vehicle', 'vehicleId'),
+    pharmacy: a.belongsTo('business', 'pharmacyId'),
     patient: a.belongsTo('patient', 'patientId'),
     address: a.hasOne('address', 'deliveryId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   // ambulance: a.model({
   //   id: a.id().required(),
@@ -869,12 +802,12 @@ const schema = a.schema({
   //   serviceArea: a.string().array(),
   //   contactNumber: a.string().required(),
   //   image: a.string().required(),
-  //   hospital: a.belongsTo('hospital', 'hospitalId'),
+  //   hospital: a.belongsTo('business', 'hospitalId'),
   // })
   //   .authorization(allow => [
   //     allow.authenticated().to(['read']),
   //     allow.group('ADMIN').to(['read', 'create', 'update']),
-  //   ]),
+  //   ]).disableOperations(['subscriptions', 'delete']),
 
   medicineCategory: a.model({
     id: a.id().required(),
@@ -898,7 +831,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   medicine: a.model({
     id: a.id().required(),
@@ -924,14 +857,14 @@ const schema = a.schema({
     category: a.belongsTo('medicineCategory', 'categoryId'),
     prescriptionItems: a.hasMany('prescriptionItem', 'medicineId'),
     pharmacyInventories: a.hasMany('pharmacyInventory', 'medicineId'),
-    // views: a.hasMany('view', 'medicineId'),
+    //views: a.hasMany('view', 'medicineId'),
     likes: a.hasMany('medicineLike', 'medicineId'),
     ratings: a.hasMany('rating', 'medicineId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   pharmacyInventory: a.model({
     id: a.id().required(),
@@ -943,7 +876,7 @@ const schema = a.schema({
     pharmacyLatitude: a.float().required(),
     pharmacyLongitude: a.float().required(),
     isDeleted: a.boolean().default(false),
-    pharmacy: a.belongsTo('pharmacy', 'pharmacyId'),
+    pharmacy: a.belongsTo('business', 'pharmacyId'),
     medicine: a.belongsTo('medicine', 'medicineId'),
     medicineOrderItems: a.hasMany('medicineOrderItem', 'pharmacyInventoryId'),
     medicationRecords: a.hasMany('medicationRecord', 'pharmacyInventoryId'),
@@ -951,7 +884,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   notification: a.model({
     id: a.id().required(),
@@ -988,16 +921,16 @@ const schema = a.schema({
   //   ])
   //   .disableOperations(['update', 'delete', 'subscriptions']),
 
-  // articleLike: a.model({
-  //   userId: a.id().required(),
-  //   articleId: a.id().required(),
-  //   user: a.belongsTo('user', 'userId'),
-  //   article: a.belongsTo('article', 'articleId'),
-  // }).identifier(['articleId', 'userId'])
-  //   .authorization(allow => [
-  //     allow.authenticated().to(['read']),
-  //     allow.owner().to(['create', 'read', 'update', 'delete']),
-  //   ]).disableOperations(['subscriptions']),
+  articleLike: a.model({
+    userId: a.id().required(),
+    articleId: a.id().required(),
+    user: a.belongsTo('user', 'userId'),
+    article: a.belongsTo('article', 'articleId'),
+  }).identifier(['articleId', 'userId'])
+    .authorization(allow => [
+      allow.authenticated().to(['read']),
+      allow.owner().to(['create', 'read', 'update', 'delete']),
+    ]).disableOperations(['subscriptions']),
 
   medicineLike: a.model({
     userId: a.id().required(),
@@ -1045,20 +978,20 @@ const schema = a.schema({
       allow.group('ADMIN').to(['read', 'create', 'update']),
     ]).disableOperations(['subscriptions']),
 
-  certification: a.model({
-    id: a.id().required(),
-    issuedBy: a.string().required(),
-    name: a.string().required(),
-    description: a.string(),
-    professionalId: a.id(),
-    businessId: a.id(),
-    professional: a.belongsTo('professional', 'professionalId'),
-    business: a.belongsTo('business', 'businessId'),
-  })
-    .authorization(allow => [
-      allow.authenticated().to(['create', 'read', 'update', 'delete']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions']),
+  // certification: a.model({
+  //   id: a.id().required(),
+  //   issuedBy: a.string().required(),
+  //   name: a.string().required(),
+  //   description: a.string(),
+  //   professionalId: a.id(),
+  //   businessId: a.id(),
+  //   professional: a.belongsTo('professional', 'professionalId'),
+  //   business: a.belongsTo('business', 'businessId'),
+  // })
+  //   .authorization(allow => [
+  //     allow.authenticated().to(['create', 'read', 'update', 'delete']),
+  //     allow.group('ADMIN').to(['read', 'create', 'update']),
+  //   ]).disableOperations(['subscriptions']),
 
   license: a.model({
     id: a.id().required(),
@@ -1194,7 +1127,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['create', 'read', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   paymentTransaction: a.model({
     id: a.id().required(),
@@ -1211,7 +1144,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 
   paymentMethod: a.model({
     id: a.id().required(),
@@ -1235,7 +1168,7 @@ const schema = a.schema({
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
       allow.group('ADMIN').to(['read', 'update']),
-    ]).disableOperations(['subscriptions']),
+    ]).disableOperations(['subscriptions', 'delete']),
 })
   .authorization((allow) => [allow.resource(postConfirmation)]);
 
