@@ -16,7 +16,6 @@ const ratedItemType = ['BUSINESS', 'PROFESSIONAL', 'MEDICINE', 'BUSINESSSERVICE'
 const certifiedItemType = ['PROFESSIONAL', 'BUSINESS'] as const;
 const licensedItemType = ['PROFESSIONAL', 'BUSINESS'] as const
 
-// const theme = ['LIGHT', 'DARK']  as const;
 const deliveryStatus = ['PENDING', 'PHARMACY_CONFIRMED', 'PHARMACY_REJECTED', 'DRIVER_CONFIRMED', 'DISPATCHED', 'ONTHEWAY', 'DELIVERED', 'DELAYED', 'CANCELED', 'NOT_DELIVERED', 'PICKUP_CONFIRMED'] as const;
 const deliveryType = ['PICKUP', 'DELIVERY'] as const;
 const medicineOrderStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'CONFIRMED', 'REJECTED', 'DISPATCHED', 'DELIVERED', 'CANCELED'] as const;
