@@ -7,7 +7,7 @@ const GROUP = ['ADMIN', 'PROFESSIONAL', 'PATIENT'];
 
 export const auth = defineAuth({
   loginWith: {
-    email: true,
+    phone: true,
   },
   groups: GROUP,
   triggers: {
