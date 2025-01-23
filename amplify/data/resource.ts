@@ -150,7 +150,7 @@ const schema = a.schema({
     phone: a.string(),
     name: a.string(),
     profilePicture: a.string(),
-    expoPushTokens: a.string().required().array(),
+    expoPushTokens: a.string().array().required(),
     isDeleted: a.boolean().required().default(false),
     notifications: a.hasMany('notification', 'userId'),
     view: a.hasMany('view', 'userId'),
