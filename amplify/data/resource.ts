@@ -149,6 +149,7 @@ const schema = a.schema({
     email: a.string(),
     phone: a.string(),
     name: a.string(),
+    profilePicture: a.string(),
     expoPushTokens: a.string().required().array(),
     isDeleted: a.boolean().required().default(false),
     notifications: a.hasMany('notification', 'userId'),
