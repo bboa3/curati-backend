@@ -73,7 +73,18 @@ const professionalStatus = ['ONLINE', 'OFFLINE', 'ON_BREAK', 'BUSY'] as const;
 const businessType = ['PHARMACY', 'HOSPITAL', 'DELIVERY', 'LABORATORY'] as const;
 const articleStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
 const mediaTypes = ['IMAGE', 'VIDEO'] as const;
-const categoryTypes = ['ARTICLE'] as const;
+const articleCategory = [
+  "HEALTH_AND_WELLNESS",
+  "NUTRITION",
+  "FITNESS",
+  "MENTAL_HEALTH",
+  "MEDICAL_RESEARCH",
+  "HEALTHCARE_POLICY",
+  "PATIENT_STORIES",
+  "MEDICINE",
+  "PREVENTION",
+  "LIFESTYLE",
+] as const;
 const medicationRecordType = ['MEDICATION', 'VACCINATION', 'OTHER'] as const;
 const medicationRecordStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', "PENDING_VALIDATION"] as const;
 const medicationFrequencyType = ['DAILY', 'WEEKLY', 'MONTHLY', 'AS_NEEDED'] as const;
@@ -532,33 +543,6 @@ const schema = a.schema({
       allow.group('ADMIN').to(['read']),
     ]).disableOperations(['subscriptions', 'delete']),
 
-  category: a.model({
-    id: a.id().required(),
-    type: a.enum(categoryTypes),
-    name: a.string().required(),
-    slug: a.string().required(),
-    description: a.string(),
-    isDeleted: a.boolean().required().default(false),
-    subCategories: a.string().required().array(),
-    articles: a.hasMany('articleCategory', 'categoryId'),
-  }).authorization(allow => [
-    allow.guest().to(['read']),
-    allow.authenticated().to(['read']),
-    allow.groups(['ADMIN']).to(['create', 'read', 'update', 'delete']),
-  ]).disableOperations(['subscriptions']),
-
-  articleCategory: a.model({
-    id: a.id().required(),
-    articleId: a.id().required(),
-    categoryId: a.id().required(),
-    article: a.belongsTo('article', 'articleId'),
-    category: a.belongsTo('category', 'categoryId'),
-  }).identifier(['articleId', 'categoryId']).authorization(allow => [
-    allow.guest().to(['read']),
-    allow.authenticated().to(['read']),
-    allow.groups(['ADMIN']).to(['create', 'read', 'delete']),
-  ]).disableOperations(['update', 'subscriptions']),
-
   article: a.model({
     id: a.id().required(),
     title: a.string().required(),
@@ -567,6 +551,7 @@ const schema = a.schema({
     authorId: a.id().required(),
     status: a.enum(articleStatus),
     tags: a.string().required().array().required(),
+    categories: a.string().required().array().required(),
     publishedAt: a.datetime().required(),
     viewCount: a.integer().required().default(0),
     likeCount: a.integer().required().default(0),
@@ -576,7 +561,6 @@ const schema = a.schema({
     // views: a.hasMany('view', 'viewedItemId'),
     author: a.belongsTo('user', 'authorId'),
     contentBlocks: a.hasMany('contentBlock', 'articleId'),
-    categories: a.hasMany('articleCategory', 'articleId'),
   }).authorization(allow => [
     allow.guest().to(['read']),
     allow.authenticated().to(['read']),
