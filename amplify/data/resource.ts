@@ -31,7 +31,7 @@ const contractStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'ACTIVE', 'EX
 const language = ['PORTUGUESE', 'ENGLISH', 'TSONGA', 'CHANGANA', 'MAKHUWA', 'SENA', 'NDAU'] as const;
 
 const recurrenceType = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'NONE'] as const;
-const serviceFeasibility = ["LOW", "MEDIUM", "HIGH"] as const;
+const serviceFeasibility = ['LOW', 'MEDIUM', 'HIGH'] as const;
 
 const cardBrand = ['MASTERCARD', 'VISA'] as const;
 const mobileProviderName = ['M_PESA', 'E_MOLA', 'M_KESH'] as const;
@@ -42,27 +42,27 @@ const paymentTransactionStatus = ['SUCCESS', 'FAILED', 'PENDING', 'REFUNDED'] as
 
 const pricingCondition = [
   // Base Prices
-  "STANDARD",
-  "EMERGENCY",
-  "COMPLEXITY",
-  "FOLLOW_UP",
-  "URGENT_CARE",
+  'STANDARD',
+  'EMERGENCY',
+  'COMPLEXITY',
+  'FOLLOW_UP',
+  'URGENT_CARE',
 
   // Additional Charges
-  "ADDITIONAL_AFTER_HOURS",
-  "ADDITIONAL_WEEKEND",
-  "ADDITIONAL_SPECIAL_EQUIPMENT",
+  'ADDITIONAL_AFTER_HOURS',
+  'ADDITIONAL_WEEKEND',
+  'ADDITIONAL_SPECIAL_EQUIPMENT',
 
   // Discounts and Penalties
-  "MONTHLY_DISCOUNTED",
-  "SEMI_ANNUALLY_DISCOUNTED",
-  "ANNUALLY_DISCOUNTED",
-  "CANCELLATION"
+  'MONTHLY_DISCOUNTED',
+  'SEMI_ANNUALLY_DISCOUNTED',
+  'ANNUALLY_DISCOUNTED',
+  'CANCELLATION'
 ] as const;
 const addressType = ['HOME', 'WORK', 'PHARMACY', 'HOSPITAL', 'COURIER', 'SHIPPING', 'BILLING'] as const;
 const consultationType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
 const outcome = ['NOT_COMPLETED', 'SUCCESSFUL', 'FOLLOW_UP_REQUIRED', 'REFERRAL_REQUIRED'] as const;
-const prescriptionStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', "PENDING_VALIDATION"] as const;
+const prescriptionStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', 'PENDING_VALIDATION'] as const;
 const prescriptionType = ['INPATIENT', 'OUTPATIENT'] as const;
 
 const appointmentStatus = ['PENDING', 'CONFIRMED', 'RESCHEDULED', 'CANCELLED', 'COMPLETED'] as const;
@@ -72,26 +72,26 @@ const licenseStatus = ['ACTIVE', 'SUSPENDED', 'EXPIRED'] as const;
 const professionalStatus = ['ONLINE', 'OFFLINE', 'ON_BREAK', 'BUSY'] as const;
 const businessType = ['PHARMACY', 'HOSPITAL', 'DELIVERY', 'LABORATORY'] as const;
 const articleStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
-const mediaTypes = ['IMAGE', 'VIDEO'] as const;
+const mediaType = ['IMAGE', 'VIDEO'] as const;
 const articleCategory = [
-  "HEALTH_AND_WELLNESS",
-  "NUTRITION",
-  "FITNESS",
-  "MENTAL_HEALTH",
-  "MEDICAL_RESEARCH",
-  "HEALTHCARE_POLICY",
-  "PATIENT_STORIES",
-  "MEDICINE",
-  "PREVENTION",
-  "LIFESTYLE",
+  'HEALTH_AND_WELLNESS',
+  'NUTRITION',
+  'FITNESS',
+  'MENTAL_HEALTH',
+  'MEDICAL_RESEARCH',
+  'HEALTHCARE_POLICY',
+  'PATIENT_STORIES',
+  'MEDICINE',
+  'PREVENTION',
+  'LIFESTYLE',
 ] as const;
 const medicationRecordType = ['MEDICATION', 'VACCINATION', 'OTHER'] as const;
-const medicationRecordStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', "PENDING_VALIDATION"] as const;
+const medicationRecordStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', 'PENDING_VALIDATION'] as const;
 const medicationFrequencyType = ['DAILY', 'WEEKLY', 'MONTHLY', 'AS_NEEDED'] as const;
 
 const professionalType = ['DOCTOR', 'NURSE', 'PHARMACIST', 'DRIVER'] as const;
-const professionalRole = ['MANAGER', 'ASSISTANT', 'STAFF', 'INTERN', "OWNER"] as const;
-const userRoles = ['ADMIN', 'PROFESSIONAL', 'PATIENT'] as const;
+const professionalRole = ['MANAGER', 'ASSISTANT', 'STAFF', 'INTERN', 'OWNER'] as const;
+const userRole = ['ADMIN', 'PROFESSIONAL', 'PATIENT'] as const;
 
 const schema = a.schema({
   addUserToGroup: a
@@ -156,7 +156,7 @@ const schema = a.schema({
   user: a.model({
     id: a.id().required(),
     authId: a.string().required(),
-    role: a.enum(userRoles),
+    role: a.enum(userRole),
     email: a.string(),
     phone: a.string(),
     name: a.string(),
@@ -585,7 +585,7 @@ const schema = a.schema({
     id: a.id().required(),
     url: a.string().required(),
     thumbnailUrl: a.string(),
-    type: a.enum(mediaTypes),
+    type: a.enum(mediaType),
     fileSize: a.integer(),
     mimeType: a.string(),
     articleId: a.id(),
@@ -799,9 +799,9 @@ const schema = a.schema({
     precautions: a.string().array(),
     description: a.string(),
     composition: a.string(),
-    specialHandlingDeliveryCondition: a.string(),
-    specialHandlingDeliveryDescription: a.string(),
-    specialHandlingDeliveryFee: a.float(),
+    specialDeliveryHandlingCondition: a.string(),
+    specialDeliveryHandlingDescription: a.string(),
+    specialDeliveryHandlingFee: a.float(),
     interactions: a.string().array(),
     storageConditions: a.string(),
     medicines: a.hasMany('medicine', 'categoryId'),
@@ -813,6 +813,7 @@ const schema = a.schema({
 
   medicine: a.model({
     id: a.id().required(),
+    categoryId: a.id().required(),
     name: a.string().required(),
     brand: a.string().required(),
     description: a.string().required(),
@@ -828,10 +829,9 @@ const schema = a.schema({
     precautions: a.string(),
     interactions: a.string(),
     storageConditions: a.string().required(),
-    specialHandlingDeliveryCondition: a.string(),
-    specialHandlingDeliveryDescription: a.string(),
-    specialHandlingDeliveryFee: a.float().required().default(0),
-    categoryId: a.id().required(),
+    specialDeliveryHandlingCondition: a.string(),
+    specialDeliveryHandlingDescription: a.string(),
+    specialDeliveryHandlingFee: a.float().required().default(0),
     isDeleted: a.boolean().required().default(false),
     category: a.belongsTo('medicineCategory', 'categoryId'),
     prescriptionItems: a.hasMany('prescriptionItem', 'medicineId'),
@@ -851,7 +851,7 @@ const schema = a.schema({
     medicineId: a.id().required(),
     price: a.float().required(),
     stock: a.integer().required(),
-    specialHandlingDeliveryFee: a.float().default(0),
+    specialDeliveryHandlingFee: a.float().default(0),
     pharmacyLatitude: a.float().required(),
     pharmacyLongitude: a.float().required(),
     isDeleted: a.boolean().default(false),
