@@ -824,6 +824,7 @@ const schema = a.schema({
     interactions: a.string(),
     packaging: a.string().required(),
     description: a.string().required(),
+    administrationRoute: a.string().required(),
     storageConditions: a.string().required(),
     image: a.string().required(),
     prescriptionLevel: a.integer().required(),
