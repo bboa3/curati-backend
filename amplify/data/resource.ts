@@ -450,7 +450,7 @@ const schema = a.schema({
     serviceFeasibility: a.enum(serviceFeasibility),
     baseSessionDurationMinutes: a.integer(),
     isDeleted: a.boolean().default(false),
-    businessService: a.hasMany('businessService', 'serviceId'),
+    businessServices: a.hasMany('businessService', 'serviceId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
