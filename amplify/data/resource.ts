@@ -823,7 +823,7 @@ const schema = a.schema({
     precautions: a.string(),
     interactions: a.string(),
     packaging: a.string().required(),
-    description: a.string().required(),
+    description: a.string(),
     administrationRoute: a.string().required(),
     storageConditions: a.string().required(),
     image: a.string().required(),
