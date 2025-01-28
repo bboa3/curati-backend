@@ -435,7 +435,7 @@ const schema = a.schema({
     name: a.string().required(),
     description: a.string().required(),
     keywords: a.string().required().array().required(),
-    ProfessionalTechnicalName: a.string().required(),
+    professionalTechnicalName: a.string().required(),
     allowedProfessionalType: a.enum(businessType),
     requiredEquipment: a.string(),
     treatmentTechniques: a.string(),
