@@ -463,7 +463,7 @@ const schema = a.schema({
     businessId: a.id().required(),
     professionalId: a.id().required(),
     serviceId: a.id().required(),
-    professionalType: a.enum(businessType),
+    professionalType: a.enum(professionalType),
     businessType: a.enum(businessType),
     sessionDurationMinutes: a.integer().required(),
     businessLatitude: a.float().required(),
