@@ -69,9 +69,9 @@ const appointmentStatus = ['PENDING', 'CONFIRMED', 'RESCHEDULED', 'CANCELLED', '
 const appointmentType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
 
 const licenseStatus = ['ACTIVE', 'SUSPENDED', 'EXPIRED'] as const;
-const professionalStatus = ['ONLINE', 'OFFLINE', 'ON_BREAK', 'BUSY'] as const;
+const professionalAvailabilityStatus = ['ONLINE', 'OFFLINE', 'ON_BREAK', 'BUSY'] as const;
 const businessType = ['PHARMACY', 'HOSPITAL', 'DELIVERY', 'LABORATORY'] as const;
-const articleStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
+const publicationStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
 const mediaType = ['IMAGE', 'VIDEO'] as const;
 const articleCategory = [
   'HEALTH_AND_WELLNESS',
@@ -345,7 +345,7 @@ const schema = a.schema({
     pharmacyInventoryId: a.id().required(),
     patientId: a.id().required(),
     administeredById: a.id(),
-    recordType: a.enum(medicationRecordType),
+    type: a.enum(medicationRecordType),
     status: a.enum(medicationRecordStatus),
     name: a.string().required(),
     dosage: a.string(),
@@ -443,13 +443,13 @@ const schema = a.schema({
     keywords: a.string().required().array().required(),
     professionalType: a.enum(professionalType),
     businessType: a.enum(businessType),
+    publicationStatus: a.enum(publicationStatus),
     requiredEquipment: a.string(),
     treatmentTechniques: a.string(),
     conditionsTreated: a.string().required().array().required(),
     image: a.string().required(),
     serviceFeasibility: a.enum(serviceFeasibility),
     baseSessionDurationMinutes: a.integer(),
-    isDeleted: a.boolean().default(false),
     businessServices: a.hasMany('businessService', 'serviceId'),
   })
     .authorization(allow => [
@@ -465,10 +465,10 @@ const schema = a.schema({
     serviceId: a.id().required(),
     professionalType: a.enum(professionalType),
     businessType: a.enum(businessType),
+    publicationStatus: a.enum(publicationStatus),
     sessionDurationMinutes: a.integer().required(),
     businessLatitude: a.float().required(),
     businessLongitude: a.float().required(),
-    isDeleted: a.boolean().default(false),
     ratings: a.hasMany('rating', 'ratedItemId'),
     pricing: a.hasMany('businessServicePricing', 'businessServiceId'),
     service: a.belongsTo('service', 'serviceId'),
@@ -556,13 +556,12 @@ const schema = a.schema({
     slug: a.string().required(),
     excerpt: a.string(),
     authorId: a.id().required(),
-    status: a.enum(articleStatus),
+    publicationStatus: a.enum(publicationStatus),
     tags: a.string().required().array().required(),
     categories: a.string().required().array().required(),
     publishedAt: a.datetime().required(),
     viewCount: a.integer().required().default(0),
     likeCount: a.integer().required().default(0),
-    isDeleted: a.boolean().default(false),
     featuredImage: a.hasOne('media', 'articleId'),
     // likes: a.hasMany('like', 'likedItemId'),
     // views: a.hasMany('view', 'viewedItemId'),
@@ -607,13 +606,13 @@ const schema = a.schema({
   business: a.model({
     id: a.id().required(),
     businessType: a.enum(businessType),
+    publicationStatus: a.enum(publicationStatus),
     name: a.string().required(),
     email: a.string().required(),
     phone: a.string().required(),
     logoUrl: a.string().required(),
     uniqueTaxIdentificationNumber: a.string().required(),
     description: a.string().required(),
-    isPublished: a.boolean().default(true),
     establishedDate: a.datetime(),
     address: a.hasOne('address', 'businessId'),
     contracts: a.hasMany('contract', 'businessId'),
@@ -652,8 +651,7 @@ const schema = a.schema({
     bio: a.string(),
     type: a.enum(professionalType),
     role: a.enum(professionalRole),
-    isActive: a.boolean().default(true),
-    status: a.enum(professionalStatus),
+    publicationStatus: a.enum(publicationStatus),
     languagesSpoken: a.string().required().array().required(),
     specialties: a.string().required().array().required(),
     education: a.string().required().array().required(),
@@ -681,6 +679,7 @@ const schema = a.schema({
   professionalAvailability: a.model({
     id: a.id().required(),
     professionalId: a.id().required(),
+    currentAvailabilityStatus: a.enum(professionalAvailabilityStatus),
     bufferBefore: a.integer().required(),
     bufferAfter: a.integer().required(),
     timeSlots: a.json().array().required(),
@@ -721,7 +720,7 @@ const schema = a.schema({
   vehicle: a.model({
     id: a.id().required(),
     driverId: a.id().required(),
-    plate: a.string().required(),
+    licensePlate: a.string().required(),
     model: a.string().required(),
     year: a.integer().required(),
     color: a.string().required(),
@@ -834,11 +833,11 @@ const schema = a.schema({
     administrationRoute: a.string().required(),
     storageConditions: a.string().required(),
     image: a.string().required(),
+    publicationStatus: a.enum(publicationStatus),
     prescriptionLevel: a.integer().required(),
     specialDeliveryHandlingCondition: a.string(),
     specialDeliveryHandlingDescription: a.string(),
     specialDeliveryHandlingFee: a.float().required().default(0),
-    isDeleted: a.boolean().required().default(false),
     category: a.belongsTo('medicineCategory', 'categoryId'),
     prescriptionItems: a.hasMany('prescriptionItem', 'medicineId'),
     pharmacyInventories: a.hasMany('pharmacyInventory', 'medicineId'),
