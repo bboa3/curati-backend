@@ -694,10 +694,10 @@ const schema = a.schema({
 
   recurrencePattern: a.model({
     id: a.id().required(),
-    recurrenceType: a.enum(recurrenceType),
-    recurrenceEnd: a.datetime(),
-    daysOfWeek: a.integer().array(),
     professionalAvailabilityId: a.id().required(),
+    recurrenceType: a.enum(recurrenceType),
+    recurrenceEndAt: a.datetime(),
+    daysOfWeek: a.integer().required().array().required(),
     professionalAvailability: a.belongsTo('professionalAvailability', 'professionalAvailabilityId')
   })
     .authorization(allow => [
