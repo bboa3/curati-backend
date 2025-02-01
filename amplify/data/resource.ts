@@ -666,7 +666,7 @@ const schema = a.schema({
     services: a.hasMany('businessService', 'professionalId'),
     consultationRecords: a.hasMany('consultationRecord', 'professionalId'),
     appointments: a.hasMany('appointment', 'professionalId'),
-    medicationsAdministered: a.hasMany('medicationRecord', 'administeredById'),
+    administeredMedications: a.hasMany('medicationRecord', 'administeredById'),
     vehicles: a.hasMany('vehicle', 'driverId'),
     driverDeliveries: a.hasMany('delivery', 'driverId'),
     driverLocationHistories: a.hasMany('driverLocationHistory', 'driverId'),
