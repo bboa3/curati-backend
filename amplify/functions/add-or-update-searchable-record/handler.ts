@@ -17,7 +17,6 @@ export const handler: Handler = async (event) => {
 
     return { content: 'Done' };
   } catch (e) {
-    console.log("Exception");
     console.log(e);
     console.log(event);
     throw new Error("An unexpected error has occured while processing your request.");

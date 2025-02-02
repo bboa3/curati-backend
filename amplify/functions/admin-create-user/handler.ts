@@ -44,10 +44,8 @@ export const handler: Handler = async (event) => {
 
     return { content: response.User?.Username };
   } catch (e) {
-    console.log("Exception");
     console.log(e);
-    console.log("Incoming event");
     console.log(event);
-    return { content: "An unexpected error has occurred while processing your request." };
+    throw new Error("An unexpected error has occured while processing your request.");
   }
 }
