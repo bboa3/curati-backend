@@ -655,7 +655,7 @@ const schema = a.schema({
     languagesSpoken: a.string().required().array().required(),
     specialties: a.string().required().array().required(),
     education: a.string().required().array().required(),
-    careerStartedAt: a.datetime().required(),
+    careerStartedAt: a.date().required(),
     availability: a.hasOne('professionalAvailability', 'professionalId'),
     // certifications: a.hasMany('certification', 'certifiedItemId'),
     // licenses: a.hasMany('license', 'licensedItemId'),
