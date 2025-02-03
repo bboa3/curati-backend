@@ -17,13 +17,13 @@ export const handler: Handler = async (event) => {
       TemporaryPassword: password,
       UserAttributes: [
         {
-          Name: 'phone',
+          Name: 'phone_number',
           Value: phone
         },
       ],
       ValidationData: [
         {
-          Name: 'phone',
+          Name: 'phone_number',
           Value: phone
         },
       ],
@@ -35,6 +35,6 @@ export const handler: Handler = async (event) => {
   } catch (e) {
     console.log(e);
     console.log(event);
-    throw new Error(`An unexpected error has occured while processing your request. Details: ${e}`);
+    throw new Error(`An unexpected error has occurred while processing your request. Details: ${e}`);
   }
 }
