@@ -20,6 +20,10 @@ export const handler: Handler = async (event) => {
           Name: 'phone_number',
           Value: phone
         },
+        {
+          Name: 'phone_number_verified',
+          Value: 'true'
+        }
       ],
       ValidationData: [
         {
@@ -32,9 +36,9 @@ export const handler: Handler = async (event) => {
     const response = await client.send(command)
 
     return { content: response.User?.Username };
-  } catch (e) {
-    console.log(e);
-    console.log(event);
-    throw new Error(`An unexpected error has occurred while processing your request. Details: ${e}`);
+  } catch (error) {
+    console.error("Creation error:", error);
+    console.log("Event details:", event);
+    throw new Error(`User creation failed: ${error}`);
   }
 }
