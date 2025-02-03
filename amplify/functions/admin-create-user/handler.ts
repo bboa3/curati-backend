@@ -25,12 +25,6 @@ export const handler: Handler = async (event) => {
           Value: 'true'
         }
       ],
-      ValidationData: [
-        {
-          Name: 'phone_number',
-          Value: phone
-        },
-      ],
       UserPoolId: env.AMPLIFY_AUTH_USERPOOL_ID,
     })
     const response = await client.send(command)
