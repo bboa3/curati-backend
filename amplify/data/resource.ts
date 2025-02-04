@@ -683,7 +683,7 @@ const schema = a.schema({
     bufferBefore: a.integer().required(),
     bufferAfter: a.integer().required(),
     timeSlots: a.json().array().required(),
-    exclusions: a.datetime().array(),
+    exclusions: a.date().array(),
     recurrencePattern: a.hasOne('recurrencePattern', 'professionalAvailabilityId'),
     professional: a.belongsTo('professional', 'professionalId'),
   })
