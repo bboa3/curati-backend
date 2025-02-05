@@ -16,9 +16,25 @@ const ratedItemType = ['BUSINESS', 'PROFESSIONAL', 'MEDICINE', 'BUSINESSSERVICE'
 const certifiedItemType = ['PROFESSIONAL', 'BUSINESS'] as const;
 const licensedItemType = ['PROFESSIONAL', 'BUSINESS'] as const
 
-const deliveryStatus = ['PENDING', 'PHARMACY_CONFIRMED', 'PHARMACY_REJECTED', 'DRIVER_CONFIRMED', 'DISPATCHED', 'ONTHEWAY', 'DELIVERED', 'DELAYED', 'CANCELED', 'NOT_DELIVERED', 'PICKUP_CONFIRMED'] as const;
+const deliveryStatus = [
+  'PHARMACY_PREPARING',
+  'READY_FOR_PICKUP',
+  'DRIVER_ASSIGNED',
+  'IN_TRANSIT',
+  'DELIVERED',
+  'FAILED'
+] as const;
 const deliveryType = ['PICKUP', 'DELIVERY'] as const;
-const medicineOrderStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'CONFIRMED', 'REJECTED', 'DISPATCHED', 'DELIVERED', 'CANCELED'] as const;
+const medicineOrderStatus = [
+  'PENDING_PAYMENT',
+  'PHARMACY_REVIEW',
+  'PROCESSING',
+  'READY_FOR_DISPATCH',
+  'DISPATCHED',
+  'COMPLETED',
+  'REJECTED',
+  'CANCELED',
+] as const;
 
 const notificationType = ['GENERAL', 'PERSONAL', 'PROMOTIONAL', 'UPDATE'] as const;
 const notificationRelatedItemType = ['ORDER', 'PRESCRIPTION', 'APPOINTMENT', 'ARTICLE', 'MEDICINE', 'CONTRACT', 'OTHER'] as const;
@@ -172,6 +188,7 @@ const schema = a.schema({
     reminders: a.hasMany('reminder', 'userId'),
     professional: a.hasOne('professional', 'userId'),
     patient: a.hasOne('patient', 'userId'),
+    validatedPrescriptions: a.hasMany('prescription', 'validatedById')
   }).authorization(allow => [
     allow.authenticated().to(['read']),
     allow.ownerDefinedIn('authId').to(['create', 'read', 'update']),
@@ -291,6 +308,8 @@ const schema = a.schema({
     status: a.enum(prescriptionStatus),
     type: a.enum(prescriptionType),
     prescriberId: a.id(),
+    validatedById: a.id(),
+    validatedAt: a.datetime(),
     issuedAt: a.datetime().required(),
     expiryAt: a.datetime().required(),
     documentUrl: a.string(),
@@ -302,6 +321,7 @@ const schema = a.schema({
     renewalAt: a.datetime(),
     patient: a.belongsTo('patient', 'patientId'),
     prescriber: a.belongsTo('professional', 'prescriberId'),
+    validator: a.belongsTo('user', 'validatedById'),
     items: a.hasMany('prescriptionItem', 'prescriptionId'),
     orders: a.hasMany('medicineOrder', 'prescriptionId'),
     medicationRecords: a.hasMany('medicationRecord', 'prescriptionId'),
@@ -392,7 +412,8 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
-      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
+      allow.group('PROFESSIONAL').to(['read', 'update']),
+      allow.group('ADMIN').to(['read'])
     ]).disableOperations(['subscriptions', 'delete']),
 
   medicineOrderItem: a.model({
@@ -856,6 +877,7 @@ const schema = a.schema({
     medicineId: a.id().required(),
     price: a.float().required(),
     stock: a.integer().required(),
+    reservedStock: a.integer().required().default(0),
     publicationStatus: a.enum(publicationStatus),
     specialDeliveryHandlingFee: a.float().default(0),
     pharmacyLatitude: a.float().required(),
