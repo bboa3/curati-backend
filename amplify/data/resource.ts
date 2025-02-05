@@ -193,7 +193,9 @@ const schema = a.schema({
     allow.authenticated().to(['read']),
     allow.ownerDefinedIn('authId').to(['create', 'read', 'update']),
     allow.groups(['ADMIN']).to(['read', 'create', 'update']),
-  ]).disableOperations(['subscriptions', 'delete']),
+  ])
+    .secondaryIndexes(index => [index('authId')])
+    .disableOperations(['subscriptions', 'delete']),
 
   patient: a.model({
     id: a.id().required(),
@@ -223,7 +225,9 @@ const schema = a.schema({
     allow.owner().to(['read', 'create', 'update']),
     allow.group('PROFESSIONAL').to(['read']),
     allow.group('ADMIN').to(['read', 'update']),
-  ]).disableOperations(['subscriptions', 'delete']),
+  ])
+    .secondaryIndexes(index => [index('userId')])
+    .disableOperations(['subscriptions', 'delete']),
 
   insurance: a.model({
     id: a.id().required(),
@@ -692,6 +696,7 @@ const schema = a.schema({
     driverDeliveries: a.hasMany('delivery', 'driverId'),
     driverLocationHistories: a.hasMany('driverLocationHistory', 'driverId'),
   })
+    .secondaryIndexes(index => [index('userId')])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
