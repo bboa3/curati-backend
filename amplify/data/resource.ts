@@ -16,25 +16,9 @@ const ratedItemType = ['BUSINESS', 'PROFESSIONAL', 'MEDICINE', 'BUSINESSSERVICE'
 const certifiedItemType = ['PROFESSIONAL', 'BUSINESS'] as const;
 const licensedItemType = ['PROFESSIONAL', 'BUSINESS'] as const
 
-const deliveryStatus = [
-  'PHARMACY_PREPARING',
-  'READY_FOR_PICKUP',
-  'DRIVER_ASSIGNED',
-  'IN_TRANSIT',
-  'DELIVERED',
-  'FAILED'
-] as const;
+const deliveryStatus = ['PHARMACY_PREPARING', 'READY_FOR_PICKUP', 'DRIVER_ASSIGNED', 'IN_TRANSIT', 'DELIVERED', 'FAILED'] as const;
 const deliveryType = ['PICKUP', 'DELIVERY'] as const;
-const medicineOrderStatus = [
-  'PENDING_PAYMENT',
-  'PHARMACY_REVIEW',
-  'PROCESSING',
-  'READY_FOR_DISPATCH',
-  'DISPATCHED',
-  'COMPLETED',
-  'REJECTED',
-  'CANCELED',
-] as const;
+const medicineOrderStatus = ['PENDING_PAYMENT', 'PHARMACY_REVIEW', 'PROCESSING', 'READY_FOR_DISPATCH', 'DISPATCHED', 'COMPLETED', 'REJECTED', 'CANCELED',] as const;
 
 const notificationType = ['GENERAL', 'PERSONAL', 'PROMOTIONAL', 'UPDATE'] as const;
 const notificationRelatedItemType = ['ORDER', 'PRESCRIPTION', 'APPOINTMENT', 'ARTICLE', 'MEDICINE', 'CONTRACT', 'OTHER'] as const;
@@ -639,6 +623,8 @@ const schema = a.schema({
     uniqueTaxIdentificationNumber: a.string().required(),
     description: a.string().required(),
     establishedDate: a.datetime(),
+    businessLatitude: a.float().required(),
+    businessLongitude: a.float().required(),
     address: a.hasOne('address', 'businessId'),
     contracts: a.hasMany('contract', 'businessId'),
     // certifications: a.hasMany('certification', 'certifiedItemId'),
@@ -884,7 +870,7 @@ const schema = a.schema({
     stock: a.integer().required(),
     reservedStock: a.integer().required().default(0),
     publicationStatus: a.enum(publicationStatus),
-    specialDeliveryHandlingFee: a.float().default(0),
+    specialDeliveryHandlingFee: a.float().required().default(0),
     pharmacyLatitude: a.float().required(),
     pharmacyLongitude: a.float().required(),
     pharmacy: a.belongsTo('business', 'pharmacyId'),
