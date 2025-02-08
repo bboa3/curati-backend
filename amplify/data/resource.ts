@@ -977,7 +977,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'create', 'update']),
     ]).disableOperations(['subscriptions']),
 
   certification: a.model({
