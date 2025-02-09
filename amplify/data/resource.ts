@@ -425,7 +425,7 @@ const schema = a.schema({
     patientId: a.string().required(),
     businessId: a.string().required(),
     businessServiceId: a.string().required(),
-    contractType: a.enum(contractType),
+    type: a.enum(contractType),
     status: a.enum(contractStatus),
     startDate: a.datetime().required(),
     endDate: a.datetime(),
@@ -614,7 +614,7 @@ const schema = a.schema({
 
   business: a.model({
     id: a.id().required(),
-    businessType: a.enum(businessType),
+    type: a.enum(businessType),
     publicationStatus: a.enum(publicationStatus),
     name: a.string().required(),
     email: a.string().required(),
@@ -757,7 +757,7 @@ const schema = a.schema({
     status: a.enum(deliveryStatus),
     distanceInKm: a.float().required(),
     estimatedDeliveryDuration: a.integer().required(),
-    deliveryType: a.enum(deliveryType),
+    type: a.enum(deliveryType),
     totalDeliveryFee: a.float().required(),
     specialHandlingFee: a.float().required(),
     driverCommission: a.float(),
