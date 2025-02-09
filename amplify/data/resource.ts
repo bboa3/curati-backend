@@ -496,7 +496,7 @@ const schema = a.schema({
   businessServicePricing: a.model({
     id: a.id().required(),
     businessServiceId: a.id().required(),
-    description: a.string().required(),
+    description: a.string(),
     fee: a.float().required(),
     condition: a.enum(pricingCondition),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
