@@ -6,23 +6,17 @@ import { addUserToGroup } from './functions/add-user-to-group/resource';
 import { adminCreateUser } from './functions/admin-create-user/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
+import { storage } from './storage/resource';
 
 const backend = defineBackend({
   auth,
   data,
+  storage,
   addUserToGroup,
   adminCreateUser,
   addOrUpdateSearchableRecord,
   deleteSearchableRecord,
   createStreamToken
-});
-
-
-backend.addOutput({
-  storage: {
-    aws_region: "us-east-1",
-    bucket_name: "cura-mz"
-  },
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources
