@@ -930,7 +930,7 @@ const schema = a.schema({
     user: a.belongsTo('user', 'userId'),
     // article: a.belongsTo('article', 'likedItemId'),
     // medicine: a.belongsTo('medicine', 'likedItemId'),
-  }).identifier(['likedItemId'])
+  }).identifier(['likedItemId', 'userId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'delete']),
@@ -952,7 +952,7 @@ const schema = a.schema({
     medicine: a.belongsTo('medicine', 'ratedItemId'),
     businessService: a.belongsTo('businessService', 'ratedItemId'),
   })
-    .identifier(['ratedItemId'])
+    .identifier(['ratedItemId', 'userId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
@@ -1077,7 +1077,7 @@ const schema = a.schema({
     repeat: a.enum(repeatType),
     user: a.belongsTo('user', 'userId'),
   })
-    .identifier(['remindedItemId'])
+    .identifier(['remindedItemId', 'userId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update', 'delete']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create', 'delete']),
