@@ -10,11 +10,11 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@aws-amplify/backend": "^1.13.0",
-    "@aws-amplify/backend-cli": "^1.4.6",
+    "@aws-amplify/backend": "^1.14.1",
+    "@aws-amplify/backend-cli": "^1.4.10",
     "@types/aws-lambda": "^8.10.147",
-    "aws-cdk": "^2.175.1",
-    "aws-cdk-lib": "^2.175.1",
+    "aws-cdk": "^2.178.2",
+    "aws-cdk-lib": "^2.178.2",
     "constructs": "^10.4.2",
     "esbuild": "^0.24.0",
     "tsx": "^4.19.2",
@@ -22,8 +22,8 @@
   },
   "dependencies": {
     "@algolia/client-search": "^5.15.0",
-    "@aws-sdk/client-cognito-identity-provider": "^3.726.1",
-    "aws-amplify": "^6.12.1",
+    "@aws-sdk/client-cognito-identity-provider": "^3.744.0",
+    "aws-amplify": "^6.13.0",
     "stream-chat": "^8.49.0",
     "uuidv7": "^1.0.2"
   }
