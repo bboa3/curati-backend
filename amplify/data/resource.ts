@@ -706,6 +706,7 @@ const schema = a.schema({
     recurrencePattern: a.hasOne('recurrencePattern', 'professionalAvailabilityId'),
     professional: a.belongsTo('professional', 'professionalId'),
   })
+    .identifier(['professionalId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
@@ -719,6 +720,7 @@ const schema = a.schema({
     daysOfWeek: a.integer().required().array().required(),
     professionalAvailability: a.belongsTo('professionalAvailability', 'professionalAvailabilityId')
   })
+    .identifier(['professionalAvailabilityId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
@@ -1032,6 +1034,7 @@ const schema = a.schema({
     specialOpeningHours: a.hasMany('businessSpecialOpeningHour', 'businessOpeningHourId'),
     business: a.belongsTo('business', 'businessId'),
   })
+    .identifier(['businessId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
