@@ -225,11 +225,13 @@ const schema = a.schema({
     memberID: a.string(),
     isVerified: a.boolean().default(false),
     patient: a.belongsTo('patient', 'patientId'),
-  }).authorization(allow => [
-    allow.owner().to(['read', 'create', 'update']),
-    allow.group('PROFESSIONAL').to(['read']),
-    allow.group('ADMIN').to(['read', 'update']),
-  ]).disableOperations(['subscriptions']),
+  })
+    .identifier(['patientId'])
+    .authorization(allow => [
+      allow.owner().to(['read', 'create', 'update']),
+      allow.group('PROFESSIONAL').to(['read']),
+      allow.group('ADMIN').to(['read', 'update']),
+    ]).disableOperations(['subscriptions']),
 
   patientHealthStatus: a.model({
     id: a.id().required(),
@@ -260,6 +262,7 @@ const schema = a.schema({
     heartRateRecords: a.hasMany('heartRateRecord', 'patientHealthStatusId'),
     bloodSugarRecords: a.hasMany('bloodSugarRecord', 'patientHealthStatusId'),
   })
+    .identifier(['patientId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'update']),
