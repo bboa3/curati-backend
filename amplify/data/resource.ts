@@ -974,7 +974,8 @@ const schema = a.schema({
     latitude: a.float(),
     longitude: a.float(),
     type: a.enum(addressType),
-    user: a.belongsTo('user', 'addressOwnerId'),
+    patient: a.belongsTo('patient', 'addressOwnerId'),
+    professional: a.belongsTo('professional', 'addressOwnerId'),
     business: a.belongsTo('business', 'addressOwnerId'),
     delivery: a.belongsTo('delivery', 'addressOwnerId'),
   })
