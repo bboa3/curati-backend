@@ -60,6 +60,7 @@ const pricingCondition = [
   'CANCELLATION'
 ] as const;
 const addressType = ['HOME', 'WORK', 'PHARMACY', 'HOSPITAL', 'COURIER', 'SHIPPING', 'BILLING'] as const;
+const addressOwnerType = ['PATIENT', 'PROFESSIONAL', 'BUSINESS', 'DELIVERY'] as const;
 const consultationType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
 const outcome = ['NOT_COMPLETED', 'SUCCESSFUL', 'FOLLOW_UP_REQUIRED', 'REFERRAL_REQUIRED'] as const;
 const prescriptionStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', 'PENDING_VALIDATION'] as const;
@@ -167,7 +168,6 @@ const schema = a.schema({
     view: a.hasMany('view', 'userId'),
     likes: a.hasMany('like', 'userId'),
     articles: a.hasMany('article', 'authorId'),
-    address: a.hasMany('address', 'userId'),
     ratings: a.hasMany('rating', 'userId'),
     reminders: a.hasMany('reminder', 'userId'),
     professional: a.hasOne('professional', 'userId'),
@@ -204,6 +204,7 @@ const schema = a.schema({
     consultationRecords: a.hasMany('consultationRecord', 'patientId'),
     appointments: a.hasMany('appointment', 'patientId'),
     user: a.belongsTo('user', 'userId'),
+    address: a.hasMany('address', 'addressOwnerId'),
     deliveries: a.hasMany('delivery', 'patientId'),
   }).authorization(allow => [
     allow.owner().to(['read', 'create', 'update']),
@@ -627,7 +628,7 @@ const schema = a.schema({
     establishedDate: a.datetime(),
     businessLatitude: a.float().required(),
     businessLongitude: a.float().required(),
-    address: a.hasOne('address', 'businessId'),
+    address: a.hasMany('address', 'addressOwnerId'),
     contracts: a.hasMany('contract', 'businessId'),
     // certifications: a.hasMany('certification', 'certifiedItemId'),
     // licenses: a.hasMany('license', 'licensedItemId'),
@@ -672,6 +673,7 @@ const schema = a.schema({
     availability: a.hasOne('professionalAvailability', 'professionalId'),
     // certifications: a.hasMany('certification', 'certifiedItemId'),
     // licenses: a.hasMany('license', 'licensedItemId'),
+    address: a.hasMany('address', 'addressOwnerId'),
     ratings: a.hasMany('rating', 'ratedItemId'),
     user: a.belongsTo('user', 'userId'),
     business: a.belongsTo('business', 'businessId'),
@@ -776,7 +778,7 @@ const schema = a.schema({
     vehicle: a.belongsTo('vehicle', 'vehicleId'),
     pharmacy: a.belongsTo('business', 'pharmacyId'),
     patient: a.belongsTo('patient', 'patientId'),
-    address: a.hasOne('address', 'deliveryId'),
+    address: a.hasMany('address', 'addressOwnerId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
@@ -961,9 +963,8 @@ const schema = a.schema({
 
   address: a.model({
     id: a.id().required(),
-    userId: a.id(),
-    businessId: a.id(),
-    deliveryId: a.id(),
+    addressOwnerId: a.id().required(),
+    addressOwnerType: a.enum(addressOwnerType),
     addressLine1: a.string().required(),
     neighborhoodOrDistrict: a.string().required(),
     city: a.string().required(),
@@ -973,10 +974,11 @@ const schema = a.schema({
     latitude: a.float(),
     longitude: a.float(),
     type: a.enum(addressType),
-    user: a.belongsTo('user', 'userId'),
-    business: a.belongsTo('business', 'businessId'),
-    delivery: a.belongsTo('delivery', 'deliveryId'),
+    user: a.belongsTo('user', 'addressOwnerId'),
+    business: a.belongsTo('business', 'addressOwnerId'),
+    delivery: a.belongsTo('delivery', 'addressOwnerId'),
   })
+    .identifier(['addressOwnerId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update']),
