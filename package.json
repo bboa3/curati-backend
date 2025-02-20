@@ -24,7 +24,6 @@
     "@algolia/client-search": "^5.15.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.744.0",
     "aws-amplify": "^6.13.0",
-    "stream-chat": "^8.49.0",
-    "uuidv7": "^1.0.2"
+    "stream-chat": "^8.49.0"
   }
 }

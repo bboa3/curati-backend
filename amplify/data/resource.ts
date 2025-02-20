@@ -155,7 +155,6 @@ const schema = a.schema({
     })),
 
   user: a.model({
-    id: a.id().required(),
     authId: a.string().required(),
     role: a.enum(userRole),
     email: a.string(),

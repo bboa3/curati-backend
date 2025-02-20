@@ -3,7 +3,6 @@ import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtim
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { PostConfirmationTriggerHandler } from "aws-lambda";
-import { uuidv7 } from 'uuidv7';
 import { type Schema } from "../../data/resource";
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
@@ -13,14 +12,13 @@ Amplify.configure(resourceConfig, libraryOptions);
 const client = generateClient<Schema>();
 
 export const handler: PostConfirmationTriggerHandler = async (event) => {
-  const { data: users } = await (client.models.user as any).list({ filter: { authId: { eq: event.request.userAttributes.sub } }, limit: 2 });
+  const { data: user } = await (client.models.user as any).git({ authId: event.request.userAttributes.sub });
 
-  if (users.length > 0) {
+  if (user) {
     return event;
   }
 
   await (client.models.user as any).create({
-    id: uuidv7(),
     authId: event.request.userAttributes.sub,
     name: event.userName,
     email: event.request.userAttributes.email,
