@@ -181,7 +181,6 @@ const schema = a.schema({
     .disableOperations(['subscriptions', 'delete']),
 
   patient: a.model({
-    id: a.id().required(),
     userId: a.id().required(),
     phone: a.string().required(),
     email: a.string(),
@@ -214,7 +213,6 @@ const schema = a.schema({
     .disableOperations(['subscriptions', 'delete']),
 
   insurance: a.model({
-    id: a.id().required(),
     patientId: a.id().required(),
     provider: a.string().required(),
     policyNumber: a.string().required(),
@@ -233,7 +231,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions']),
 
   patientHealthStatus: a.model({
-    id: a.id().required(),
     patientId: a.id().required(),
     caloriesBurned: a.integer(),
     weight: a.float(),
@@ -653,7 +650,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'delete']),
 
   professional: a.model({
-    id: a.id().required(),
     userId: a.id().required(),
     businessId: a.id().required(),
     professionalRegistrationNumber: a.string().required(),
@@ -695,7 +691,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'delete']),
 
   professionalAvailability: a.model({
-    id: a.id().required(),
     professionalId: a.id().required(),
     currentAvailabilityStatus: a.enum(professionalAvailabilityStatus),
     bufferBefore: a.integer().required(),
@@ -712,7 +707,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions']),
 
   recurrencePattern: a.model({
-    id: a.id().required(),
     professionalAvailabilityId: a.id().required(),
     recurrenceType: a.enum(recurrenceType),
     recurrenceEndAt: a.datetime(),
@@ -913,7 +907,6 @@ const schema = a.schema({
   ]).disableOperations(['subscriptions']),
 
   view: a.model({
-    id: a.id().required(),
     userId: a.id(),
     identityId: a.string(),
     viewedItemId: a.id().required(),
@@ -929,7 +922,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'update', 'delete']),
 
   like: a.model({
-    id: a.id().required(),
     userId: a.id().required(),
     likedItemId: a.id().required(),
     likedItemType: a.enum(likedItemType),
@@ -943,7 +935,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'update']),
 
   rating: a.model({
-    id: a.id().required(),
     userId: a.id().required(),
     ratedItemId: a.id().required(),
     ratedItemType: a.enum(ratedItemType),
@@ -966,7 +957,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'delete']),
 
   address: a.model({
-    id: a.id().required(),
     addressOwnerId: a.id().required(),
     addressOwnerType: a.enum(addressOwnerType),
     addressLine1: a.string().required(),
@@ -991,7 +981,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions']),
 
   certification: a.model({
-    id: a.id().required(),
     certifiedItemId: a.id().required(),
     issuedBy: a.string().required(),
     name: a.string().required(),
@@ -1007,7 +996,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions']),
 
   license: a.model({
-    id: a.id().required(),
     licensedItemId: a.id().required(),
     issuedBy: a.string().required(),
     licenseNumber: a.string().required(),
@@ -1027,7 +1015,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions']),
 
   businessOpeningHour: a.model({
-    id: a.id().required(),
     businessId: a.id().required(),
     regularOpeningHours: a.hasMany('businessRegularOpeningHour', 'businessOpeningHourId'),
     specialOpeningHours: a.hasMany('businessSpecialOpeningHour', 'businessOpeningHourId'),
@@ -1074,7 +1061,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions']),
 
   reminder: a.model({
-    id: a.id().required(),
     userId: a.id().required(),
     remindedItemId: a.id().required(),
     remindedItemType: a.enum(remindedItemType),
