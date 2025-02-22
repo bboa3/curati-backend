@@ -15,7 +15,6 @@ export const auth = defineAuth({
   },
   access: (allow) => [
     allow.resource(addUserToGroup).to(["addUserToGroup"]),
-    allow.resource(postConfirmation).to(["addUserToGroup"]),
     allow.resource(adminCreateUser).to(["createUser"]),
   ],
 });
