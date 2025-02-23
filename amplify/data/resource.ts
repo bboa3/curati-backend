@@ -90,6 +90,7 @@ const medicationRecordType = ['MEDICATION', 'VACCINATION', 'OTHER'] as const;
 const medicationRecordStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', 'PENDING_VALIDATION'] as const;
 const medicationFrequencyType = ['DAILY', 'WEEKLY', 'MONTHLY', 'AS_NEEDED'] as const;
 
+const insuranceItemType = ['PATIENT', 'PROFESSIONAL', 'BUSINESS'] as const;
 const professionalType = ['DOCTOR', 'NURSE', 'PHARMACIST', 'DRIVER'] as const;
 const professionalRole = ['MANAGER', 'ASSISTANT', 'STAFF', 'INTERN', 'OWNER'] as const;
 const userRole = ['ADMIN', 'PROFESSIONAL', 'PATIENT'] as const;
@@ -196,7 +197,6 @@ const schema = a.schema({
     invoices: a.hasMany('invoice', 'patientId'),
     paymentMethods: a.hasMany('paymentMethod', 'patientId'),
     patientHealthStatus: a.hasOne('patientHealthStatus', 'patientId'),
-    insurance: a.hasOne('insurance', 'patientId'),
     medications: a.hasMany('medicationRecord', 'patientId'),
     prescriptions: a.hasMany('prescription', 'patientId'),
     consultationRecords: a.hasMany('consultationRecord', 'patientId'),
@@ -211,24 +211,6 @@ const schema = a.schema({
       allow.group('ADMIN').to(['read', 'update']),
     ])
     .disableOperations(['subscriptions', 'delete']),
-
-  insurance: a.model({
-    patientId: a.id().required(),
-    provider: a.string().required(),
-    policyNumber: a.string().required(),
-    groupNumber: a.string(),
-    effectiveDate: a.date(),
-    expirationDate: a.date(),
-    memberID: a.string(),
-    isVerified: a.boolean().default(false),
-    patient: a.belongsTo('patient', 'patientId'),
-  })
-    .identifier(['patientId'])
-    .authorization(allow => [
-      allow.owner().to(['read', 'create', 'update']),
-      allow.group('PROFESSIONAL').to(['read']),
-      allow.group('ADMIN').to(['read', 'update']),
-    ]).disableOperations(['subscriptions']),
 
   patientHealthStatus: a.model({
     patientId: a.id().required(),
@@ -657,7 +639,7 @@ const schema = a.schema({
     email: a.string().required(),
     name: a.string().required(),
     gender: a.enum(gender),
-    dateOfBirth: a.date(),
+    dateOfBirth: a.date().required(),
     lastLogin: a.datetime(),
     profilePicture: a.string().required(),
     bio: a.string(),
@@ -1011,6 +993,26 @@ const schema = a.schema({
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
+      allow.group('ADMIN').to(['read', 'create', 'update']),
+    ]).disableOperations(['subscriptions']),
+
+  insurance: a.model({
+    insuredItemId: a.id().required(),
+    insuredItemType: a.enum(insuranceItemType),
+    provider: a.string().required(),
+    policyNumber: a.string().required(),
+    groupNumber: a.string(),
+    effectiveDate: a.date(),
+    expirationDate: a.date(),
+    memberID: a.string(),
+    isVerified: a.boolean().default(false),
+    // patient: a.belongsTo('patient', 'insuredItemId'),
+    // professional: a.belongsTo('professional', 'insuredItemId'),
+    // business: a.belongsTo('business', 'insuredItemId'),
+  })
+    .identifier(['insuredItemId'])
+    .authorization(allow => [
+      allow.authenticated().to(['create', 'read', 'update', 'delete']),
       allow.group('ADMIN').to(['read', 'create', 'update']),
     ]).disableOperations(['subscriptions']),
 
