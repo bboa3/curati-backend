@@ -370,6 +370,7 @@ const schema = a.schema({
     orderNumber: a.string().required(),
     patientId: a.id().required(),
     businessId: a.id().required(),
+    paymentMethodId: a.id().required(),
     prescriptionId: a.id(),
     isForPatient: a.boolean().required().default(true),
     status: a.enum(medicineOrderStatus),
@@ -379,6 +380,7 @@ const schema = a.schema({
     delivery: a.hasOne('delivery', 'orderId'),
     pharmacy: a.belongsTo('business', 'businessId'),
     invoices: a.hasMany('invoice', 'medicineOrderId'),
+    paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
@@ -407,6 +409,7 @@ const schema = a.schema({
     patientId: a.string().required(),
     businessId: a.string().required(),
     businessServiceId: a.string().required(),
+    paymentMethodId: a.string().required(),
     type: a.enum(contractType),
     status: a.enum(contractStatus),
     startDate: a.datetime().required(),
@@ -421,6 +424,7 @@ const schema = a.schema({
     businessService: a.belongsTo('businessService', 'businessServiceId'),
     appointments: a.hasMany('appointment', 'contractId'),
     invoices: a.hasMany('invoice', 'contractId'),
+    paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
@@ -1087,7 +1091,6 @@ const schema = a.schema({
     medicineOrderId: a.id(),
     contractId: a.id(),
     orderNumber: a.string().required(),
-    paymentMethodType: a.enum(paymentMethodType),
     subTotal: a.float().required(),
     discount: a.float().required(),
     taxes: a.float().required(),
@@ -1140,6 +1143,8 @@ const schema = a.schema({
     }),
     patient: a.belongsTo('patient', 'patientId'),
     transactions: a.hasMany('paymentTransaction', 'paymentMethodId'),
+    contracts: a.hasMany('contract', 'paymentMethodId'),
+    orders: a.hasMany('medicineOrder', 'paymentMethodId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
