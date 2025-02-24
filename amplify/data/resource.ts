@@ -39,6 +39,7 @@ const paymentTermsType = ['NET_1', 'NET_7', 'NET_30'] as const;
 const paymentMethodType = ['CREDIT_CARD', 'DEBIT_CARD', 'MOBILE_PAYMENT'] as const;
 const invoiceStatus = ['PENDING', 'PAID', 'PARTIALLY_PAID', 'FAILED', 'OVERDUE'] as const;
 const paymentTransactionStatus = ['SUCCESS', 'FAILED', 'PENDING', 'REFUNDED'] as const;
+const invoiceSourceType = ['MEDICINE_ORDER', 'CONTRACT'] as const;
 
 const pricingCondition = [
   // Base Prices
@@ -379,7 +380,7 @@ const schema = a.schema({
     items: a.hasMany('medicineOrderItem', 'orderId'),
     delivery: a.hasOne('delivery', 'orderId'),
     pharmacy: a.belongsTo('business', 'businessId'),
-    invoices: a.hasMany('invoice', 'medicineOrderId'),
+    invoices: a.hasMany('invoice', 'invoiceSourceId'),
     paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
   })
     .authorization(allow => [
@@ -423,7 +424,7 @@ const schema = a.schema({
     business: a.belongsTo('business', 'businessId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
     appointments: a.hasMany('appointment', 'contractId'),
-    invoices: a.hasMany('invoice', 'contractId'),
+    invoices: a.hasMany('invoice', 'invoiceSourceId'),
     paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
   })
     .authorization(allow => [
@@ -1088,8 +1089,8 @@ const schema = a.schema({
     invoiceNumber: a.string().required(),
     patientId: a.id().required(),
     businessId: a.id().required(),
-    medicineOrderId: a.id(),
-    contractId: a.id(),
+    invoiceSourceType: a.enum(invoiceSourceType),
+    invoiceSourceId: a.id().required(),
     orderNumber: a.string().required(),
     subTotal: a.float().required(),
     discount: a.float().required(),
@@ -1099,8 +1100,8 @@ const schema = a.schema({
     dueDate: a.datetime().required(),
     status: a.enum(invoiceStatus),
     patient: a.belongsTo('patient', 'patientId'),
-    medicineOrder: a.belongsTo('medicineOrder', 'medicineOrderId'),
-    contract: a.belongsTo('contract', 'contractId'),
+    medicineOrder: a.belongsTo('medicineOrder', 'invoiceSourceId'),
+    contract: a.belongsTo('contract', 'invoiceSourceId'),
     business: a.belongsTo('business', 'businessId'),
     transactions: a.hasMany('paymentTransaction', 'invoiceId'),
   })
