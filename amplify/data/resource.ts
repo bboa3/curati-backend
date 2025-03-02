@@ -415,6 +415,8 @@ const schema = a.schema({
     status: a.enum(contractStatus),
     startDate: a.datetime().required(),
     endDate: a.datetime(),
+    isRenewable: a.boolean().default(false),
+    renewalDate: a.datetime(),
     appliedPricingConditions: a.string().required().array().required(),
     purpose: a.string(),
     notes: a.string(),
