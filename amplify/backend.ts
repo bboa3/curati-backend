@@ -6,6 +6,7 @@ import { addUserToGroup } from './functions/add-user-to-group/resource';
 import { adminCreateUser } from './functions/admin-create-user/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
+import { getSecrets } from './functions/get-secrets/resource';
 import { storage } from './storage/resource';
 
 const backend = defineBackend({
@@ -16,7 +17,8 @@ const backend = defineBackend({
   adminCreateUser,
   addOrUpdateSearchableRecord,
   deleteSearchableRecord,
-  createStreamToken
+  createStreamToken,
+  getSecrets
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources
