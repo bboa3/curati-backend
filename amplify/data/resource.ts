@@ -310,7 +310,7 @@ const schema = a.schema({
       allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
       allow.group('ADMIN').to(['read', 'update']),
     ])
-    .disableOperations(['subscriptions', 'delete']),
+    .disableOperations(['delete']),
 
   prescriptionItem: a.model({
     id: a.id().required(),
@@ -394,8 +394,8 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'update']),
-      allow.group('ADMIN').to(['read'])
-    ]).disableOperations(['subscriptions', 'delete']),
+      allow.group('ADMIN').to(['read', 'update']),
+    ]).disableOperations(['delete']),
 
   medicineOrderItem: a.model({
     id: a.id().required(),
@@ -439,8 +439,8 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
-      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['subscriptions', 'delete']),
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update']),
+    ]).disableOperations(['delete']),
 
   service: a.model({
     id: a.id().required(),
@@ -778,7 +778,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions', 'delete']),
+    ]).disableOperations(['delete']),
 
   ambulance: a.model({
     id: a.id().required(),
