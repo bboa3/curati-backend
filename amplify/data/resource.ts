@@ -748,7 +748,7 @@ const schema = a.schema({
     id: a.id().required(),
     patientId: a.id().required(),
     orderId: a.id().required(),
-    orderNumber: a.string().required(),
+    deliveryNumber: a.string().required(),
     driverId: a.id(),
     vehicleId: a.id(),
     courierId: a.id(),
