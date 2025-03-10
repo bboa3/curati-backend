@@ -1101,7 +1101,6 @@ const schema = a.schema({
     businessId: a.id().required(),
     invoiceSourceType: a.enum(invoiceSourceType),
     invoiceSourceId: a.id().required(),
-    orderNumber: a.string().required(),
     subTotal: a.float().required(),
     discount: a.float().required(),
     taxes: a.float().required(),
