@@ -745,7 +745,6 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'delete']),
 
   delivery: a.model({
-    id: a.id().required(),
     patientId: a.id().required(),
     orderId: a.id().required(),
     deliveryNumber: a.string().required(),
@@ -775,6 +774,7 @@ const schema = a.schema({
     patient: a.belongsTo('patient', 'patientId'),
     address: a.hasMany('address', 'addressOwnerId'),
   })
+    .identifier(['orderId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
