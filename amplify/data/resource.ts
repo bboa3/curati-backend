@@ -772,7 +772,7 @@ const schema = a.schema({
     vehicle: a.belongsTo('vehicle', 'vehicleId'),
     pharmacy: a.belongsTo('business', 'pharmacyId'),
     patient: a.belongsTo('patient', 'patientId'),
-    address: a.hasMany('address', 'addressOwnerId'),
+    address: a.hasOne('address', 'addressOwnerId'),
   })
     .identifier(['orderId'])
     .authorization(allow => [
