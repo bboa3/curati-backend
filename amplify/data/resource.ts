@@ -508,6 +508,7 @@ const schema = a.schema({
 
   appointment: a.model({
     id: a.id().required(),
+    appointmentNumber: a.string().required(),
     contractId: a.id().required(),
     patientId: a.id().required(),
     professionalId: a.id().required(),
@@ -537,6 +538,7 @@ const schema = a.schema({
 
   consultationRecord: a.model({
     id: a.id().required(),
+    contractId: a.id().required(),
     patientId: a.id().required(),
     businessId: a.id().required(),
     professionalId: a.id().required(),
@@ -551,6 +553,7 @@ const schema = a.schema({
     professional: a.belongsTo('professional', 'professionalId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
     appointment: a.belongsTo('appointment', 'appointmentId'),
+    contract: a.belongsTo('contract', 'contractId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
