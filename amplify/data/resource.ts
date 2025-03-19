@@ -522,8 +522,8 @@ const schema = a.schema({
     type: a.enum(appointmentType),
     reason: a.string(),
     notes: a.string(),
-    patientRescheduledCount: a.integer().default(0),
-    professionalRescheduledCount: a.integer().default(0),
+    patientRescheduledCount: a.integer().required().default(0),
+    professionalRescheduledCount: a.integer().required().default(0),
     isConfirmed: a.boolean().default(false),
     confirmationDateTime: a.datetime(),
     cancellationReason: a.string(),
@@ -1169,7 +1169,6 @@ const schema = a.schema({
     orders: a.hasMany('medicineOrder', 'paymentMethodId'),
   })
     .authorization(allow => [
-      allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update', 'delete']),
       allow.group('ADMIN').to(['read', 'update']),
     ]).disableOperations(['subscriptions', 'delete']),

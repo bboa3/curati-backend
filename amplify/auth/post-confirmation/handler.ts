@@ -13,15 +13,15 @@ const client = generateClient<Schema>();
 
 export const handler: PostConfirmationTriggerHandler = async (event) => {
   try {
-    const { data: user } = await (client.models.user as any).git({ authId: event.request.userAttributes.sub });
+    const authId = event.request.userAttributes.sub;
+
+    const { data: user } = await client.models.user.get({ authId });
 
     if (user) {
       return event;
     }
 
-    const authId = event.request.userAttributes.sub;
-
-    await (client.models.user as any).create({
+    await client.models.user.create({
       authId: authId,
       name: event.userName,
       email: event.request.userAttributes.email,
