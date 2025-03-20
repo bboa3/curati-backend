@@ -308,9 +308,9 @@ const schema = a.schema({
     medicationRecords: a.hasMany('medicationRecord', 'prescriptionId'),
   })
     .authorization(allow => [
+      allow.authenticated().to(['read']),
       allow.owner().to(['read', 'create', 'update']),
-      allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
-      allow.group('ADMIN').to(['read', 'update']),
+      allow.group('ADMIN').to(['read', 'update', 'create']),
     ])
     .disableOperations(['delete']),
 
@@ -333,9 +333,8 @@ const schema = a.schema({
     medicationRecords: a.hasMany('medicationRecord', 'prescriptionItemId'),
   })
     .authorization((allow) => [
-      allow.owner().to(['read', 'create', 'update']),
-      allow.group('PROFESSIONAL').to(['read', 'update', 'create']),
-      allow.group('ADMIN').to(['read', 'update']),
+      allow.authenticated().to(['read']),
+      allow.group('ADMIN').to(['read', 'update', 'create']),
     ])
     .disableOperations(['subscriptions', 'delete']),
 
