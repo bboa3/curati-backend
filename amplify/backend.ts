@@ -39,9 +39,9 @@ cfnUserPool.policies = {
 };
 
 const deliveryTable = backend.data.resources.tables["delivery"];
-const deliveryTablePolicy = new Policy(
+const newMedicineOrderPharmacyNotifierPolicy = new Policy(
   Stack.of(deliveryTable),
-  "deliveryTablePolicy",
+  "NewMedicineOrderPharmacyNotifierPolicy",
   {
     statements: [
       new PolicyStatement({
@@ -54,18 +54,26 @@ const deliveryTablePolicy = new Policy(
         ],
         resources: ["*"],
       }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+        ],
+        resources: ["*"],
+      }),
     ],
   }
 );
-backend.newMedicineOrderPharmacyNotifier.resources.lambda.role?.attachInlinePolicy(deliveryTablePolicy);
+backend.newMedicineOrderPharmacyNotifier.resources.lambda.role?.attachInlinePolicy(newMedicineOrderPharmacyNotifierPolicy);
 
-const mapping = new EventSourceMapping(
+const newMedicineOrderPharmacyNotifierMapping = new EventSourceMapping(
   Stack.of(deliveryTable),
-  "deliveryTableMapping",
+  "NewMedicineOrderPharmacyNotifierMapping",
   {
     target: backend.newMedicineOrderPharmacyNotifier.resources.lambda,
     eventSourceArn: deliveryTable.tableStreamArn,
     startingPosition: StartingPosition.LATEST,
   }
 );
-mapping.node.addDependency(deliveryTablePolicy);
+newMedicineOrderPharmacyNotifierMapping.node.addDependency(newMedicineOrderPharmacyNotifierPolicy);
