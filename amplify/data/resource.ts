@@ -6,6 +6,7 @@ import { adminCreateUser } from '../functions/admin-create-user/resource';
 import { createStreamToken } from '../functions/create-stream-token/resource';
 import { deleteSearchableRecord } from '../functions/delete-searchable-record/resource';
 import { getSecrets } from '../functions/get-secrets/resource';
+import { newMedicineOrderPharmacyNotifier } from '../functions/newMedicineOrderPharmacyNotifier/resource';
 
 const ambulanceStatus = ['AVAILABLE', 'ON_TRIP', 'MAINTENANCE', 'OUT_OF_SERVICE'] as const;
 const sleepQuality = ['POOR', 'AVERAGE', 'GOOD', 'EXCELLENT'] as const;
@@ -1174,6 +1175,7 @@ const schema = a.schema({
 })
   .authorization((allow) => [
     allow.resource(postConfirmation),
+    allow.resource(newMedicineOrderPharmacyNotifier).to(['query'])
   ]);
 
 export type Schema = ClientSchema<typeof schema>;

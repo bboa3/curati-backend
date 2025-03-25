@@ -1,49 +1,49 @@
+import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
 import { Logger } from "@aws-lambda-powertools/logger";
-import { DynamoDBClient, GetItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { Amplify } from "aws-amplify";
+import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
 import { sendOrderNotificationEmail } from './utils/send-email';
 
-type Delivery = Schema['delivery']['type'];
-type Pharmacist = Schema['professional']['type'];
-type MedicineOrder = Schema['medicineOrder']['type'];
+Amplify.configure(
+  {
+    API: {
+      GraphQL: {
+        endpoint: env.AMPLIFY_DATA_GRAPHQL_ENDPOINT,
+        region: env.AWS_REGION,
+        defaultAuthMode: "lambda",
+      },
+    },
+  },
+  {
+    Auth: {
+      credentialsProvider: {
+        getCredentialsAndIdentityId: async () => ({
+          credentials: {
+            accessKeyId: env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+            sessionToken: env.AWS_SESSION_TOKEN,
+          },
+        }),
+        clearCredentialsAndIdentityId: () => {
+          /* noop */
+        },
+      },
+    },
+  }
+);
 
 const logger = new Logger({
   logLevel: "INFO",
   serviceName: "dynamodb-stream-handler",
 });
 
-const dbClient = new DynamoDBClient({});
+const dbClient = generateClient<any>();
 
-async function getPharmacists(pharmacyId: string): Promise<Pharmacist[]> {
-  const params = {
-    TableName: "professional",
-    KeyConditionExpression: "businessId = :businessId",
-    ExpressionAttributeValues: marshall({ ":businessId": pharmacyId }),
-  };
-  try {
-    const { Items } = await dbClient.send(new QueryCommand(params));
-    return Items ? Items.map((item) => unmarshall(item)) as Pharmacist[] : [];
-  } catch (error) {
-    logger.error(`Error getting Pharmacists: ${error}`);
-    throw error;
-  }
-}
-
-async function getMedicineOrder(id: string): Promise<MedicineOrder | null> {
-  const params = {
-    TableName: "medicineOrder",
-    Key: marshall({ id }),
-  };
-  try {
-    const { Item } = await dbClient.send(new GetItemCommand(params));
-    return Item ? unmarshall(Item) as MedicineOrder : null;
-  } catch (error) {
-    logger.error(`Error getting medicine order data: ${error}`);
-    throw error;
-  }
-}
+type Delivery = Schema['delivery']['type'];
+type Pharmacist = Schema['professional']['type'];
+type MedicineOrder = Schema['medicineOrder']['type'];
 
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
@@ -54,12 +54,17 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       const delivery = record.dynamodb?.NewImage as unknown as Delivery;
       if (!delivery) throw new Error("Delivery not found");
 
-      const order = await getMedicineOrder(delivery.orderId)
+      const { data: orderData } = await dbClient.models.medicineOrder.get({ id: delivery.orderId })
 
-      const pharmacists = await getPharmacists(delivery.pharmacyId);
+      const { data: pharmacistsData } = await dbClient.models.professional.list({
+        filter: { businessId: { eq: delivery.pharmacyId } }
+      })
+      const order = orderData as unknown as MedicineOrder
+      const pharmacists = pharmacistsData as unknown as Pharmacist[]
+
       if (!order || !pharmacists) throw Error('Order or pharmacists not found')
 
-      const toAddresses = pharmacists.map((pharmacist) => pharmacist.email);
+      const toAddresses = pharmacists.map(pharmacist => pharmacist.email);
 
       const data = await sendOrderNotificationEmail(toAddresses, order.orderNumber)
 
