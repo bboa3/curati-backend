@@ -39,8 +39,6 @@ cfnUserPool.policies = {
 };
 
 const deliveryTable = backend.data.resources.tables["delivery"];
-const professionalTable = backend.data.resources.tables["professional"];
-const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
 
 const newMedicineOrderPharmacyNotifierPolicy = new Policy(
   Stack.of(deliveryTable),
@@ -54,9 +52,8 @@ const newMedicineOrderPharmacyNotifierPolicy = new Policy(
           "dynamodb:GetRecords",
           "dynamodb:GetShardIterator",
           "dynamodb:ListStreams",
-          "dynamodb:GetItem",
         ],
-        resources: [deliveryTable.tableStreamArn!, deliveryTable.tableArn!],
+        resources: [deliveryTable.tableStreamArn!],
       }),
       new PolicyStatement({
         effect: Effect.ALLOW,
@@ -68,13 +65,11 @@ const newMedicineOrderPharmacyNotifierPolicy = new Policy(
       }),
       new PolicyStatement({
         effect: Effect.ALLOW,
-        actions: ["dynamodb:GetItem"],
-        resources: [medicineOrderTable.tableArn],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["dynamodb:Query"],
-        resources: [professionalTable.tableArn],
+        actions: [
+          "dynamodb:GetItem",
+          "dynamodb:Query"
+        ],
+        resources: ['*'],
       }),
     ],
   }
