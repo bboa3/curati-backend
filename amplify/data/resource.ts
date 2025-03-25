@@ -1175,7 +1175,7 @@ const schema = a.schema({
 })
   .authorization((allow) => [
     allow.resource(postConfirmation),
-    allow.resource(newMedicineOrderPharmacyNotifier).to(['query'])
+    allow.resource(newMedicineOrderPharmacyNotifier)
   ]);
 
 export type Schema = ClientSchema<typeof schema>;
