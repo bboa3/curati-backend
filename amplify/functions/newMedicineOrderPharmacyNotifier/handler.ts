@@ -2,6 +2,8 @@ import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
 import type { DynamoDBStreamHandler } from "aws-lambda";
+import { Schema } from '../../data/resource';
+
 const logger = new Logger({
   logLevel: "INFO",
   serviceName: "dynamodb-stream-handler",
@@ -9,12 +11,22 @@ const logger = new Logger({
 
 const sesClient = new SESv2Client({});
 
+type Delivery = Schema['delivery']['type'];
+
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
     logger.info(`Processing record: ${record.eventID}`);
     logger.info(`Event Type: ${record.eventName}`);
 
     if (record.eventName === "INSERT") {
+      const delivery = record.dynamodb?.NewImage as unknown as Delivery;
+      await sendOrderNotificationEmail(
+        [env.VERIFIED_SES_SENDER_EMAIL],
+        delivery.deliveryNumber,
+        delivery.notes || "",
+        delivery.orderId
+      )
+
       logger.info(`New Image: ${JSON.stringify(record.dynamodb?.NewImage)}`);
     }
   }
