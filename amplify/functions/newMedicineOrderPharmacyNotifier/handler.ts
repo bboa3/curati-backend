@@ -15,22 +15,6 @@ Amplify.configure(
         defaultAuthMode: "lambda",
       },
     },
-  },
-  {
-    Auth: {
-      credentialsProvider: {
-        getCredentialsAndIdentityId: async () => ({
-          credentials: {
-            accessKeyId: env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-            sessionToken: env.AWS_SESSION_TOKEN,
-          },
-        }),
-        clearCredentialsAndIdentityId: () => {
-          /* noop */
-        },
-      },
-    },
   }
 );
 
@@ -39,7 +23,9 @@ const logger = new Logger({
   serviceName: "dynamodb-stream-handler",
 });
 
-const dbClient = generateClient<any>();
+const client = generateClient<any>({
+  authMode: 'lambda'
+});
 
 type Delivery = Schema['delivery']['type'];
 type Pharmacist = Schema['professional']['type'];
@@ -47,34 +33,50 @@ type MedicineOrder = Schema['medicineOrder']['type'];
 
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
-    logger.info(`Processing record: ${record.eventID}`);
-    logger.info(`Event Type: ${record.eventName}`);
+    try {
+      logger.info(`Processing record: ${record.eventID}`);
 
-    if (record.eventName === "INSERT") {
-      const delivery = record.dynamodb?.NewImage as unknown as Delivery;
-      if (!delivery) throw new Error("Delivery not found");
+      if (record.eventName === "INSERT") {
+        const delivery = record.dynamodb?.NewImage;
+        const orderId = delivery?.orderId?.S;
+        const pharmacyId = delivery?.pharmacyId?.S;
 
-      const { data: orderData } = await dbClient.models.medicineOrder.get({ id: delivery.orderId })
+        if (!orderId || !pharmacyId) {
+          logger.warn("Missing required delivery fields");
+          continue;
+        }
 
-      const { data: pharmacistsData } = await dbClient.models.professional.list({
-        filter: { businessId: { eq: delivery.pharmacyId } }
-      })
-      const order = orderData as unknown as MedicineOrder
-      const pharmacists = pharmacistsData as unknown as Pharmacist[]
+        const { data: order, errors: orderErrors } = await client.models.medicineOrder.get({
+          id: orderId
+        });
 
-      if (!order || !pharmacists) throw Error('Order or pharmacists not found')
+        if (orderErrors || !order) {
+          logger.error("Failed to fetch order", { errors: orderErrors });
+          continue;
+        }
 
-      const toAddresses = pharmacists.map(pharmacist => pharmacist.email);
+        const { data: pharmacists, errors: pharmacistErrors } = await client.models.professional.list({
+          filter: { businessId: { eq: pharmacyId } }
+        });
 
-      const data = await sendOrderNotificationEmail(toAddresses, order.orderNumber)
+        if (pharmacistErrors || !pharmacists) {
+          logger.error("Failed to fetch pharmacists", { errors: pharmacistErrors });
+          continue;
+        }
 
-      logger.info("Email sent successfully!", { messageId: data.MessageId, recipients: toAddresses });
-      logger.info(`New Image: ${JSON.stringify(record.dynamodb?.NewImage)}`);
+        const emails = pharmacists.map((p: Pharmacist) => p.email).filter(Boolean);
+        const orderNumber = (order as unknown as MedicineOrder).orderNumber;
+        if (emails.length > 0) {
+          await sendOrderNotificationEmail(
+            emails,
+            orderNumber
+          );
+        }
+      }
+    } catch (error) {
+      logger.error("Error processing record", { error });
     }
   }
-  logger.info(`Successfully processed ${event.Records.length} records.`);
 
-  return {
-    batchItemFailures: [],
-  };
+  return { batchItemFailures: [] };
 };
