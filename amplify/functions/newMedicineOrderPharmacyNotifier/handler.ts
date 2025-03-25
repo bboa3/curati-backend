@@ -40,7 +40,7 @@ async function getMedicineOrder(id: string): Promise<MedicineOrder | null> {
     const { Item } = await dbClient.send(new GetItemCommand(params));
     return Item ? unmarshall(Item) as MedicineOrder : null;
   } catch (error) {
-    logger.error(`Error getting Business data: ${error}`);
+    logger.error(`Error getting medicine order data: ${error}`);
     throw error;
   }
 }
