@@ -39,6 +39,9 @@ cfnUserPool.policies = {
 };
 
 const deliveryTable = backend.data.resources.tables["delivery"];
+const professionalTable = backend.data.resources.tables["professional"];
+const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
+
 const newMedicineOrderPharmacyNotifierPolicy = new Policy(
   Stack.of(deliveryTable),
   "NewMedicineOrderPharmacyNotifierPolicy",
@@ -62,6 +65,16 @@ const newMedicineOrderPharmacyNotifierPolicy = new Policy(
           "ses:SendRawEmail",
         ],
         resources: ["*"],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["dynamodb:GetItem"],
+        resources: [medicineOrderTable.tableArn],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["dynamodb:Query"],
+        resources: [professionalTable.tableArn],
       }),
     ],
   }
