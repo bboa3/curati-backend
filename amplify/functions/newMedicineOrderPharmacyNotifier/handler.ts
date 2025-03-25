@@ -1,19 +1,49 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { generateClient } from "aws-amplify/data";
+import { DynamoDBClient, GetItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
 import { sendOrderNotificationEmail } from './utils/send-email';
+
+type Delivery = Schema['delivery']['type'];
+type Pharmacist = Schema['professional']['type'];
+type MedicineOrder = Schema['medicineOrder']['type'];
 
 const logger = new Logger({
   logLevel: "INFO",
   serviceName: "dynamodb-stream-handler",
 });
 
-const dbClient = generateClient<any>();
+const dbClient = new DynamoDBClient({});
 
-type Delivery = Schema['delivery']['type'];
-type Pharmacist = Schema['professional']['type'];
-type MedicineOrder = Schema['medicineOrder']['type'];
+async function getPharmacists(pharmacyId: string): Promise<Pharmacist[]> {
+  const params = {
+    TableName: "professional",
+    KeyConditionExpression: "businessId = :businessId",
+    ExpressionAttributeValues: marshall({ ":businessId": pharmacyId }),
+  };
+  try {
+    const { Items } = await dbClient.send(new QueryCommand(params));
+    return Items ? Items.map((item) => unmarshall(item)) as Pharmacist[] : [];
+  } catch (error) {
+    logger.error(`Error getting Pharmacists: ${error}`);
+    throw error;
+  }
+}
+
+async function getMedicineOrder(id: string): Promise<MedicineOrder | null> {
+  const params = {
+    TableName: "medicineOrder",
+    Key: marshall({ id }),
+  };
+  try {
+    const { Item } = await dbClient.send(new GetItemCommand(params));
+    return Item ? unmarshall(Item) as MedicineOrder : null;
+  } catch (error) {
+    logger.error(`Error getting Business data: ${error}`);
+    throw error;
+  }
+}
 
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
@@ -24,14 +54,9 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       const delivery = record.dynamodb?.NewImage as unknown as Delivery;
       if (!delivery) throw new Error("Delivery not found");
 
-      const { data: orderData } = await dbClient.models.medicineOrder.get({ id: delivery.orderId })
+      const order = await getMedicineOrder(delivery.orderId)
 
-      const { data: pharmacistsData } = await dbClient.models.professional.list({
-        filter: { businessId: { eq: delivery.pharmacyId } }
-      })
-      const order = orderData as unknown as MedicineOrder
-      const pharmacists = pharmacistsData as unknown as Pharmacist[]
-
+      const pharmacists = await getPharmacists(delivery.pharmacyId);
       if (!order || !pharmacists) throw Error('Order or pharmacists not found')
 
       const toAddresses = pharmacists.map((pharmacist) => pharmacist.email);
