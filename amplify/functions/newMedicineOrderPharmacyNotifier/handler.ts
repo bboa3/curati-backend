@@ -1,21 +1,22 @@
+import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
+import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
-import amplify_outputs from '../../../amplify_outputs.json';
 import { Schema } from '../../data/resource';
 import { sendOrderNotificationEmail } from './utils/send-email';
 
-Amplify.configure(amplify_outputs);
+const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
+
+Amplify.configure(resourceConfig, libraryOptions);
 
 const logger = new Logger({
   logLevel: "INFO",
   serviceName: "dynamodb-stream-handler",
 });
 
-const client = generateClient<any>({
-  authMode: 'lambda'
-});
+const client = generateClient<any>();
 
 type Delivery = Schema['delivery']['type'];
 type Pharmacist = Schema['professional']['type'];
