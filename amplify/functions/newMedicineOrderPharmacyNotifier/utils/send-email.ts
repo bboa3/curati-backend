@@ -1,7 +1,7 @@
 import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
 
-const sesClient = new SESv2Client();
+const client = new SESv2Client();
 
 export async function sendOrderNotificationEmail(
   toAddresses: string[],
@@ -44,5 +44,5 @@ export async function sendOrderNotificationEmail(
 
   const sendEmailCommand = new SendEmailCommand(params);
 
-  return await sesClient.send(sendEmailCommand);
+  return await client.send(sendEmailCommand);
 }

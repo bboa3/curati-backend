@@ -52,8 +52,9 @@ const newMedicineOrderPharmacyNotifierPolicy = new Policy(
           "dynamodb:GetRecords",
           "dynamodb:GetShardIterator",
           "dynamodb:ListStreams",
+          "dynamodb:GetItem"
         ],
-        resources: [deliveryTable.tableStreamArn!],
+        resources: [deliveryTable.tableStreamArn!, deliveryTable.tableArn!],
       }),
       new PolicyStatement({
         effect: Effect.ALLOW,
@@ -65,11 +66,8 @@ const newMedicineOrderPharmacyNotifierPolicy = new Policy(
       }),
       new PolicyStatement({
         effect: Effect.ALLOW,
-        actions: [
-          "dynamodb:GetItem",
-          "dynamodb:Query"
-        ],
-        resources: ['*'],
+        actions: ["sns:Publish"],
+        resources: ["*"],
       }),
     ],
   }
