@@ -1,4 +1,4 @@
-import { env } from '$amplify/env/new-prescription-admin-notifier';
+import { env } from '$amplify/env/new-validated-prescription-patient-notifier';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
@@ -19,42 +19,46 @@ const logger = new Logger({
 
 const client = generateClient<any>();
 
-type User = Schema['user']['type'];
+type Patient = Schema['patient']['type'];
 
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
     try {
       logger.info(`Processing record: ${record.eventID}`);
 
-      if (record.eventName === "INSERT") {
+      if (record.eventName === "MODIFY") {
         const prescription = record.dynamodb?.NewImage;
         const prescriptionNumber = prescription?.prescriptionNumber?.S;
+        const patientId = prescription?.patientId?.S;
 
-        if (!prescriptionNumber) {
+        if (!prescriptionNumber || !patientId) {
           logger.warn("Missing required prescription fields");
           continue;
         }
 
-        const { data: admins, errors: adminErrors } = await client.models.user.list({
-          filter: { role: { eq: 'ADMIN' } }
-        });
+        const { data: patient, errors: patientErrors } = await client.models.patient.get({ userId: patientId });
 
-        if (adminErrors || !admins || admins.length === 0) {
-          logger.error("Failed to fetch admins", { errors: adminErrors });
+        if (patientErrors || !patient) {
+          logger.error("Failed to fetch patient", { errors: patientErrors });
           continue;
         }
 
-        const emails = admins.map((p: User) => p.email).filter(Boolean) as string[];
-        const phones = admins.map((p: User) => p.phone ? `+258${p.phone.replace(/\D/g, '')}` : null).filter(Boolean) as string[];
-        if (emails.length > 0) {
+        const { name, email, phone } = patient as unknown as Patient;
+
+        if (email) {
           await sendNotificationEmail(
-            emails,
+            name,
+            [email],
             prescriptionNumber
           );
         }
 
-        if (phones.length > 0) {
-          await Promise.all(phones.map((phone) => phone ? sendNotificationSMS(phone, prescriptionNumber) : null));
+        if (phone) {
+          await sendNotificationSMS(
+            name,
+            `+258${phone.replace(/\D/g, '')}`,
+            prescriptionNumber
+          );
         }
       }
     } catch (error) {

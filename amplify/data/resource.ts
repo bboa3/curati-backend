@@ -8,6 +8,7 @@ import { deleteSearchableRecord } from '../functions/delete-searchable-record/re
 import { getSecrets } from '../functions/get-secrets/resource';
 import { newMedicineOrderPharmacyNotifier } from '../functions/newMedicineOrderPharmacyNotifier/resource';
 import { newPrescriptionAdminNotifier } from '../functions/newPrescriptionAdminNotifier/resource';
+import { newValidatedPrescriptionPatientNotifier } from '../functions/newValidatedPrescriptionPatientNotifier/resource';
 
 const ambulanceStatus = ['AVAILABLE', 'ON_TRIP', 'MAINTENANCE', 'OUT_OF_SERVICE'] as const;
 const sleepQuality = ['POOR', 'AVERAGE', 'GOOD', 'EXCELLENT'] as const;
@@ -1177,7 +1178,8 @@ const schema = a.schema({
   .authorization((allow) => [
     allow.resource(postConfirmation),
     allow.resource(newMedicineOrderPharmacyNotifier),
-    allow.resource(newPrescriptionAdminNotifier)
+    allow.resource(newPrescriptionAdminNotifier),
+    allow.resource(newValidatedPrescriptionPatientNotifier)
   ]);
 
 export type Schema = ClientSchema<typeof schema>;

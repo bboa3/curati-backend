@@ -12,6 +12,7 @@ import { deleteSearchableRecord } from './functions/delete-searchable-record/res
 import { getSecrets } from './functions/get-secrets/resource';
 import { newMedicineOrderPharmacyNotifier } from './functions/newMedicineOrderPharmacyNotifier/resource';
 import { newPrescriptionAdminNotifier } from './functions/newPrescriptionAdminNotifier/resource';
+import { newValidatedPrescriptionPatientNotifier } from './functions/newValidatedPrescriptionPatientNotifier/resource';
 import { storage } from './storage/resource';
 
 const backend = defineBackend({
@@ -25,7 +26,8 @@ const backend = defineBackend({
   createStreamToken,
   getSecrets,
   newMedicineOrderPharmacyNotifier,
-  newPrescriptionAdminNotifier
+  newPrescriptionAdminNotifier,
+  newValidatedPrescriptionPatientNotifier
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources
@@ -107,9 +109,42 @@ const newPrescriptionAdminNotifierPolicy = new Policy(
     ],
   }
 );
+const newValidatedPrescriptionPatientNotifierPolicy = new Policy(
+  Stack.of(prescriptionTable),
+  "NewValidatedPrescriptionPatientNotifierPolicy",
+  {
+    statements: [
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "dynamodb:DescribeStream",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:ListStreams",
+          "dynamodb:GetItem"
+        ],
+        resources: [prescriptionTable.tableStreamArn!, prescriptionTable.tableArn!],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+        ],
+        resources: ["*"],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["sns:Publish"],
+        resources: ["*"],
+      }),
+    ],
+  }
+);
 
 backend.newMedicineOrderPharmacyNotifier.resources.lambda.role?.attachInlinePolicy(newMedicineOrderPharmacyNotifierPolicy);
 backend.newPrescriptionAdminNotifier.resources.lambda.role?.attachInlinePolicy(newPrescriptionAdminNotifierPolicy);
+backend.newValidatedPrescriptionPatientNotifier.resources.lambda.role?.attachInlinePolicy(newValidatedPrescriptionPatientNotifierPolicy);
 
 const newMedicineOrderPharmacyNotifierMapping = new EventSourceMapping(
   Stack.of(deliveryTable),
@@ -129,6 +164,16 @@ const newPrescriptionAdminNotifierMapping = new EventSourceMapping(
     startingPosition: StartingPosition.LATEST,
   }
 );
+const newValidatedPrescriptionPatientNotifierMapping = new EventSourceMapping(
+  Stack.of(prescriptionTable),
+  "NewValidatedPrescriptionPatientNotifierMapping",
+  {
+    target: backend.newValidatedPrescriptionPatientNotifier.resources.lambda,
+    eventSourceArn: prescriptionTable.tableStreamArn,
+    startingPosition: StartingPosition.LATEST,
+  }
+);
 
 newMedicineOrderPharmacyNotifierMapping.node.addDependency(newMedicineOrderPharmacyNotifierPolicy);
 newPrescriptionAdminNotifierMapping.node.addDependency(newPrescriptionAdminNotifierPolicy);
+newValidatedPrescriptionPatientNotifierMapping.node.addDependency(newValidatedPrescriptionPatientNotifierPolicy);
