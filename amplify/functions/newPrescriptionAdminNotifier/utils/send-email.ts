@@ -15,7 +15,7 @@ export async function sendNotificationEmail(
       <style>
         body { font-family: sans-serif; }
         p { margin-bottom: 10px; }
-        .footer { font-size: 0.8em; color: #666; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+        .footer { font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
       </style>
     </head>
     <body>
