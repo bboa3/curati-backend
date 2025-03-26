@@ -5,8 +5,8 @@ import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
-import { sendOrderNotificationEmail } from './utils/send-email';
-import { sendOrderNotificationSMS } from './utils/send-sms';
+import { sendNotificationEmail } from './utils/send-email';
+import { sendNotificationSMS } from './utils/send-sms';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -59,14 +59,14 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         const phones = pharmacists.map((p: Pharmacist) => `+258${p.phone.replace(/\D/g, '')}`).filter(Boolean);
         const orderNumber = (order as unknown as MedicineOrder).orderNumber;
         if (emails.length > 0) {
-          await sendOrderNotificationEmail(
+          await sendNotificationEmail(
             emails,
             orderNumber
           );
         }
 
         if (phones.length > 0) {
-          await Promise.all(phones.map((phone) => sendOrderNotificationSMS(phone, orderNumber)));
+          await Promise.all(phones.map((phone) => sendNotificationSMS(phone, orderNumber)));
         }
       }
     } catch (error) {

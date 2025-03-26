@@ -5,7 +5,7 @@ const client = new SESv2Client();
 
 export async function sendNotificationEmail(
   toAddresses: string[],
-  orderNumber: string,
+  prescriptionNumber: string,
 ) {
   const params: SendEmailCommandInput = {
     FromEmailAddress: env.VERIFIED_SES_SENDER_EMAIL,
@@ -16,16 +16,16 @@ export async function sendNotificationEmail(
     Content: {
       Simple: {
         Subject: {
-          Data: "Novo Pedido de Medicamentos - Ação Necessária",
+          Data: "Nova Receita para Validar - Ação Necessária",
         },
         Body: {
           Html: {
             Data: `
             <html>
             <body>
-              <h1>Novo Pedido de Medicamentos - Ação Necessária</h1>
+              <h1>Nova Receita para Validar - Ação Necessária</h1>
               <p>Prezado(a) farmacêutico(a),</p>
-              <p>Um novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega.</p>
+              <p>Um novo pedido de validação de receita (Código da Receita: ${prescriptionNumber}) foi recebida.</p>
               <p>Por favor, acesse o sistema para processar este pedido o mais breve possível.</p>
               <p>Atenciosamente,</p>
               <p>Cúrati - A sua saúde é a nossa prioridade.</p>
@@ -35,7 +35,7 @@ export async function sendNotificationEmail(
           `,
           },
           Text: {
-            Data: `Novo Pedido de Medicamentos - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.\n\nAtenciosamente,\n\nCopyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.`,
+            Data: `Nova Receita para Validar - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de validação de receita (Código da Receita: ${prescriptionNumber}) foi recebida. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.\n\nAtenciosamente,\n\nCopyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.`,
           },
         },
       },

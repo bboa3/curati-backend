@@ -11,6 +11,7 @@ import { createStreamToken } from './functions/create-stream-token/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
 import { getSecrets } from './functions/get-secrets/resource';
 import { newMedicineOrderPharmacyNotifier } from './functions/newMedicineOrderPharmacyNotifier/resource';
+import { newPrescriptionAdminNotifier } from './functions/newPrescriptionAdminNotifier/resource';
 import { storage } from './storage/resource';
 
 const backend = defineBackend({
@@ -23,7 +24,8 @@ const backend = defineBackend({
   deleteSearchableRecord,
   createStreamToken,
   getSecrets,
-  newMedicineOrderPharmacyNotifier
+  newMedicineOrderPharmacyNotifier,
+  newPrescriptionAdminNotifier
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources
@@ -39,6 +41,7 @@ cfnUserPool.policies = {
 };
 
 const deliveryTable = backend.data.resources.tables["delivery"];
+const prescriptionTable = backend.data.resources.tables["prescription"];
 
 const newMedicineOrderPharmacyNotifierPolicy = new Policy(
   Stack.of(deliveryTable),
@@ -72,7 +75,41 @@ const newMedicineOrderPharmacyNotifierPolicy = new Policy(
     ],
   }
 );
+const newPrescriptionAdminNotifierPolicy = new Policy(
+  Stack.of(prescriptionTable),
+  "NewPrescriptionAdminNotifierPolicy",
+  {
+    statements: [
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "dynamodb:DescribeStream",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:ListStreams",
+          "dynamodb:GetItem"
+        ],
+        resources: [prescriptionTable.tableStreamArn!, prescriptionTable.tableArn!],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+        ],
+        resources: ["*"],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["sns:Publish"],
+        resources: ["*"],
+      }),
+    ],
+  }
+);
+
 backend.newMedicineOrderPharmacyNotifier.resources.lambda.role?.attachInlinePolicy(newMedicineOrderPharmacyNotifierPolicy);
+backend.newPrescriptionAdminNotifier.resources.lambda.role?.attachInlinePolicy(newPrescriptionAdminNotifierPolicy);
 
 const newMedicineOrderPharmacyNotifierMapping = new EventSourceMapping(
   Stack.of(deliveryTable),
@@ -83,4 +120,15 @@ const newMedicineOrderPharmacyNotifierMapping = new EventSourceMapping(
     startingPosition: StartingPosition.LATEST,
   }
 );
+const newPrescriptionAdminNotifierMapping = new EventSourceMapping(
+  Stack.of(prescriptionTable),
+  "NewPrescriptionAdminNotifierMapping",
+  {
+    target: backend.newPrescriptionAdminNotifier.resources.lambda,
+    eventSourceArn: prescriptionTable.tableStreamArn,
+    startingPosition: StartingPosition.LATEST,
+  }
+);
+
 newMedicineOrderPharmacyNotifierMapping.node.addDependency(newMedicineOrderPharmacyNotifierPolicy);
+newPrescriptionAdminNotifierMapping.node.addDependency(newPrescriptionAdminNotifierPolicy);
