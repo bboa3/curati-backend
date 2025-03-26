@@ -1,22 +1,12 @@
-import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
+import amplify_outputs from '../../../amplify_outputs.json';
 import { Schema } from '../../data/resource';
 import { sendOrderNotificationEmail } from './utils/send-email';
 
-Amplify.configure(
-  {
-    API: {
-      GraphQL: {
-        endpoint: env.AMPLIFY_DATA_GRAPHQL_ENDPOINT,
-        region: env.AWS_REGION,
-        defaultAuthMode: "lambda",
-      },
-    },
-  }
-);
+Amplify.configure(amplify_outputs);
 
 const logger = new Logger({
   logLevel: "INFO",
