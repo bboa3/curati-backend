@@ -56,7 +56,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         }
 
         const emails = pharmacists.map((p: Pharmacist) => p.email).filter(Boolean);
-        const phones = pharmacists.map((p: Pharmacist) => p.phone).filter(Boolean);
+        const phones = pharmacists.map((p: Pharmacist) => `+258${p.phone.replace(/\D/g, '')}`).filter(Boolean);
         const orderNumber = (order as unknown as MedicineOrder).orderNumber;
         if (emails.length > 0) {
           await sendOrderNotificationEmail(
