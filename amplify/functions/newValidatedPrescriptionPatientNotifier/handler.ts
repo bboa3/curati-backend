@@ -5,6 +5,7 @@ import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
+import { PrescriptionStatus } from './utils/prescriptionStatus';
 import { sendNotificationEmail } from './utils/send-email';
 import { sendNotificationSMS } from './utils/send-sms';
 
@@ -29,9 +30,11 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       if (record.eventName === "MODIFY") {
         const prescription = record.dynamodb?.NewImage;
         const prescriptionNumber = prescription?.prescriptionNumber?.S;
+        const prescriptionId = prescription?.prescriptionId?.S;
+        const prescriptionStatus = prescription?.status?.S as PrescriptionStatus;
         const patientId = prescription?.patientId?.S;
 
-        if (!prescriptionNumber || !patientId) {
+        if (!prescriptionNumber || !prescriptionId || !prescriptionStatus || !patientId) {
           logger.warn("Missing required prescription fields");
           continue;
         }
@@ -44,21 +47,26 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         }
 
         const { name, email, phone } = patient as unknown as Patient;
+        const prescriptionDeepLink = `curati://life.curati.www/(app)/profile/prescriptions/${prescriptionId}`;
 
         if (email) {
-          await sendNotificationEmail(
-            name,
-            [email],
-            prescriptionNumber
-          );
+          await sendNotificationEmail({
+            patientName: name,
+            toAddresses: [email],
+            prescriptionNumber,
+            prescriptionDeepLink,
+            prescriptionStatus
+          });
         }
 
         if (phone) {
-          await sendNotificationSMS(
-            name,
-            `+258${phone.replace(/\D/g, '')}`,
-            prescriptionNumber
-          );
+          await sendNotificationSMS({
+            patientName: name,
+            phoneNumber: `+258${phone.replace(/\D/g, '')}`,
+            prescriptionNumber,
+            prescriptionDeepLink,
+            prescriptionStatus
+          });
         }
       }
     } catch (error) {

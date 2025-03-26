@@ -22,15 +22,15 @@ export async function sendNotificationEmail(
           Html: {
             Data: `
             <html>
-            <body>
-              <h1>Novo Pedido de Medicamentos - Ação Necessária</h1>
-              <p>Prezado(a) farmacêutico(a),</p>
-              <p>Um novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega.</p>
-              <p>Por favor, acesse o sistema para processar este pedido o mais breve possível.</p>
-              <p>Atenciosamente,</p>
-              <p>Cúrati - A sua saúde é a nossa prioridade.</p>
-              <p>Copyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.</p>
-            </body>
+              <body>
+                <h1>Novo Pedido de Medicamentos - Ação Necessária</h1>
+                <p>Prezado(a) farmacêutico(a),</p>
+                <p>Um novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega.</p>
+                <p>Por favor, acesse o sistema para processar este pedido o mais breve possível.</p>
+                <p>Atenciosamente,</p>
+                <p>Cúrati - A sua saúde é a nossa prioridade.</p>
+                <p>Copyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.</p>
+              </body>
             </html>
           `,
           },

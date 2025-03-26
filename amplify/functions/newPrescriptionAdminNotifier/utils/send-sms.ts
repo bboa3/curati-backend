@@ -3,14 +3,20 @@ import { PublishCommand, PublishCommandInput, SNSClient } from "@aws-sdk/client-
 const client = new SNSClient();
 
 export async function sendNotificationSMS(phoneNumber: string, prescriptionNumber: string) {
+  const message = `Validação de Nova Receita Necessária\n\nUma nova prescrição foi submetida e aguarda a sua validação no sistema Cúrati.\n\nNúmero da Receita: ${prescriptionNumber}\n\nAção Necessária: Por favor, acesse a plataforma para revisar e validar a prescrição o mais breve possível.`;
+
   const params: PublishCommandInput = {
-    Message: `Nova Receita para Validar - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de validação de receita (Código da Receita: ${prescriptionNumber}) foi recebida. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.\n\nAtenciosamente,\n\nCopyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.`,
+    Message: message,
     PhoneNumber: phoneNumber,
     MessageAttributes: {
       'AWS.SNS.SMS.SenderID': {
         DataType: 'String',
         StringValue: 'Curati'
       },
+      'AWS.SNS.SMS.SMSType': {
+        DataType: 'String',
+        StringValue: 'Transactional'
+      }
     }
   };
 

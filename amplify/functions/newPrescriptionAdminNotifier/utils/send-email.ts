@@ -7,6 +7,36 @@ export async function sendNotificationEmail(
   toAddresses: string[],
   prescriptionNumber: string,
 ) {
+  const salutation = "Prezado(a) Administrador(a)/Farmacêutico(a),";
+
+  const htmlBody = `
+    <html>
+    <head>
+      <style>
+        body { font-family: sans-serif; }
+        p { margin-bottom: 10px; }
+        .footer { font-size: 0.8em; color: #666; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+      </style>
+    </head>
+    <body>
+      <h1>Validação de Nova Receita Necessária</h1>
+      <p>${salutation}</p>
+      <p>Uma nova prescrição foi submetida e aguarda a sua validação no sistema Cúrati.</p>
+      <p><strong>Número da Receita:</strong> ${prescriptionNumber}</p>
+      <p><strong>Ação Necessária:</strong> Por favor, acesse a plataforma Cúrati para revisar e validar a prescrição o mais breve possível.</p>
+      <p>A sua atenção é crucial para garantir que os pacientes recebam seus medicamentos atempadamente.</p>
+      <p>Atenciosamente,</p>
+      <p><strong>Equipa Cúrati Saúde</strong></p>
+      <div class="footer">
+        Copyright © 2024-${new Date().getFullYear()} Cúrati Saúde, LDA. Todos os direitos reservados.<br>
+        Maputo, Moçambique.
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textBody = `Validação de Nova Receita Necessária\n\n${salutation}\n\nUma nova prescrição foi submetida e aguarda a sua validação no sistema Cúrati.\n\nNúmero da Receita: ${prescriptionNumber}\n\nAção Necessária: Por favor, acesse a plataforma Cúrati para revisar e validar a prescrição o mais breve possível.\n\nA sua atenção é crucial para garantir que os pacientes recebam seus medicamentos atempadamente.\n\nAtenciosamente,\nEquipa Cúrati Saúde\n\n---\nCopyright © 2024-${new Date().getFullYear()} Cúrati Saúde, LDA. Todos os direitos reservados. Maputo, Moçambique.`;
+
   const params: SendEmailCommandInput = {
     FromEmailAddress: env.VERIFIED_SES_SENDER_EMAIL,
     Destination: {
@@ -16,27 +46,11 @@ export async function sendNotificationEmail(
     Content: {
       Simple: {
         Subject: {
-          Data: "Nova Receita para Validar - Ação Necessária",
+          Data: `Cúrati: Nova Receita (${prescriptionNumber}) Aguarda Validação`,
         },
         Body: {
-          Html: {
-            Data: `
-            <html>
-            <body>
-              <h1>Nova Receita para Validar - Ação Necessária</h1>
-              <p>Prezado(a) farmacêutico(a),</p>
-              <p>Um novo pedido de validação de receita (Código da Receita: ${prescriptionNumber}) foi recebida.</p>
-              <p>Por favor, acesse o sistema para processar este pedido o mais breve possível.</p>
-              <p>Atenciosamente,</p>
-              <p>Cúrati - A sua saúde é a nossa prioridade.</p>
-              <p>Copyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.</p>
-            </body>
-            </html>
-          `,
-          },
-          Text: {
-            Data: `Nova Receita para Validar - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de validação de receita (Código da Receita: ${prescriptionNumber}) foi recebida. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.\n\nAtenciosamente,\n\nCopyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.`,
-          },
+          Html: { Data: htmlBody },
+          Text: { Data: textBody },
         },
       },
     },
