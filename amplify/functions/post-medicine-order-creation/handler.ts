@@ -1,12 +1,12 @@
-import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
+import { env } from '$amplify/env/post-medicine-order-creation';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
-import { sendNotificationEmail } from './utils/send-email';
-import { sendNotificationSMS } from './utils/send-sms';
+import { sendNotificationEmail } from './helpers/send-email';
+import { sendNotificationSMS } from './helpers/send-sms';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -28,21 +28,13 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       logger.info(`Processing record: ${record.eventID}`);
 
       if (record.eventName === "INSERT") {
-        const delivery = record.dynamodb?.NewImage;
-        const orderId = delivery?.orderId?.S;
-        const pharmacyId = delivery?.pharmacyId?.S;
+        const order = record.dynamodb?.NewImage;
+        const orderId = order?.id?.S;
+        const orderNumber = order?.orderNumber?.S;
+        const pharmacyId = order?.businessId?.S;
 
-        if (!orderId || !pharmacyId) {
-          logger.warn("Missing required delivery fields");
-          continue;
-        }
-
-        const { data: order, errors: orderErrors } = await client.models.medicineOrder.get({
-          id: orderId
-        });
-
-        if (orderErrors || !order) {
-          logger.error("Failed to fetch order", { errors: orderErrors });
+        if (!orderId || !orderNumber || !pharmacyId) {
+          logger.warn("Missing required order fields");
           continue;
         }
 
@@ -57,7 +49,6 @@ export const handler: DynamoDBStreamHandler = async (event) => {
 
         const emails = pharmacists.map((p: Pharmacist) => p.email).filter(Boolean);
         const phones = pharmacists.map((p: Pharmacist) => `+258${p.phone.replace(/\D/g, '')}`).filter(Boolean);
-        const orderNumber = (order as unknown as MedicineOrder).orderNumber;
         if (emails.length > 0) {
           await sendNotificationEmail(
             emails,

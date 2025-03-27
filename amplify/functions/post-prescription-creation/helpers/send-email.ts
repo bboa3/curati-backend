@@ -1,4 +1,4 @@
-import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
+import { env } from '$amplify/env/post-prescription-creation';
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
 
 const client = new SESv2Client();

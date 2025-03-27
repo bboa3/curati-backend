@@ -1,4 +1,4 @@
-import { env } from '$amplify/env/new-medicine-order-pharmacy-notifier';
+import { env } from '$amplify/env/post-prescription-validation';
 import { SendEmailCommand, SendEmailCommandInput, SESv2Client } from '@aws-sdk/client-sesv2';
 import { convertPrescriptionStatus, PrescriptionStatus } from './prescriptionStatus';
 

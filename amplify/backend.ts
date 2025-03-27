@@ -10,9 +10,9 @@ import { adminCreateUser } from './functions/admin-create-user/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
 import { getSecrets } from './functions/get-secrets/resource';
-import { newMedicineOrderPharmacyNotifier } from './functions/newMedicineOrderPharmacyNotifier/resource';
-import { newPrescriptionAdminNotifier } from './functions/newPrescriptionAdminNotifier/resource';
-import { newValidatedPrescriptionPatientNotifier } from './functions/newValidatedPrescriptionPatientNotifier/resource';
+import { postMedicineOrderCreation } from './functions/post-medicine-order-creation/resource';
+import { postPrescriptionCreation } from './functions/post-prescription-creation/resource';
+import { postPrescriptionValidation } from './functions/post-prescription-validation/resource';
 import { storage } from './storage/resource';
 
 const backend = defineBackend({
@@ -25,9 +25,9 @@ const backend = defineBackend({
   deleteSearchableRecord,
   createStreamToken,
   getSecrets,
-  newMedicineOrderPharmacyNotifier,
-  newPrescriptionAdminNotifier,
-  newValidatedPrescriptionPatientNotifier
+  postMedicineOrderCreation,
+  postPrescriptionCreation,
+  postPrescriptionValidation
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources
@@ -42,12 +42,10 @@ cfnUserPool.policies = {
   },
 };
 
-const deliveryTable = backend.data.resources.tables["delivery"];
+const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
 
-const newMedicineOrderPharmacyNotifierPolicy = new Policy(
-  Stack.of(deliveryTable),
-  "NewMedicineOrderPharmacyNotifierPolicy",
+const postMedicineOrderCreationPolicy = new Policy(Stack.of(medicineOrderTable), "PostMedicineOrderCreationPolicy",
   {
     statements: [
       new PolicyStatement({
@@ -57,73 +55,8 @@ const newMedicineOrderPharmacyNotifierPolicy = new Policy(
           "dynamodb:GetRecords",
           "dynamodb:GetShardIterator",
           "dynamodb:ListStreams",
-          "dynamodb:GetItem"
         ],
-        resources: [deliveryTable.tableStreamArn!, deliveryTable.tableArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
-        resources: ["*"],
-      }),
-    ],
-  }
-);
-const newPrescriptionAdminNotifierPolicy = new Policy(
-  Stack.of(prescriptionTable),
-  "NewPrescriptionAdminNotifierPolicy",
-  {
-    statements: [
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "dynamodb:DescribeStream",
-          "dynamodb:GetRecords",
-          "dynamodb:GetShardIterator",
-          "dynamodb:ListStreams",
-          "dynamodb:GetItem"
-        ],
-        resources: [prescriptionTable.tableStreamArn!, prescriptionTable.tableArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
-        resources: ["*"],
-      }),
-    ],
-  }
-);
-const newValidatedPrescriptionPatientNotifierPolicy = new Policy(
-  Stack.of(prescriptionTable),
-  "NewValidatedPrescriptionPatientNotifierPolicy",
-  {
-    statements: [
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "dynamodb:DescribeStream",
-          "dynamodb:GetRecords",
-          "dynamodb:GetShardIterator",
-          "dynamodb:ListStreams",
-          "dynamodb:GetItem"
-        ],
-        resources: [prescriptionTable.tableStreamArn!, prescriptionTable.tableArn!],
+        resources: [medicineOrderTable.tableStreamArn!],
       }),
       new PolicyStatement({
         effect: Effect.ALLOW,
@@ -142,38 +75,94 @@ const newValidatedPrescriptionPatientNotifierPolicy = new Policy(
   }
 );
 
-backend.newMedicineOrderPharmacyNotifier.resources.lambda.role?.attachInlinePolicy(newMedicineOrderPharmacyNotifierPolicy);
-backend.newPrescriptionAdminNotifier.resources.lambda.role?.attachInlinePolicy(newPrescriptionAdminNotifierPolicy);
-backend.newValidatedPrescriptionPatientNotifier.resources.lambda.role?.attachInlinePolicy(newValidatedPrescriptionPatientNotifierPolicy);
+const postPrescriptionCreationPolicy = new Policy(Stack.of(prescriptionTable), "PostPrescriptionCreationPolicy",
+  {
+    statements: [
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "dynamodb:DescribeStream",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:ListStreams",
+        ],
+        resources: [prescriptionTable.tableStreamArn!],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+        ],
+        resources: ["*"],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["sns:Publish"],
+        resources: ["*"],
+      }),
+    ],
+  }
+);
 
-const newMedicineOrderPharmacyNotifierMapping = new EventSourceMapping(
-  Stack.of(deliveryTable),
-  "NewMedicineOrderPharmacyNotifierMapping",
+
+const postPrescriptionValidationPolicy = new Policy(Stack.of(prescriptionTable), "PostPrescriptionValidationPolicy",
   {
-    target: backend.newMedicineOrderPharmacyNotifier.resources.lambda,
-    eventSourceArn: deliveryTable.tableStreamArn,
+    statements: [
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "dynamodb:DescribeStream",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:ListStreams"
+        ],
+        resources: [prescriptionTable.tableStreamArn!],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+        ],
+        resources: ["*"],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["sns:Publish"],
+        resources: ["*"],
+      }),
+    ],
+  }
+);
+
+backend.postMedicineOrderCreation.resources.lambda.role?.attachInlinePolicy(postMedicineOrderCreationPolicy);
+backend.postPrescriptionCreation.resources.lambda.role?.attachInlinePolicy(postPrescriptionCreationPolicy);
+backend.postPrescriptionValidation.resources.lambda.role?.attachInlinePolicy(postPrescriptionValidationPolicy);
+
+const postMedicineOrderCreationMapping = new EventSourceMapping(Stack.of(medicineOrderTable), "PostMedicineOrderCreationMapping",
+  {
+    target: backend.postMedicineOrderCreation.resources.lambda,
+    eventSourceArn: medicineOrderTable.tableStreamArn,
     startingPosition: StartingPosition.LATEST,
   }
 );
-const newPrescriptionAdminNotifierMapping = new EventSourceMapping(
-  Stack.of(prescriptionTable),
-  "NewPrescriptionAdminNotifierMapping",
+const postPrescriptionCreationMapping = new EventSourceMapping(Stack.of(prescriptionTable), "PostPrescriptionCreationMapping",
   {
-    target: backend.newPrescriptionAdminNotifier.resources.lambda,
-    eventSourceArn: prescriptionTable.tableStreamArn,
-    startingPosition: StartingPosition.LATEST,
-  }
-);
-const newValidatedPrescriptionPatientNotifierMapping = new EventSourceMapping(
-  Stack.of(prescriptionTable),
-  "NewValidatedPrescriptionPatientNotifierMapping",
-  {
-    target: backend.newValidatedPrescriptionPatientNotifier.resources.lambda,
+    target: backend.postPrescriptionCreation.resources.lambda,
     eventSourceArn: prescriptionTable.tableStreamArn,
     startingPosition: StartingPosition.LATEST,
   }
 );
 
-newMedicineOrderPharmacyNotifierMapping.node.addDependency(newMedicineOrderPharmacyNotifierPolicy);
-newPrescriptionAdminNotifierMapping.node.addDependency(newPrescriptionAdminNotifierPolicy);
-newValidatedPrescriptionPatientNotifierMapping.node.addDependency(newValidatedPrescriptionPatientNotifierPolicy);
+const postPrescriptionValidationMapping = new EventSourceMapping(Stack.of(prescriptionTable), "PostPrescriptionValidationMapping",
+  {
+    target: backend.postPrescriptionValidation.resources.lambda,
+    eventSourceArn: prescriptionTable.tableStreamArn,
+    startingPosition: StartingPosition.LATEST,
+  }
+);
+
+postMedicineOrderCreationMapping.node.addDependency(postMedicineOrderCreationPolicy);
+postPrescriptionCreationMapping.node.addDependency(postPrescriptionCreationPolicy);
+postPrescriptionValidationMapping.node.addDependency(postPrescriptionValidationPolicy);

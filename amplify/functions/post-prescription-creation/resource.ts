@@ -1,7 +1,7 @@
 import { defineFunction } from "@aws-amplify/backend";
 
-export const newPrescriptionAdminNotifier = defineFunction({
-  name: "new-prescription-admin-notifier",
+export const postPrescriptionCreation = defineFunction({
+  name: "post-prescription-creation",
   resourceGroupName: "data",
   entry: "./handler.ts",
   environment: {

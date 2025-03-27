@@ -1,7 +1,7 @@
 import { defineFunction } from "@aws-amplify/backend";
 
-export const newMedicineOrderPharmacyNotifier = defineFunction({
-  name: "new-medicine-order-pharmacy-notifier",
+export const postMedicineOrderCreation = defineFunction({
+  name: "post-medicine-order-creation",
   resourceGroupName: "data",
   entry: "./handler.ts",
   environment: {

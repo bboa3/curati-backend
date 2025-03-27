@@ -1,13 +1,13 @@
-import { env } from '$amplify/env/new-validated-prescription-patient-notifier';
+import { env } from '$amplify/env/post-prescription-validation';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
-import { PrescriptionStatus } from './utils/prescriptionStatus';
-import { sendNotificationEmail } from './utils/send-email';
-import { sendNotificationSMS } from './utils/send-sms';
+import { PrescriptionStatus } from './helpers/prescriptionStatus';
+import { sendNotificationEmail } from './helpers/send-email';
+import { sendNotificationSMS } from './helpers/send-sms';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
