@@ -5,8 +5,8 @@ import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
-import { sendNotificationEmail } from './helpers/send-email';
-import { sendNotificationSMS } from './helpers/send-sms';
+import { adminEmailNotifier } from './helpers/send-email';
+import { adminSMSNotifier } from './helpers/send-sms';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -47,14 +47,14 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         const emails = admins.map((p: User) => p.email).filter(Boolean) as string[];
         const phones = admins.map((p: User) => p.phone ? `+258${p.phone.replace(/\D/g, '')}` : null).filter(Boolean) as string[];
         if (emails.length > 0) {
-          await sendNotificationEmail(
+          await adminEmailNotifier(
             emails,
             prescriptionNumber
           );
         }
 
         if (phones.length > 0) {
-          await Promise.all(phones.map((phone) => phone ? sendNotificationSMS(phone, prescriptionNumber) : null));
+          await Promise.all(phones.map((phone) => phone ? adminSMSNotifier(phone, prescriptionNumber) : null));
         }
       }
     } catch (error) {

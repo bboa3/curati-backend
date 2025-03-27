@@ -6,8 +6,8 @@ import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
 import { PrescriptionStatus } from './helpers/prescriptionStatus';
-import { sendNotificationEmail } from './helpers/send-email';
-import { sendNotificationSMS } from './helpers/send-sms';
+import { patientEmailNotifier } from './helpers/send-email';
+import { patientSMSNotifier } from './helpers/send-sms';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -50,7 +50,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         const prescriptionDeepLink = `curati://life.curati.www/(app)/profile/prescriptions/${prescriptionId}`;
 
         if (email) {
-          await sendNotificationEmail({
+          await patientEmailNotifier({
             patientName: name,
             toAddresses: [email],
             prescriptionNumber,
@@ -60,7 +60,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         }
 
         if (phone) {
-          await sendNotificationSMS({
+          await patientSMSNotifier({
             patientName: name,
             phoneNumber: `+258${phone.replace(/\D/g, '')}`,
             prescriptionNumber,

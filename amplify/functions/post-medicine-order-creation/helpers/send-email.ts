@@ -2,8 +2,7 @@ import { env } from '$amplify/env/post-medicine-order-creation';
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
 
 const client = new SESv2Client();
-
-export async function sendNotificationEmail(
+export async function pharmacyEmailNotifier(
   toAddresses: string[],
   orderNumber: string,
 ) {

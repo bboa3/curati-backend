@@ -11,7 +11,7 @@ interface SendInput {
   prescriptionNumber: string;
 }
 
-export async function sendNotificationSMS({
+export async function patientSMSNotifier({
   patientName,
   prescriptionStatus,
   phoneNumber,

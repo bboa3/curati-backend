@@ -5,8 +5,8 @@ import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
-import { sendNotificationEmail } from './helpers/send-email';
-import { sendNotificationSMS } from './helpers/send-sms';
+import { pharmacyEmailNotifier } from './helpers/send-email';
+import { pharmacySMSNotifier } from './helpers/send-sms';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -20,7 +20,6 @@ const logger = new Logger({
 const client = generateClient<any>();
 
 type Pharmacist = Schema['professional']['type'];
-type MedicineOrder = Schema['medicineOrder']['type'];
 
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
@@ -50,14 +49,14 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         const emails = pharmacists.map((p: Pharmacist) => p.email).filter(Boolean);
         const phones = pharmacists.map((p: Pharmacist) => `+258${p.phone.replace(/\D/g, '')}`).filter(Boolean);
         if (emails.length > 0) {
-          await sendNotificationEmail(
+          await pharmacyEmailNotifier(
             emails,
             orderNumber
           );
         }
 
         if (phones.length > 0) {
-          await Promise.all(phones.map((phone) => sendNotificationSMS(phone, orderNumber)));
+          await Promise.all(phones.map((phone) => pharmacySMSNotifier(phone, orderNumber)));
         }
       }
     } catch (error) {

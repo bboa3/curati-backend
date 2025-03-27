@@ -3,7 +3,7 @@ import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/c
 
 const client = new SESv2Client();
 
-export async function sendNotificationEmail(
+export async function adminEmailNotifier(
   toAddresses: string[],
   prescriptionNumber: string,
 ) {

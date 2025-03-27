@@ -15,7 +15,7 @@ interface SendInput {
   prescriptionDeepLink: string;
 }
 
-export async function sendNotificationEmail({
+export async function patientEmailNotifier({
   patientName,
   prescriptionStatus,
   toAddresses,
