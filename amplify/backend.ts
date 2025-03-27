@@ -42,10 +42,10 @@ cfnUserPool.policies = {
   },
 };
 
-const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
+const deliveryTable = backend.data.resources.tables["delivery"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
 
-const postMedicineOrderCreationPolicy = new Policy(Stack.of(medicineOrderTable), "PostMedicineOrderCreationPolicy",
+const postMedicineOrderCreationPolicy = new Policy(Stack.of(deliveryTable), "PostMedicineOrderCreationPolicy",
   {
     statements: [
       new PolicyStatement({
@@ -56,7 +56,7 @@ const postMedicineOrderCreationPolicy = new Policy(Stack.of(medicineOrderTable),
           "dynamodb:GetShardIterator",
           "dynamodb:ListStreams",
         ],
-        resources: [medicineOrderTable.tableStreamArn!],
+        resources: [deliveryTable.tableStreamArn!],
       }),
       new PolicyStatement({
         effect: Effect.ALLOW,
@@ -140,10 +140,10 @@ backend.postMedicineOrderCreation.resources.lambda.role?.attachInlinePolicy(post
 backend.postPrescriptionCreation.resources.lambda.role?.attachInlinePolicy(postPrescriptionCreationPolicy);
 backend.postPrescriptionValidation.resources.lambda.role?.attachInlinePolicy(postPrescriptionValidationPolicy);
 
-const postMedicineOrderCreationMapping = new EventSourceMapping(Stack.of(medicineOrderTable), "PostMedicineOrderCreationMapping",
+const postMedicineOrderCreationMapping = new EventSourceMapping(Stack.of(deliveryTable), "PostMedicineOrderCreationMapping",
   {
     target: backend.postMedicineOrderCreation.resources.lambda,
-    eventSourceArn: medicineOrderTable.tableStreamArn,
+    eventSourceArn: deliveryTable.tableStreamArn,
     startingPosition: StartingPosition.LATEST,
   }
 );

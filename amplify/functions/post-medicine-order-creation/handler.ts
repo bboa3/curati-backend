@@ -7,6 +7,8 @@ import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Schema } from '../../data/resource';
 import { pharmacyEmailNotifier } from './helpers/send-email';
 import { pharmacySMSNotifier } from './helpers/send-sms';
+import { updateInventories } from './helpers/updateInventories';
+import { updatePrescription } from './helpers/updatePrescription';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -20,6 +22,7 @@ const logger = new Logger({
 const client = generateClient<any>();
 
 type Pharmacist = Schema['professional']['type'];
+type MedicineOrder = Schema['medicineOrder']['type'];
 
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
@@ -27,18 +30,24 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       logger.info(`Processing record: ${record.eventID}`);
 
       if (record.eventName === "INSERT") {
-        const order = record.dynamodb?.NewImage;
-        const orderId = order?.id?.S;
-        const orderNumber = order?.orderNumber?.S;
-        const pharmacyId = order?.businessId?.S;
+        const delivery = record.dynamodb?.NewImage;
+        const orderId = delivery?.id?.S;
 
-        if (!orderId || !orderNumber || !pharmacyId) {
+        if (!orderId) {
           logger.warn("Missing required order fields");
           continue;
         }
 
+        const { data: orderData, errors: orderErrors } = await client.models.medicineOrder.get({ id: orderId });
+
+        if (orderErrors || !orderData) {
+          logger.error("Failed to fetch order", { errors: orderErrors });
+          continue;
+        }
+        const order = orderData as unknown as MedicineOrder
+
         const { data: pharmacists, errors: pharmacistErrors } = await client.models.professional.list({
-          filter: { businessId: { eq: pharmacyId } }
+          filter: { businessId: { eq: order.businessId } }
         });
 
         if (pharmacistErrors || !pharmacists) {
@@ -46,17 +55,31 @@ export const handler: DynamoDBStreamHandler = async (event) => {
           continue;
         }
 
+        await updateInventories({
+          client,
+          logger,
+          orderId
+        })
+
+        if (order.prescriptionId) {
+          await updatePrescription({
+            client,
+            logger,
+            prescriptionId: order.prescriptionId
+          })
+        }
+
         const emails = pharmacists.map((p: Pharmacist) => p.email).filter(Boolean);
         const phones = pharmacists.map((p: Pharmacist) => `+258${p.phone.replace(/\D/g, '')}`).filter(Boolean);
         if (emails.length > 0) {
           await pharmacyEmailNotifier(
             emails,
-            orderNumber
+            order.orderNumber
           );
         }
 
         if (phones.length > 0) {
-          await Promise.all(phones.map((phone) => pharmacySMSNotifier(phone, orderNumber)));
+          await Promise.all(phones.map((phone) => pharmacySMSNotifier(phone, order.orderNumber)));
         }
       }
     } catch (error) {
