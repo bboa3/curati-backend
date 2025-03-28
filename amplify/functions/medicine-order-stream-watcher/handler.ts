@@ -1,4 +1,4 @@
-import { env } from '$amplify/env/post-medicine-order-creation';
+import { env } from '$amplify/env/medicine-order-stream-watcher';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
