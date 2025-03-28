@@ -9,10 +9,10 @@ import { addUserToGroup } from './functions/add-user-to-group/resource';
 import { adminCreateUser } from './functions/admin-create-user/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
+import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resource';
 import { getSecrets } from './functions/get-secrets/resource';
-import { postMedicineOrderCreation } from './functions/post-medicine-order-creation/resource';
-import { postPrescriptionCreation } from './functions/post-prescription-creation/resource';
-import { postPrescriptionValidation } from './functions/post-prescription-validation/resource';
+import { medicineOrderStreamWatcher } from './functions/medicine-order-stream-watcher/resource';
+import { prescriptionStreamWatcher } from './functions/prescription-stream-watcher/resource';
 import { storage } from './storage/resource';
 
 const backend = defineBackend({
@@ -25,9 +25,9 @@ const backend = defineBackend({
   deleteSearchableRecord,
   createStreamToken,
   getSecrets,
-  postMedicineOrderCreation,
-  postPrescriptionCreation,
-  postPrescriptionValidation
+  deliveryStreamWatcher,
+  prescriptionStreamWatcher,
+  medicineOrderStreamWatcher
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources
@@ -44,8 +44,9 @@ cfnUserPool.policies = {
 
 const deliveryTable = backend.data.resources.tables["delivery"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
+const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
 
-const postMedicineOrderCreationPolicy = new Policy(Stack.of(deliveryTable), "PostMedicineOrderCreationPolicy",
+const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "DeliveryStreamWatcherPolicy",
   {
     statements: [
       new PolicyStatement({
@@ -75,7 +76,7 @@ const postMedicineOrderCreationPolicy = new Policy(Stack.of(deliveryTable), "Pos
   }
 );
 
-const postPrescriptionCreationPolicy = new Policy(Stack.of(prescriptionTable), "PostPrescriptionCreationPolicy",
+const prescriptionStreamWatcherPolicy = new Policy(Stack.of(prescriptionTable), "PrescriptionStreamWatcherPolicy",
   {
     statements: [
       new PolicyStatement({
@@ -105,8 +106,7 @@ const postPrescriptionCreationPolicy = new Policy(Stack.of(prescriptionTable), "
   }
 );
 
-
-const postPrescriptionValidationPolicy = new Policy(Stack.of(prescriptionTable), "PostPrescriptionValidationPolicy",
+const medicineOrderStreamWatcherPolicy = new Policy(Stack.of(medicineOrderTable), "MedicineOrderStreamWatcherPolicy",
   {
     statements: [
       new PolicyStatement({
@@ -117,7 +117,7 @@ const postPrescriptionValidationPolicy = new Policy(Stack.of(prescriptionTable),
           "dynamodb:GetShardIterator",
           "dynamodb:ListStreams"
         ],
-        resources: [prescriptionTable.tableStreamArn!],
+        resources: [medicineOrderTable.tableStreamArn!],
       }),
       new PolicyStatement({
         effect: Effect.ALLOW,
@@ -136,33 +136,33 @@ const postPrescriptionValidationPolicy = new Policy(Stack.of(prescriptionTable),
   }
 );
 
-backend.postMedicineOrderCreation.resources.lambda.role?.attachInlinePolicy(postMedicineOrderCreationPolicy);
-backend.postPrescriptionCreation.resources.lambda.role?.attachInlinePolicy(postPrescriptionCreationPolicy);
-backend.postPrescriptionValidation.resources.lambda.role?.attachInlinePolicy(postPrescriptionValidationPolicy);
+backend.deliveryStreamWatcher.resources.lambda.role?.attachInlinePolicy(deliveryStreamWatcherPolicy);
+backend.prescriptionStreamWatcher.resources.lambda.role?.attachInlinePolicy(prescriptionStreamWatcherPolicy);
+backend.medicineOrderStreamWatcher.resources.lambda.role?.attachInlinePolicy(medicineOrderStreamWatcherPolicy);
 
-const postMedicineOrderCreationMapping = new EventSourceMapping(Stack.of(deliveryTable), "PostMedicineOrderCreationMapping",
+const deliveryStreamWatcherMapping = new EventSourceMapping(Stack.of(deliveryTable), "DeliveryStreamWatcherMapping",
   {
-    target: backend.postMedicineOrderCreation.resources.lambda,
+    target: backend.deliveryStreamWatcher.resources.lambda,
     eventSourceArn: deliveryTable.tableStreamArn,
     startingPosition: StartingPosition.LATEST,
   }
 );
-const postPrescriptionCreationMapping = new EventSourceMapping(Stack.of(prescriptionTable), "PostPrescriptionCreationMapping",
+const prescriptionStreamWatcherMapping = new EventSourceMapping(Stack.of(prescriptionTable), "PrescriptionStreamWatcherMapping",
   {
-    target: backend.postPrescriptionCreation.resources.lambda,
+    target: backend.prescriptionStreamWatcher.resources.lambda,
     eventSourceArn: prescriptionTable.tableStreamArn,
     startingPosition: StartingPosition.LATEST,
   }
 );
 
-const postPrescriptionValidationMapping = new EventSourceMapping(Stack.of(prescriptionTable), "PostPrescriptionValidationMapping",
+const medicineOrderStreamWatcherMapping = new EventSourceMapping(Stack.of(medicineOrderTable), "MedicineOrderStreamWatcherMapping",
   {
-    target: backend.postPrescriptionValidation.resources.lambda,
-    eventSourceArn: prescriptionTable.tableStreamArn,
+    target: backend.medicineOrderStreamWatcher.resources.lambda,
+    eventSourceArn: medicineOrderTable.tableStreamArn,
     startingPosition: StartingPosition.LATEST,
   }
 );
 
-postMedicineOrderCreationMapping.node.addDependency(postMedicineOrderCreationPolicy);
-postPrescriptionCreationMapping.node.addDependency(postPrescriptionCreationPolicy);
-postPrescriptionValidationMapping.node.addDependency(postPrescriptionValidationPolicy);
+deliveryStreamWatcherMapping.node.addDependency(deliveryStreamWatcherPolicy);
+prescriptionStreamWatcherMapping.node.addDependency(prescriptionStreamWatcherPolicy);
+medicineOrderStreamWatcherMapping.node.addDependency(medicineOrderStreamWatcherPolicy);

@@ -27,6 +27,8 @@
     "@aws-sdk/client-sesv2": "^3.774.0",
     "@aws-sdk/client-sns": "^3.775.0",
     "aws-amplify": "^6.13.4",
-    "stream-chat": "^8.57.6"
+    "dayjs": "^1.11.13",
+    "stream-chat": "^8.57.6",
+    "uuid": "^11.1.0"
   }
 }

@@ -5,12 +5,12 @@ import { addUserToGroup } from '../functions/add-user-to-group/resource';
 import { adminCreateUser } from '../functions/admin-create-user/resource';
 import { createStreamToken } from '../functions/create-stream-token/resource';
 import { deleteSearchableRecord } from '../functions/delete-searchable-record/resource';
+import { deliveryStreamWatcher } from '../functions/delivery-stream-watcher/resource';
 import { getSecrets } from '../functions/get-secrets/resource';
-import { postMedicineOrderCreation } from '../functions/post-medicine-order-creation/resource';
-import { postPrescriptionCreation } from '../functions/post-prescription-creation/resource';
-import { postPrescriptionValidation } from '../functions/post-prescription-validation/resource';
+import { medicineOrderStreamWatcher } from '../functions/medicine-order-stream-watcher/resource';
+import { prescriptionStreamWatcher } from '../functions/prescription-stream-watcher/resource';
 
-const ambulanceStatus = ['AVAILABLE', 'ON_TRIP', 'MAINTENANCE', 'OUT_OF_SERVICE'] as const;
+const mediaFromType = ['ARTICLE', 'CONTENT_BLOCK'] as const;
 const sleepQuality = ['POOR', 'AVERAGE', 'GOOD', 'EXCELLENT'] as const;
 const physicalActivityLevel = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE'] as const;
 const gender = ['MALE', 'FEMALE', 'OTHER', 'UNKNOWN'] as const;
@@ -581,7 +581,7 @@ const schema = a.schema({
     publishedAt: a.datetime().required(),
     viewCount: a.integer().required().default(0),
     likeCount: a.integer().required().default(0),
-    featuredImage: a.hasOne('media', 'articleId'),
+    featuredImage: a.hasOne('media', 'mediaFromId'),
     // likes: a.hasMany('like', 'likedItemId'),
     // views: a.hasMany('view', 'viewedItemId'),
     author: a.belongsTo('user', 'authorId'),
@@ -599,7 +599,7 @@ const schema = a.schema({
     content: a.string().required(),
     order: a.integer().required(),
     article: a.belongsTo('article', 'articleId'),
-    medias: a.hasMany('media', 'contentBlockId'),
+    medias: a.hasMany('media', 'mediaFromId'),
   }).authorization(allow => [
     allow.guest().to(['read']),
     allow.authenticated().to(['read']),
@@ -607,20 +607,20 @@ const schema = a.schema({
   ]).disableOperations(['subscriptions']),
 
   media: a.model({
-    id: a.id().required(),
+    mediaFromId: a.string().required(),
+    mediaFromType: a.enum(mediaFromType),
     url: a.string().required(),
     thumbnailUrl: a.string(),
     type: a.enum(mediaType),
     fileSize: a.integer(),
     mimeType: a.string(),
-    articleId: a.id(),
-    contentBlockId: a.id(),
-    article: a.belongsTo('article', 'articleId'),
-    contentBlock: a.belongsTo('contentBlock', 'contentBlockId'),
-  }).authorization(allow => [
-    allow.guest().to(['read']),
-    allow.authenticated().to(['create', 'read', 'update', 'delete']),
-  ]).disableOperations(['subscriptions']),
+    article: a.belongsTo('article', 'mediaFromId'),
+    contentBlock: a.belongsTo('contentBlock', 'mediaFromId'),
+  }).identifier(['mediaFromId'])
+    .authorization(allow => [
+      allow.guest().to(['read']),
+      allow.authenticated().to(['create', 'read', 'update', 'delete']),
+    ]).disableOperations(['subscriptions']),
 
   business: a.model({
     id: a.id().required(),
@@ -649,7 +649,6 @@ const schema = a.schema({
     pharmacyDeliveries: a.hasMany('delivery', 'pharmacyId'),
     pharmacyInventoryItems: a.hasMany('pharmacyInventory', 'pharmacyId'),
     medicineOrders: a.hasMany('medicineOrder', 'businessId'),
-    hospitalAmbulances: a.hasMany('ambulance', 'hospitalId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
@@ -690,6 +689,7 @@ const schema = a.schema({
     administeredMedications: a.hasMany('medicationRecord', 'administeredById'),
     vehicles: a.hasMany('vehicle', 'driverId'),
     driverDeliveries: a.hasMany('delivery', 'driverId'),
+    driverCurrentLocation: a.hasOne('driverCurrentLocation', 'driverId'),
     driverLocationHistories: a.hasMany('driverLocationHistory', 'driverId'),
   })
     .identifier(['userId'])
@@ -700,6 +700,7 @@ const schema = a.schema({
 
   professionalAvailability: a.model({
     professionalId: a.id().required(),
+    professionalType: a.enum(professionalType),
     currentAvailabilityStatus: a.enum(professionalAvailabilityStatus),
     bufferBefore: a.integer().required(),
     bufferAfter: a.integer().required(),
@@ -727,17 +728,34 @@ const schema = a.schema({
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
     ]).disableOperations(['subscriptions']),
 
-  driverLocationHistory: a.model({
+  driverCurrentLocation: a.model({
     driverId: a.id().required(),
     latitude: a.float().required(),
     longitude: a.float().required(),
     timestamp: a.datetime().required(),
     driver: a.belongsTo('professional', 'driverId'),
-  }).identifier(['driverId'])
+  })
+    .identifier(['driverId'])
     .authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['subscriptions']),
+    ])
+    .disableOperations(['subscriptions', 'delete']),
+
+  driverLocationHistory: a.model({
+    id: a.id().required(),
+    driverId: a.id().required(),
+    latitude: a.float().required(),
+    longitude: a.float().required(),
+    timestamp: a.datetime().required(),
+    ttl: a.integer(),
+    driver: a.belongsTo('professional', 'driverId'),
+  })
+    .authorization(allow => [
+      allow.authenticated().to(['read']),
+      allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
+    ])
+    .disableOperations(['subscriptions', 'delete']),
 
   vehicle: a.model({
     id: a.id().required(),
@@ -790,30 +808,6 @@ const schema = a.schema({
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
     ]).disableOperations(['delete']),
-
-  ambulance: a.model({
-    id: a.id().required(),
-    hospitalId: a.id().required(),
-    hospitalName: a.string().required(),
-    vehiclePlate: a.string().required(),
-    vehicleModel: a.string().required(),
-    vehicleYear: a.integer().required(),
-    vehicleColor: a.string().required(),
-    vehicleType: a.string().required(),
-    status: a.enum(ambulanceStatus),
-    medicalEquipment: a.string().array(),
-    crewMembers: a.string().array(),
-    currentLatitude: a.float().required(),
-    currentLongitude: a.float().required(),
-    serviceArea: a.string().array(),
-    contactNumber: a.string().required(),
-    image: a.string().required(),
-    hospital: a.belongsTo('business', 'hospitalId'),
-  })
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.group('ADMIN').to(['read', 'create', 'update']),
-    ]).disableOperations(['subscriptions', 'delete']),
 
   medicineCategory: a.model({
     id: a.id().required(),
@@ -1090,7 +1084,7 @@ const schema = a.schema({
 
   reminder: a.model({
     userId: a.id().required(),
-    remindedItemId: a.id().required(),
+    relatedItemRemindedId: a.id().required(),
     remindedItemType: a.enum(remindedItemType),
     title: a.string().required(),
     message: a.string().required(),
@@ -1099,7 +1093,7 @@ const schema = a.schema({
     repeat: a.enum(repeatType),
     user: a.belongsTo('user', 'userId'),
   })
-    .identifier(['remindedItemId', 'userId'])
+    .identifier(['userId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update', 'delete']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create', 'delete']),
@@ -1177,9 +1171,9 @@ const schema = a.schema({
 })
   .authorization((allow) => [
     allow.resource(postConfirmation),
-    allow.resource(postMedicineOrderCreation),
-    allow.resource(postPrescriptionCreation),
-    allow.resource(postPrescriptionValidation)
+    allow.resource(deliveryStreamWatcher),
+    allow.resource(prescriptionStreamWatcher),
+    allow.resource(medicineOrderStreamWatcher)
   ]);
 
 export type Schema = ClientSchema<typeof schema>;
