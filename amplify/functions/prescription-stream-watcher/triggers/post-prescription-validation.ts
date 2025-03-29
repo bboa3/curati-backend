@@ -12,7 +12,7 @@ interface TriggerInput {
 
 export const postPrescriptionValidation = async ({ prescriptionImage, dbClient, logger }: TriggerInput) => {
   const prescriptionNumber = prescriptionImage?.prescriptionNumber?.S;
-  const prescriptionId = prescriptionImage?.prescriptionId?.S;
+  const prescriptionId = prescriptionImage?.id?.S;
   const prescriptionStatus = prescriptionImage?.status?.S as PrescriptionStatus;
   const patientId = prescriptionImage?.patientId?.S;
 

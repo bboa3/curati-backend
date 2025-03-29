@@ -13,7 +13,7 @@ interface TriggerInput {
 }
 
 export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
-  const orderId = deliveryImage?.id?.S;
+  const orderId = deliveryImage?.orderId?.S;
   const patientId = deliveryImage?.patientId?.S;
   const totalDeliveryFee = deliveryImage?.totalDeliveryFee?.N;
 
