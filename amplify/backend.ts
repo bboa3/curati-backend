@@ -13,6 +13,7 @@ import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resou
 import { getSecrets } from './functions/get-secrets/resource';
 import { medicineOrderStreamWatcher } from './functions/medicine-order-stream-watcher/resource';
 import { prescriptionStreamWatcher } from './functions/prescription-stream-watcher/resource';
+import { generateSalesSummaries } from './jobs/generate-sales-summaries/resource';
 import { storage } from './storage/resource';
 
 const backend = defineBackend({
@@ -27,7 +28,8 @@ const backend = defineBackend({
   getSecrets,
   deliveryStreamWatcher,
   prescriptionStreamWatcher,
-  medicineOrderStreamWatcher
+  medicineOrderStreamWatcher,
+  generateSalesSummaries
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources

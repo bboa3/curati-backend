@@ -426,6 +426,19 @@ export enum UserRole {
   PATIENT = 'PATIENT'
 }
 
+export enum SalesSummaryItemType {
+  MEDICINE = 'MEDICINE',
+  BUSINESSSERVICE = 'BUSINESSSERVICE',
+  DRIVER = 'DRIVER'
+}
+
+export enum SalesSummaryTimeGranularity {
+  DAILY = 'DAILY',
+  WEEKLY = 'WEEKLY',
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY'
+}
+
 export interface ProfessionalSearchBody {
   professionalRegistrationNumber: string;
   phone: string;
@@ -744,6 +757,12 @@ export interface Invoice extends InvoiceSchema {
 type PaymentTransactionSchema = Schema['paymentTransaction']['type'];
 export interface PaymentTransaction extends PaymentTransactionSchema {
   status: PaymentTransactionStatus;
+};
+
+type SalesSummarySchema = Schema['salesSummary']['type'];
+export interface SalesSummary extends SalesSummarySchema {
+  itemType: SalesSummaryItemType;
+  timeGranularity: SalesSummaryTimeGranularity;
 };
 
 export interface Secrets {

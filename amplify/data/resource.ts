@@ -9,6 +9,7 @@ import { deliveryStreamWatcher } from '../functions/delivery-stream-watcher/reso
 import { getSecrets } from '../functions/get-secrets/resource';
 import { medicineOrderStreamWatcher } from '../functions/medicine-order-stream-watcher/resource';
 import { prescriptionStreamWatcher } from '../functions/prescription-stream-watcher/resource';
+import { generateSalesSummaries } from '../jobs/generate-sales-summaries/resource';
 
 const mediaFromType = ['ARTICLE', 'CONTENT_BLOCK'] as const;
 const sleepQuality = ['POOR', 'AVERAGE', 'GOOD', 'EXCELLENT'] as const;
@@ -99,7 +100,7 @@ const insuranceItemType = ['PATIENT', 'PROFESSIONAL', 'BUSINESS'] as const;
 const professionalType = ['DOCTOR', 'NURSE', 'PHARMACIST', 'DRIVER'] as const;
 const professionalRole = ['MANAGER', 'ASSISTANT', 'STAFF', 'INTERN', 'OWNER'] as const;
 const userRole = ['ADMIN', 'PROFESSIONAL', 'PATIENT'] as const;
-const salesSummaryItemType = ['MEDICINE', 'BUSINESS_SERVICE', 'DELIVERY_FEE'] as const;
+const salesSummaryItemType = ['MEDICINE', 'BUSINESSSERVICE', 'DRIVER'] as const;
 const salesSummaryTimeGranularity = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as const;
 
 const schema = a.schema({
@@ -1192,7 +1193,8 @@ const schema = a.schema({
     allow.resource(postConfirmation),
     allow.resource(deliveryStreamWatcher),
     allow.resource(prescriptionStreamWatcher),
-    allow.resource(medicineOrderStreamWatcher)
+    allow.resource(medicineOrderStreamWatcher),
+    allow.resource(generateSalesSummaries),
   ]);
 
 export type Schema = ClientSchema<typeof schema>;

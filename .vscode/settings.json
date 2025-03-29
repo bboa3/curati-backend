@@ -8,8 +8,9 @@
     },
     "diffEditor.codeLens": true,
     "cSpell.words": [
+        "BUSINESSSERVICE",
         "curati",
-        "Cúrati",
+        "Cúrati"
     ],
     "files.exclude": {
         "**/.git": true,
