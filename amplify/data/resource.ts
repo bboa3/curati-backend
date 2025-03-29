@@ -22,6 +22,7 @@ const ratedItemType = ['BUSINESS', 'PROFESSIONAL', 'MEDICINE', 'BUSINESSSERVICE'
 const certifiedItemType = ['PROFESSIONAL', 'BUSINESS'] as const;
 const licensedItemType = ['PROFESSIONAL', 'BUSINESS'] as const
 
+const vehicleType = ['CAR', 'MOTORCYCLE', 'BICYCLE', 'TRUCK'] as const;
 const deliveryStatus = ['PHARMACY_PREPARING', 'READY_FOR_PICKUP', 'DRIVER_ASSIGNED', 'IN_TRANSIT', 'DELIVERED', 'FAILED'] as const;
 const deliveryType = ['PICKUP', 'DELIVERY'] as const;
 const medicineOrderStatus = ['PENDING_PAYMENT', 'PHARMACY_REVIEW', 'PROCESSING', 'READY_FOR_DISPATCH', 'DISPATCHED', 'COMPLETED', 'REJECTED', 'CANCELED',] as const;
@@ -768,7 +769,7 @@ const schema = a.schema({
     model: a.string().required(),
     year: a.integer().required(),
     color: a.string().required(),
-    type: a.string().required(),
+    type: a.enum(vehicleType),
     driver: a.belongsTo('professional', 'driverId'),
     deliveries: a.hasMany('delivery', 'vehicleId'),
   })
