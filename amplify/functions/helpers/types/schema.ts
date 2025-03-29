@@ -651,7 +651,9 @@ type DriverLocationHistorySchema = Schema['driverLocationHistory']['type'];
 export interface DriverLocationHistory extends DriverLocationHistorySchema { };
 
 type VehicleSchema = Schema['vehicle']['type'];
-export interface Vehicle extends VehicleSchema { };
+export interface Vehicle extends VehicleSchema {
+  type: VehicleType
+};
 
 type DeliverySchema = Schema['delivery']['type'];
 export interface Delivery extends DeliverySchema {
