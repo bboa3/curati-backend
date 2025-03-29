@@ -99,6 +99,8 @@ const insuranceItemType = ['PATIENT', 'PROFESSIONAL', 'BUSINESS'] as const;
 const professionalType = ['DOCTOR', 'NURSE', 'PHARMACIST', 'DRIVER'] as const;
 const professionalRole = ['MANAGER', 'ASSISTANT', 'STAFF', 'INTERN', 'OWNER'] as const;
 const userRole = ['ADMIN', 'PROFESSIONAL', 'PATIENT'] as const;
+const salesSummaryItemType = ['MEDICINE', 'BUSINESS_SERVICE', 'DELIVERY_FEE'] as const;
+const salesSummaryTimeGranularity = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as const;
 
 const schema = a.schema({
   addUserToGroup: a
@@ -1168,6 +1170,23 @@ const schema = a.schema({
       allow.owner().to(['create', 'read', 'update', 'delete']),
       allow.group('ADMIN').to(['read', 'update']),
     ]).disableOperations(['subscriptions', 'delete']),
+  salesSummary: a.model({
+    businessId: a.id().required(),
+    itemId: a.id().required(),
+    itemType: a.enum(salesSummaryItemType),
+    timeGranularity: a.enum(salesSummaryTimeGranularity),
+    periodStart: a.date().required(),
+    periodEnd: a.date().required(),
+    totalRevenue: a.float().required().default(0),
+    totalUnitsSold: a.integer().required().default(0),
+    numberOfSales: a.integer().required().default(0),
+    averageUnitPrice: a.float().required().default(0),
+    previousPeriodGrowth: a.float().required().default(0),
+  })
+    .identifier(['businessId', 'itemId', 'itemType', 'timeGranularity', 'periodStart'])
+    .authorization(allow => [
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
+    ]).disableOperations(['create', 'update', 'delete', 'subscriptions'])
 })
   .authorization((allow) => [
     allow.resource(postConfirmation),
