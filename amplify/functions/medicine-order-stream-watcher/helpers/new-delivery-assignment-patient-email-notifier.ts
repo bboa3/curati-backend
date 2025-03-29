@@ -69,7 +69,7 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
               <p>Óptima notícia! A sua encomenda de medicamentos (Nº <strong>${orderNumber}</strong>) foi preparada com sucesso e está pronta para ser despachada para entrega no seu endereço.</p>
               <p><strong>Próximos Passos:</strong> Em breve, um motorista será atribuído à sua entrega. Receberá notificações adicionais assim que a encomenda estiver em trânsito.</p>
               <p>Pode acompanhar o estado atualizado da sua entrega directamente na aplicação Cúrati:</p>
-              <p><a href="${deliveryDeepLink}" >Acompanhar Entrega na App</a></p>
+              <p><a href="${deliveryDeepLink}" target="_blank" style="padding: 10px 15px; background-color: #1BBA66; color: white; text-decoration: none; border-radius: 5px;">Acompanhar Entrega na App</a></p>
               <p>Se o link acima não funcionar diretamente, por favor abra a aplicação Cúrati e navegue para "Meus Pedidos".</p>
               <p>Se tiver alguma dúvida, por favor contacte o nosso suporte.</p>
               <p>Atenciosamente,</p>

@@ -42,12 +42,12 @@ export async function newDeliveryAssignmentDriverEmailNotifier({ toAddresses, de
                               <p>Prezado(a) ${driverName},</p>
                               <p>Foi-lhe atribuída uma nova tarefa de entrega (Referência: <strong>${deliveryNumber}</strong>) através da aplicação Cúrati Driver.</p>
                               <p><strong>Ação Imediata Necessária:</strong></p>
-                              <p>Por favor, aceda à aplicação Cúrati Driver assim que possível para:</p>
+                              <p>Por favor, aceda à aplicação Cúrati Driver:</p>
                               <ul>
                                 <li>Rever todos os detalhes da entrega (recolha, destino, itens).</li>
                                 <li>Aceitar a tarefa e iniciar a sua rota.</li>
                               </ul>
-                              <a href="${deliveryDeepLink}" class="cta-button">Ver Detalhes da Entrega na App</a>
+                              <a href="${deliveryDeepLink}" target="_blank" rel="noopener noreferrer" style="padding: 10px 15px; background-color: #1BBA66; color: white; text-decoration: none; border-radius: 5px;">Ver Detalhes da Entrega na App</a>
                               <p>A sua rapidez é essencial para garantirmos um serviço eficiente aos nossos clientes.</p>
                               <p>Obrigado pela sua colaboração.</p>
                               <p>Atenciosamente,</p>
@@ -57,7 +57,7 @@ export async function newDeliveryAssignmentDriverEmailNotifier({ toAddresses, de
                       `,
           },
           Text: {
-            Data: `Nova Atribuição de Entrega\n\nPrezado(a) ${driverName},\n\nFoi-lhe atribuída uma nova tarefa de entrega (Referência: ${deliveryNumber}) através da aplicação Cúrati Driver.\n\nAção Imediata Necessária:\nPor favor, aceda à aplicação Cúrati Driver assim que possível para rever todos os detalhes da entrega, aceitar a tarefa e iniciar a sua rota.\n\nVer Detalhes na App: ${deliveryDeepLink}\n\nA sua rapidez é essencial.\n\nObrigado,\nEquipa de Logística Cúrati Saúde${footerText}`,
+            Data: `Nova Atribuição de Entrega\n\nPrezado(a) ${driverName},\n\nFoi-lhe atribuída uma nova tarefa de entrega (Referência: ${deliveryNumber}) através da aplicação Cúrati Driver.\n\nAção Imediata Necessária:\nPor favor, aceda à aplicação Cúrati Driver e rever todos os detalhes da entrega, aceitar a tarefa e iniciar a sua rota.\n\nVer Detalhes na App: ${deliveryDeepLink}\n\nA sua rapidez é essencial.\n\nObrigado,\nEquipa de Logística Cúrati Saúde${footerText}`,
           },
         },
       },
