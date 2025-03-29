@@ -412,6 +412,13 @@ export enum ProfessionalType {
   DRIVER = 'DRIVER'
 }
 
+export enum VehicleType {
+  CAR = 'CAR',
+  MOTORCYCLE = 'MOTORCYCLE',
+  BICYCLE = 'BICYCLE',
+  TRUCK = 'TRUCK'
+}
+
 export enum ProfessionalRole {
   MANAGER = 'MANAGER',
   ASSISTANT = 'ASSISTANT',
