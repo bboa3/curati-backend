@@ -22,17 +22,19 @@ export const handler: DynamoDBStreamHandler = async (event) => {
     try {
       logger.info(`Processing record: ${record.eventID}`,);
 
-      const deliveryImage = record.dynamodb?.NewImage;
+      const oldImage = record.dynamodb?.OldImage;
+      const newImage = record.dynamodb?.NewImage;
 
-      logger.info(`New Image: ${JSON.stringify(deliveryImage)}`);
+      logger.info(`Old Image: ${JSON.stringify(oldImage)}`);
+      logger.info(`New Image: ${JSON.stringify(newImage)}`);
 
-      if (!deliveryImage) {
+      if (!newImage) {
         continue;
       }
 
       if (record.eventName === "INSERT") {
         await postMedicineOrderCreation({
-          deliveryImage,
+          deliveryImage: newImage,
           dbClient: client,
           logger
         });

@@ -4,7 +4,6 @@ import { MedicineOrder, Patient } from '../../helpers/types/schema';
 import { createBilling } from '../helpers/create-billing';
 import { newInvoicePatientEmailNotifier } from '../helpers/new-invoice-patient-email-notifier';
 import { reserveStockInventories } from '../helpers/reserve-stock-inventories';
-import { updatePrescriptionRefillsRemaining } from '../helpers/update-prescription-refills-remaining';
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
@@ -15,9 +14,10 @@ interface TriggerInput {
 export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
   const orderId = deliveryImage?.orderId?.S;
   const patientId = deliveryImage?.patientId?.S;
+  const pharmacyId = deliveryImage?.pharmacyId?.S;
   const totalDeliveryFee = deliveryImage?.totalDeliveryFee?.N;
 
-  if (!orderId || !totalDeliveryFee || !patientId) {
+  if (!orderId || !totalDeliveryFee || !patientId || !pharmacyId) {
     logger.warn("Missing required order fields");
     return;
   }
@@ -44,28 +44,20 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
     orderId
   })
 
-  if (order.prescriptionId) {
-    await updatePrescriptionRefillsRemaining({
-      client: dbClient,
-      logger,
-      prescriptionId: order.prescriptionId
-    })
-  }
-
   const invoice = await createBilling({
     client: dbClient,
     logger,
     orderId,
     totalDeliveryFee: Number(totalDeliveryFee),
-    pharmacyId: order.businessId,
-    patientId: order.patientId
+    pharmacyId: pharmacyId,
+    patientId: patientId
   });
 
   if (patient?.email && invoice) {
     await newInvoicePatientEmailNotifier({
       patientName: patient.name,
       patientEmail: patient.email,
-      orderNumber: orderId,
+      orderNumber: order.orderNumber,
       invoice
     });
   }

@@ -24,29 +24,35 @@ export const handler: DynamoDBStreamHandler = async (event) => {
     try {
       logger.info(`Processing record: ${record.eventID}`);
 
-      const prescriptionImage = record.dynamodb?.NewImage;
+      const oldImage = record.dynamodb?.OldImage;
+      const newImage = record.dynamodb?.NewImage;
 
-      logger.info(`New Image: ${JSON.stringify(prescriptionImage)}`);
+      logger.info(`Old Image: ${JSON.stringify(oldImage)}`);
+      logger.info(`New Image: ${JSON.stringify(newImage)}`);
 
-      if (!prescriptionImage) {
+      if (!newImage) {
         continue;
       }
 
       if (record.eventName === "INSERT") {
         await postPrescriptionCreation({
-          prescriptionImage,
+          prescriptionImage: newImage,
           dbClient: client,
           logger
         });
       } else if (record.eventName === "MODIFY") {
-        const status = prescriptionImage?.status?.S as PrescriptionStatus;
+        const status = newImage?.status?.S as PrescriptionStatus;
 
-        if (status === PrescriptionStatus.ACTIVE) {
+        const isJustValidated = (!oldImage?.validatedAt && !!newImage.validatedAt) && status === PrescriptionStatus.ACTIVE;
+
+        if (isJustValidated) {
           await postPrescriptionValidation({
-            prescriptionImage,
+            prescriptionImage: newImage,
             dbClient: client,
             logger
           });
+        } else {
+          logger.info(`Skipping postPrescriptionValidation for ${record.eventID}: validatedAt did not just change.`);
         }
       }
     } catch (error) {

@@ -25,36 +25,44 @@ export const handler: DynamoDBStreamHandler = async (event) => {
     try {
       logger.info(`Processing record: ${record.eventID}`);
 
-      const medicineOrderImage = record.dynamodb?.NewImage;
+      const oldImage = record.dynamodb?.OldImage;
+      const newImage = record.dynamodb?.NewImage;
 
-      logger.info(`New Image: ${JSON.stringify(medicineOrderImage)}`);
+      logger.info(`Old Image: ${JSON.stringify(oldImage)}`);
+      logger.info(`New Image: ${JSON.stringify(newImage)}`);
 
-      if (!medicineOrderImage) {
+      if (!newImage) {
         continue;
       }
 
       if (record.eventName === "MODIFY") {
-        const status = medicineOrderImage?.status?.S as MedicineOrderStatus;
+        const oldStatus = oldImage?.status?.S as MedicineOrderStatus | undefined;
+        const newStatus = newImage?.status?.S as MedicineOrderStatus | undefined;
 
-        if (status === MedicineOrderStatus.PROCESSING) {
+        if (oldStatus === newStatus) {
+          logger.info(`Skipping record ${record.eventID}: Status did not change ('${newStatus}').`);
+          continue;
+        }
+
+        if (newStatus === MedicineOrderStatus.PROCESSING) {
           await postMedicineOrderPayment({
-            medicineOrderImage,
+            medicineOrderImage: newImage,
             dbClient: client,
             logger
           });
         }
 
-        if (status === MedicineOrderStatus.CANCELED || status === MedicineOrderStatus.REJECTED) {
+        if (newStatus === MedicineOrderStatus.CANCELED || newStatus === MedicineOrderStatus.REJECTED) {
           await postMedicineOrderCancellation({
-            medicineOrderImage,
+            medicineOrderImage: newImage,
             dbClient: client,
             logger
           });
         }
 
-        if (status === MedicineOrderStatus.READY_FOR_DISPATCH) {
+        if (newStatus === MedicineOrderStatus.READY_FOR_DISPATCH) {
           await postMedicineOrderReadyForDispatch({
-            medicineOrderImage,
+            medicineOrderImage: newImage,
             dbClient: client,
             logger
           });

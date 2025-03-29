@@ -6,6 +6,7 @@ import { newDeliveryAssignmentDriverSMSNotifier } from "../helpers/new-delivery-
 import { newDeliveryAssignmentPatientEmailNotifier } from "../helpers/new-delivery-assignment-patient-email-notifier";
 import { newDeliveryAssignmentPatientSMSNotifier } from "../helpers/new-delivery-assignment-patient-sms-notifier";
 import { pickBestDriver } from "../helpers/pickBestDriver";
+import { updatePrescriptionRefillsRemaining } from "../helpers/update-prescription-refills-remaining";
 
 interface TriggerInput {
   medicineOrderImage: { [key: string]: AttributeValue; };
@@ -18,6 +19,7 @@ export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, db
   const orderNumber = medicineOrderImage?.orderNumber?.S;
   const pharmacyId = medicineOrderImage?.businessId?.S;
   const patientId = medicineOrderImage?.patientId?.S;
+  const prescriptionId = medicineOrderImage?.prescriptionId?.S;
 
   if (!orderId || !orderNumber || !pharmacyId || !patientId) {
     logger.warn("Missing required order fields");
@@ -99,6 +101,14 @@ export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, db
   if (deliveryUpdateErrors) {
     logger.error("Failed to update delivery", { errors: deliveryUpdateErrors });
     return;
+  }
+
+  if (prescriptionId) {
+    await updatePrescriptionRefillsRemaining({
+      client: dbClient,
+      logger,
+      prescriptionId: prescriptionId
+    })
   }
 
   if (patient.email) {
