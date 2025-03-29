@@ -14,9 +14,9 @@ export async function newDeliveryAssignmentPatientSMSNotifier({ phoneNumber, pha
   let message: string;
 
   if (deliveryType === DeliveryType.PICKUP) {
-    message = `Curati: Sua encomenda (${orderNumber}) está PRONTA p/ retirada na Farmácia ${pharmacyName}. Verifique email/app Cúrati p/ detalhes e horário.`;
+    message = `Curati: Óptima notícia! Sua encomenda (${orderNumber}) está PRONTA p/ retirada na Farmácia ${pharmacyName}. Verifique email/app Cúrati p/ detalhes e horário.`;
   } else {
-    message = `Curati: Sua encomenda (${orderNumber}) está PRONTA p/ ENTREGA e será despachada em breve. Acompanhe o estado no app Cúrati.`;
+    message = `Curati: Óptima notícia! Sua encomenda (${orderNumber}) está PRONTA p/ ENTREGA e será despachada em breve. Acompanhe o estado no app Cúrati.`;
   }
 
   const params: PublishCommandInput = {

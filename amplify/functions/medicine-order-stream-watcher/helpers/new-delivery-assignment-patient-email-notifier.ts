@@ -40,7 +40,7 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
           <body>
               <h1>Encomenda Pronta para Retirada</h1>
               <p>Prezado(a) ${patientName},</p>
-              <p>Boas notícias! A sua encomenda de medicamentos (Nº <strong>${orderNumber}</strong>) está pronta e aguarda a sua retirada.</p>
+              <p>Óptima notícia! A sua encomenda de medicamentos (Nº <strong>${orderNumber}</strong>) está pronta e aguarda a sua retirada.</p>
               <h2>Detalhes da Farmácia:</h2>
               <p><strong>Farmácia:</strong> ${pharmacyName}</p>
               <p><strong>Endereço:</strong></p>
@@ -55,7 +55,7 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
           </body>
           </html>
         `;
-    textBody = `Encomenda Pronta para Retirada\n\nPrezado(a) ${patientName},\n\nBoas notícias! A sua encomenda de medicamentos (Nº ${orderNumber}) está pronta e aguarda a sua retirada.\n\nDetalhes da Farmácia:\n- Farmácia: ${pharmacyName}\n- Endereço: ${pharmacyAddress}\n\nInstruções: Por favor, dirija-se à farmácia durante o horário de funcionamento para levantar a sua encomenda. Recomendamos que verifique o horário directamente com a farmácia ou na nossa plataforma.\n\nNão se esqueça de levar um documento de identificação e, se possível, o número da sua encomenda (${orderNumber}).\n\nSe tiver alguma dúvida, por favor contacte directamente a farmácia ou o nosso suporte.\n\nAtenciosamente,\nEquipa Cúrati Saúde${footerText}`;
+    textBody = `Encomenda Pronta para Retirada\n\nPrezado(a) ${patientName},\n\nÓptima notícia! A sua encomenda de medicamentos (Nº ${orderNumber}) está pronta e aguarda a sua retirada.\n\nDetalhes da Farmácia:\n- Farmácia: ${pharmacyName}\n- Endereço: ${pharmacyAddress}\n\nInstruções: Por favor, dirija-se à farmácia durante o horário de funcionamento para levantar a sua encomenda. Recomendamos que verifique o horário directamente com a farmácia ou na nossa plataforma.\n\nNão se esqueça de levar um documento de identificação e, se possível, o número da sua encomenda (${orderNumber}).\n\nSe tiver alguma dúvida, por favor contacte directamente a farmácia ou o nosso suporte.\n\nAtenciosamente,\nEquipa Cúrati Saúde${footerText}`;
 
   } else {
     subject = `Cúrati: Sua Encomenda (${orderNumber}) Está Pronta para Entrega!`;
@@ -66,10 +66,10 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
           <body>
               <h1>Encomenda Pronta para Entrega</h1>
               <p>Prezado(a) ${patientName},</p>
-              <p>Ótima notícia! A sua encomenda de medicamentos (Nº <strong>${orderNumber}</strong>) foi preparada com sucesso e está pronta para ser despachada para entrega no seu endereço.</p>
+              <p>Óptima notícia! A sua encomenda de medicamentos (Nº <strong>${orderNumber}</strong>) foi preparada com sucesso e está pronta para ser despachada para entrega no seu endereço.</p>
               <p><strong>Próximos Passos:</strong> Em breve, um motorista será atribuído à sua entrega. Receberá notificações adicionais assim que a encomenda estiver em trânsito.</p>
               <p>Pode acompanhar o estado atualizado da sua entrega directamente na aplicação Cúrati:</p>
-              <p><a href="${deliveryDeepLink}" class="button">Acompanhar Entrega na App</a></p>
+              <p><a href="${deliveryDeepLink}" >Acompanhar Entrega na App</a></p>
               <p>Se o link acima não funcionar diretamente, por favor abra a aplicação Cúrati e navegue para "Meus Pedidos".</p>
               <p>Se tiver alguma dúvida, por favor contacte o nosso suporte.</p>
               <p>Atenciosamente,</p>
