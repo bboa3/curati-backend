@@ -1172,6 +1172,7 @@ const schema = a.schema({
       allow.group('ADMIN').to(['read', 'update']),
     ]).disableOperations(['subscriptions', 'delete']),
   salesSummary: a.model({
+    id: a.id().required(),
     businessId: a.id().required(),
     itemId: a.id().required(),
     itemType: a.enum(salesSummaryItemType),
@@ -1184,7 +1185,6 @@ const schema = a.schema({
     averageUnitPrice: a.float().required().default(0),
     previousPeriodGrowth: a.float().required().default(0),
   })
-    .identifier(['businessId', 'itemId', 'itemType', 'timeGranularity', 'periodStart'])
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['create', 'update', 'delete', 'subscriptions'])
