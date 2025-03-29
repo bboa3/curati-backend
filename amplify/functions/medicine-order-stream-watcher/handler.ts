@@ -26,6 +26,9 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       logger.info(`Processing record: ${record.eventID}`);
 
       const medicineOrderImage = record.dynamodb?.NewImage;
+
+      logger.info(`New Image: ${JSON.stringify(medicineOrderImage)}`);
+
       if (!medicineOrderImage) {
         continue;
       }

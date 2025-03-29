@@ -20,9 +20,12 @@ const client = generateClient<any>();
 export const handler: DynamoDBStreamHandler = async (event) => {
   for (const record of event.Records) {
     try {
-      logger.info(`Processing record: ${record.eventID}`);
+      logger.info(`Processing record: ${record.eventID}`,);
 
       const deliveryImage = record.dynamodb?.NewImage;
+
+      logger.info(`New Image: ${JSON.stringify(deliveryImage)}`);
+
       if (!deliveryImage) {
         continue;
       }
