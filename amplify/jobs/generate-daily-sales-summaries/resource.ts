@@ -1,7 +1,7 @@
 import { defineFunction } from "@aws-amplify/backend"
 
-export const generateSalesSummaries = defineFunction({
-  name: "generate-sales-summaries",
+export const generateDailySalesSummaries = defineFunction({
+  name: "generate-daily-sales-summaries",
   entry: './handler.ts',
   schedule: 'every day'
 })

@@ -9,7 +9,8 @@ import { deliveryStreamWatcher } from '../functions/delivery-stream-watcher/reso
 import { getSecrets } from '../functions/get-secrets/resource';
 import { medicineOrderStreamWatcher } from '../functions/medicine-order-stream-watcher/resource';
 import { prescriptionStreamWatcher } from '../functions/prescription-stream-watcher/resource';
-import { generateSalesSummaries } from '../jobs/generate-sales-summaries/resource';
+import { generateDailySalesSummaries } from '../jobs/generate-daily-sales-summaries/resource';
+import { generateMonthlySalesSummaries } from '../jobs/generate-monthly-sales-summaries/resource';
 
 const mediaFromType = ['ARTICLE', 'CONTENT_BLOCK'] as const;
 const sleepQuality = ['POOR', 'AVERAGE', 'GOOD', 'EXCELLENT'] as const;
@@ -1194,7 +1195,8 @@ const schema = a.schema({
     allow.resource(deliveryStreamWatcher),
     allow.resource(prescriptionStreamWatcher),
     allow.resource(medicineOrderStreamWatcher),
-    allow.resource(generateSalesSummaries),
+    allow.resource(generateDailySalesSummaries),
+    allow.resource(generateMonthlySalesSummaries),
   ]);
 
 export type Schema = ClientSchema<typeof schema>;
