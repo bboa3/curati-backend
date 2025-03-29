@@ -26,7 +26,7 @@ export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, db
     return;
   }
 
-  const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.professional.get({ id: pharmacyId });
+  const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.business.get({ id: pharmacyId });
 
   if (pharmacyErrors || !pharmacyData) {
     logger.error("Failed to fetch pharmacy", { errors: pharmacyErrors });
