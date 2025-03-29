@@ -1,8 +1,10 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
 import DistanceCalculator from "../../helpers/calculateDistance";
 import { DriverCurrentLocation, Professional, ProfessionalAvailability, ProfessionalAvailabilityStatus, ProfessionalType, Vehicle } from "../../helpers/types/schema";
 import { CuratiLocation } from "../../helpers/types/shared";
+dayjs.extend(utc);
 
 interface DriverLocation extends CuratiLocation {
   driverId: string
@@ -59,7 +61,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
     filter: {
       and: [
         { or: locationFilters },
-        { timestamp: { gt: dayjs.utc().subtract(5, 'minute').toISOString() } }
+        { timestamp: { gt: dayjs().utc().subtract(5, 'minute').toISOString() } }
       ]
     },
     limit: 1000
