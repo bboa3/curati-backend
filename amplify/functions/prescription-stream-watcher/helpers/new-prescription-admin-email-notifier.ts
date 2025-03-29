@@ -7,17 +7,20 @@ export async function newPrescriptionAdminEmailNotifier(
   toAddresses: string[],
   prescriptionNumber: string,
 ) {
+  const currentYear = new Date().getFullYear();
+  const footerHtml = `
+      <div style="font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+        Copyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados.<br>
+        Maputo, Moçambique.
+      </div>
+    `;
+  const footerText = `\n\n---\nCopyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados. Maputo, Moçambique.`;
+
   const salutation = "Prezado(a) Administrador(a)/Farmacêutico(a),";
 
   const htmlBody = `
     <html>
-    <head>
-      <style>
-        body { font-family: sans-serif; }
-        p { margin-bottom: 10px; }
-        .footer { font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
-      </style>
-    </head>
+    <head><style>body { font-family: sans-serif; } p { margin-bottom: 10px; }</style></head>
     <body>
       <h1>Validação de Nova Receita Necessária</h1>
       <p>${salutation}</p>
@@ -27,15 +30,12 @@ export async function newPrescriptionAdminEmailNotifier(
       <p>A sua atenção é crucial para garantir que os pacientes recebam seus medicamentos atempadamente.</p>
       <p>Atenciosamente,</p>
       <p><strong>Equipa Cúrati Saúde</strong></p>
-      <div class="footer">
-        Copyright © 2024-${new Date().getFullYear()} Cúrati Saúde, LDA. Todos os direitos reservados.<br>
-        Maputo, Moçambique.
-      </div>
+      ${footerHtml}
     </body>
     </html>
   `;
 
-  const textBody = `Validação de Nova Receita Necessária\n\n${salutation}\n\nUma nova prescrição foi submetida e aguarda a sua validação no sistema Cúrati.\n\nNúmero da Receita: ${prescriptionNumber}\n\nAção Necessária: Por favor, acesse a plataforma Cúrati para revisar e validar a prescrição o mais breve possível.\n\nA sua atenção é crucial para garantir que os pacientes recebam seus medicamentos atempadamente.\n\nAtenciosamente,\nEquipa Cúrati Saúde\n\n---\nCopyright © 2024-${new Date().getFullYear()} Cúrati Saúde, LDA. Todos os direitos reservados. Maputo, Moçambique.`;
+  const textBody = `Validação de Nova Receita Necessária\n\n${salutation}\n\nUma nova prescrição foi submetida e aguarda a sua validação no sistema Cúrati.\n\nNúmero da Receita: ${prescriptionNumber}\n\nAção Necessária: Por favor, acesse a plataforma Cúrati para revisar e validar a prescrição o mais breve possível.\n\nA sua atenção é crucial para garantir que os pacientes recebam seus medicamentos atempadamente.\n\nAtenciosamente,\nEquipa Cúrati Saúde${footerText}`;
 
   const params: SendEmailCommandInput = {
     FromEmailAddress: env.VERIFIED_SES_SENDER_EMAIL,

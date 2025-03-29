@@ -48,7 +48,7 @@ export async function validatedPrescriptionPatientEmailNotifier({
             <p>Temos boas notícias! A sua receita médica (Número: <strong>${prescriptionNumber}</strong>) foi validada com sucesso pela nossa equipa.</p>
             <p><strong>Próximo Passo:</strong> Já pode adicionar os medicamentos prescritos ao seu carrinho e prosseguir com a compra através do aplicativo Cúrati.</p>
             <p>Aceda diretamente à sua receita na aplicação para encomendar:</p>
-            <p><a href="${prescriptionDeepLink}" style="padding: 10px 15px; background-color: #1BBA66; color: white; text-decoration: none; border-radius: 5px;">Ver Receita e Encomendar</a></p>
+            <p><a href="${prescriptionDeepLink}" target="_blank" rel="noopener noreferrer" style="padding: 10px 15px; background-color: #1BBA66; color: white; text-decoration: none; border-radius: 5px;">Ver Receita e Encomendar</a></p>
             <p>Se o link acima não funcionar diretamente, por favor abra a aplicação Cúrati e navegue para "Perfil" > "Receitas".</p>
             <p>Se tiver alguma dúvida, não hesite em contactar o nosso suporte.</p>
             <p>Atenciosamente,</p>

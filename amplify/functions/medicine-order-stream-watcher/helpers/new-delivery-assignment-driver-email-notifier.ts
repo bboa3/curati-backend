@@ -11,8 +11,15 @@ interface NotifierInput {
 const client = new SESv2Client();
 
 export async function newDeliveryAssignmentDriverEmailNotifier({ toAddresses, deliveryNumber, driverName, deliveryDeepLink }: NotifierInput) {
-  const currentYear = new Date().getFullYear();
   const subject = `Cúrati Driver: Nova Entrega Atribuída (${deliveryNumber})`;
+  const currentYear = new Date().getFullYear();
+  const footerHtml = `
+      <div style="font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+        Copyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados.<br>
+        Maputo, Moçambique.
+      </div>
+    `;
+  const footerText = `\n\n---\nCopyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados. Maputo, Moçambique.`;
 
   const params: SendEmailCommandInput = {
     FromEmailAddress: env.VERIFIED_SES_SENDER_EMAIL,
@@ -29,20 +36,8 @@ export async function newDeliveryAssignmentDriverEmailNotifier({ toAddresses, de
           Html: {
             Data: `
                         <html>
-                          <head>
-                            <style>
-                              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
-                              .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; }
-                              h1 { color: #0056b3; font-size: 1.5em; margin-bottom: 15px;}
-                              p { margin-bottom: 12px; }
-                              strong { font-weight: 600; color: #111; }
-                              a.link { color: #1BBA66; text-decoration: none; }
-                              .footer { font-size: 0.8em; color: #777; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 15px; text-align: center; }
-                              .cta-button { display: inline-block; background-color: #1BBA66; color: #ffffff !important; /* Ensure text is white */ padding: 12px 25px; text-align: center; text-decoration: none; border-radius: 5px; margin-top: 15px; font-weight: 500; }
-                            </style>
-                          </head>
+                         <head><style>body { font-family: sans-serif; } p { margin-bottom: 10px; }</style></head>
                           <body>
-                            <div class="container">
                               <h1>Nova Atribuição de Entrega</h1>
                               <p>Prezado(a) ${driverName},</p>
                               <p>Foi-lhe atribuída uma nova tarefa de entrega (Referência: <strong>${deliveryNumber}</strong>) através da aplicação Cúrati Driver.</p>
@@ -56,17 +51,13 @@ export async function newDeliveryAssignmentDriverEmailNotifier({ toAddresses, de
                               <p>A sua rapidez é essencial para garantirmos um serviço eficiente aos nossos clientes.</p>
                               <p>Obrigado pela sua colaboração.</p>
                               <p>Atenciosamente,</p>
-                              <p><strong>Equipa de Logística Cúrati Saúde</strong></p> <div class="footer">
-                                Copyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados.<br>
-                                Maputo, Moçambique.
-                              </div>
-                            </div>
+                              ${footerHtml}
                           </body>
                         </html>
                       `,
           },
           Text: {
-            Data: `Nova Atribuição de Entrega\n\nPrezado(a) ${driverName},\n\nFoi-lhe atribuída uma nova tarefa de entrega (Referência: ${deliveryNumber}) através da aplicação Cúrati Driver.\n\nAção Imediata Necessária:\nPor favor, aceda à aplicação Cúrati Driver assim que possível para rever todos os detalhes da entrega, aceitar a tarefa e iniciar a sua rota.\n\nVer Detalhes na App: ${deliveryDeepLink}\n\nA sua rapidez é essencial.\n\nObrigado,\nEquipa de Logística Cúrati Saúde\n\n---\nCopyright © 2024-${currentYear} Cúrati Saúde, LDA. Maputo, Moçambique.`
+            Data: `Nova Atribuição de Entrega\n\nPrezado(a) ${driverName},\n\nFoi-lhe atribuída uma nova tarefa de entrega (Referência: ${deliveryNumber}) através da aplicação Cúrati Driver.\n\nAção Imediata Necessária:\nPor favor, aceda à aplicação Cúrati Driver assim que possível para rever todos os detalhes da entrega, aceitar a tarefa e iniciar a sua rota.\n\nVer Detalhes na App: ${deliveryDeepLink}\n\nA sua rapidez é essencial.\n\nObrigado,\nEquipa de Logística Cúrati Saúde${footerText}`,
           },
         },
       },

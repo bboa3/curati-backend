@@ -1145,7 +1145,7 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
-      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update']),
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['subscriptions', 'delete']),
 
   paymentMethod: a.model({
@@ -1170,8 +1170,9 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.owner().to(['create', 'read', 'update', 'delete']),
-      allow.group('ADMIN').to(['read', 'update']),
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['subscriptions', 'delete']),
+
   salesSummary: a.model({
     id: a.id().required(),
     businessId: a.id().required(),

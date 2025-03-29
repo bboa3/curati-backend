@@ -6,6 +6,15 @@ export async function newOrderPharmacyEmailNotifier(
   toAddresses: string[],
   orderNumber: string,
 ) {
+  const currentYear = new Date().getFullYear();
+  const footerHtml = `
+      <div style="font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+        Copyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados.<br>
+        Maputo, Moçambique.
+      </div>
+    `;
+  const footerText = `\n\n---\nCopyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados. Maputo, Moçambique.`;
+
   const params: SendEmailCommandInput = {
     FromEmailAddress: env.VERIFIED_SES_SENDER_EMAIL,
     Destination: {
@@ -21,6 +30,7 @@ export async function newOrderPharmacyEmailNotifier(
           Html: {
             Data: `
             <html>
+            <head><style>body { font-family: sans-serif; } p { margin-bottom: 10px; }</style></head>
               <body>
                 <h1>Novo Pedido de Medicamentos - Ação Necessária</h1>
                 <p>Prezado(a) farmacêutico(a),</p>
@@ -28,13 +38,13 @@ export async function newOrderPharmacyEmailNotifier(
                 <p>Por favor, acesse o sistema para processar este pedido o mais breve possível.</p>
                 <p>Atenciosamente,</p>
                 <p>Cúrati - A sua saúde é a nossa prioridade.</p>
-                <p>Copyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.</p>
+                ${footerHtml}
               </body>
             </html>
           `,
           },
           Text: {
-            Data: `Novo Pedido de Medicamentos - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.\n\nAtenciosamente,\n\nCopyright © 2024-2025 Cúrati Saúde, LDA. Todos os direitos reservados.`,
+            Data: `Novo Pedido de Medicamentos - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.\n\nAtenciosamente,\nEquipa Cúrati Saúde${footerText}`
           },
         },
       },

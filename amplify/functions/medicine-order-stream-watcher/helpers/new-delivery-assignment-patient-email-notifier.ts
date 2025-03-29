@@ -20,9 +20,8 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
   let textBody: string;
 
   const currentYear = new Date().getFullYear();
-
   const footerHtml = `
-      <div style="font-size: 0.8em; color: #777; margin-top: 25px; border-top: 1px solid #ccc; padding-top: 15px; text-align: center;">
+      <div style="font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
         Copyright © 2024-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados.<br>
         Maputo, Moçambique.
       </div>
@@ -36,9 +35,9 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
     const address = `${pharmacyAddress.addressLine1}, ${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}`
 
     htmlBody = `
+          <html>
           ${baseHtmlHead}
           <body>
-            <div class="container">
               <h1>Encomenda Pronta para Retirada</h1>
               <p>Prezado(a) ${patientName},</p>
               <p>Boas notícias! A sua encomenda de medicamentos (Nº <strong>${orderNumber}</strong>) está pronta e aguarda a sua retirada.</p>
@@ -62,9 +61,9 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
     subject = `Cúrati: Sua Encomenda (${orderNumber}) Está Pronta para Entrega!`;
 
     htmlBody = `
+        <html>
           ${baseHtmlHead}
           <body>
-            <div class="container">
               <h1>Encomenda Pronta para Entrega</h1>
               <p>Prezado(a) ${patientName},</p>
               <p>Ótima notícia! A sua encomenda de medicamentos (Nº <strong>${orderNumber}</strong>) foi preparada com sucesso e está pronta para ser despachada para entrega no seu endereço.</p>
@@ -76,7 +75,6 @@ export async function newDeliveryAssignmentPatientEmailNotifier({ patientEmail, 
               <p>Atenciosamente,</p>
               <p><strong>Equipa Cúrati Saúde</strong></p>
               ${footerHtml}
-            </div>
           </body>
           </html>
         `;
