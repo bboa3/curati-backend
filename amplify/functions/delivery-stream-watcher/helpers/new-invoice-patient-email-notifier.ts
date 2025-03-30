@@ -53,12 +53,12 @@ export async function newInvoicePatientEmailNotifier({
         <p>Segue os detalhes da fatura (${invoice.invoiceNumber}) gerada para a sua recente ${invoice.invoiceSourceType === 'MEDICINE_ORDER' ? 'encomenda de medicamentos' : 'subscrição'}.</p>
 
         <h2>Sumário da Fatura</h2>
-        <p><strong>Número da Fatura:</strong> ${invoice.invoiceNumber}</p>
-        <p><strong>Data de Emissão:</strong> ${emissionDate}</p>
-        <p><strong>Data de Vencimento:</strong> ${formattedDueDate}</p>
-        <p><strong>Referente ao Pedido Nº:</strong> ${orderNumber}</p>
-        <p><strong>Termos de Pagamento:</strong> 12 horas</p>
-        <p><strong>Estado Atual:</strong> ${convertInvoiceStatus(invoice.status)}</p>
+        <p>Número da Fatura: ${invoice.invoiceNumber}</p>
+        <p>Data de Emissão: ${emissionDate}</p>
+        <p>Data de Vencimento: ${formattedDueDate}</p>
+        <p>Referente ao Pedido Nº: ${orderNumber}</p>
+        <p>Termos de Pagamento: Pagamento em 12 horas</p>
+        <p>Estado Atual: ${convertInvoiceStatus(invoice.status)}</p>
 
        <h2>Detalhes Financeiros</h2>
         <table>
