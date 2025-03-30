@@ -58,7 +58,8 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
       patientName: patient.name,
       patientEmail: patient.email,
       orderNumber: order.orderNumber,
-      invoice
+      invoice,
+      totalDeliveryFee: Number(totalDeliveryFee)
     });
   }
 };

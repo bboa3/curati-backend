@@ -12,6 +12,7 @@ interface PatientEmailNotifierInput {
   patientEmail: string;
   orderNumber: string;
   invoice: Invoice;
+  totalDeliveryFee: number;
 }
 
 const client = new SESv2Client();
@@ -20,6 +21,7 @@ export async function newInvoicePatientEmailNotifier({
   patientEmail,
   orderNumber,
   invoice,
+  totalDeliveryFee
 }: PatientEmailNotifierInput) {
   const subject = `Cúrati: Detalhes da Sua Fatura (${invoice.invoiceNumber})`;
   const emissionDate = dayjs(invoice.createdAt).utc().add(2, 'hour').format('DD/MM/YYYY');
@@ -35,7 +37,16 @@ export async function newInvoicePatientEmailNotifier({
 
   const htmlBody = `
     <html>
-    <head><style>body { font-family: sans-serif; } p { margin-bottom: 10px; }</style></head>  
+    <head>
+      <style>
+        body { font-family: sans-serif; }
+        p { margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f8f8; font-weight: 600; }
+        .total-row td { border-top: 2px solid #333; font-weight: bold; font-size: 1.1em; }
+      </style>
+    </head>  
     <body>
         <h1>Detalhes da Sua Fatura Cúrati</h1>
         <p>Prezado(a) ${patientName},</p>
@@ -57,6 +68,7 @@ export async function newInvoicePatientEmailNotifier({
           </tr>
           ${invoice.discount > 0 ? `<tr><td>Desconto Aplicado</td><td style="text-align: right;">-${formatToMZN(invoice.discount)}</td></tr>` : ''}
           ${invoice.taxes > 0 ? `<tr><td>Impostos (IVA)</td><td style="text-align: right;">${formatToMZN(invoice.taxes)}</td></tr>` : ''}
+          ${totalDeliveryFee > 0 ? `<tr><td>Taxa de Entrega</td><td style="text-align: right;">${formatToMZN(totalDeliveryFee)}</td></tr>` : ''}
           <tr class="total-row">
             <td>Valor Total a Pagar</td>
             <td style="text-align: right;">${formatToMZN(invoice.totalAmount)}</td>
