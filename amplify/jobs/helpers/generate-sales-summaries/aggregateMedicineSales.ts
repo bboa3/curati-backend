@@ -21,13 +21,13 @@ export const aggregateMedicineSales = async ({ businessId, periodStart, periodEn
 
   if (!ordersData || ordersData.length === 0) return null;
 
-  if (orderErrors) throw new Error(JSON.stringify(orderErrors));
+  if (orderErrors) throw new Error(`Failed to fetch orders: ${JSON.stringify(orderErrors)}`);
   const orders = ordersData as MedicineOrder[];
 
   const items = (await Promise.all(
     orders.map(async (order) => {
       const { data, errors } = await order.items({ limit: 1000 })
-      if (errors) throw new Error(JSON.stringify(errors));
+      if (errors) throw new Error(`Failed to fetch order items: ${JSON.stringify(errors)}`);
 
       return data;
     })

@@ -1,5 +1,6 @@
 import { env } from '$amplify/env/generate-daily-sales-summaries';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
+import { Logger } from '@aws-lambda-powertools/logger';
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { EventBridgeHandler } from "aws-lambda";
@@ -14,11 +15,17 @@ const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env)
 
 Amplify.configure(resourceConfig, libraryOptions);
 
+const logger = new Logger({
+  logLevel: "INFO",
+  serviceName: "dynamodb-stream-handler",
+});
+
 const client = generateClient<any>();
 
 export const handler: EventBridgeHandler<"Scheduled Event", null, void> = async (_event) => {
   return await generateSalesSummaries({
     granularity: SalesSummaryTimeGranularity.DAILY,
-    dbClient: client
+    dbClient: client,
+    logger
   })
 };

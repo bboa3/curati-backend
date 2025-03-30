@@ -21,7 +21,7 @@ export const aggregateDeliveryFees = async ({ businessId, periodStart, periodEnd
 
   if (!deliveriesData || deliveriesData.length === 0) return null;
 
-  if (deliveriesErrors) throw new Error(JSON.stringify(deliveriesErrors));
+  if (deliveriesErrors) throw new Error(`Failed to fetch deliveries: ${JSON.stringify(deliveriesErrors)}`);
   const deliveries = deliveriesData as Delivery[];
 
   return deliveries.reduce((acc, delivery) => {

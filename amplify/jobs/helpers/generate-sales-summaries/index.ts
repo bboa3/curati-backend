@@ -1,3 +1,4 @@
+import { Logger } from '@aws-lambda-powertools/logger';
 import dayjs from 'dayjs';
 import { Business, PublicationStatus, SalesSummaryItemType, SalesSummaryTimeGranularity } from '../../../functions/helpers/types/schema';
 import { aggregateDeliveryFees } from './aggregateDeliveryFees';
@@ -7,17 +8,24 @@ import { getPeriodDates } from './getPeriodDates';
 
 interface GenerateSalesSummariesInput {
   granularity: SalesSummaryTimeGranularity
-  dbClient: any
+  dbClient: any,
+  logger: Logger
 }
 
-export const generateSalesSummaries = async ({ granularity, dbClient }: GenerateSalesSummariesInput) => {
-  const now = dayjs.utc();
+export const generateSalesSummaries = async ({ granularity, dbClient, logger }: GenerateSalesSummariesInput) => {
+  const now = dayjs().utc();
+  logger.info(`Generating sales summaries for ${granularity} granularity at ${now.toISOString()}`);
+
   try {
     const { data: businessesData, errors: businessesErrors } = await dbClient.models.business.list({
       filter: { publicationStatus: { eq: PublicationStatus.PUBLISHED } }
     });
 
-    if (businessesErrors || !businessesData) throw new Error(JSON.stringify(businessesErrors || businessesData));
+    if (businessesErrors || !businessesData) {
+      logger.error("Failed to fetch businesses", businessesErrors);
+      return;
+    }
+
     const businesses = businessesData as Business[];
 
     for (const business of businesses) {
@@ -32,7 +40,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient }: Generate
 
       if (medicineSales) {
         for (const [itemId, data] of medicineSales) {
-          await dbClient.models.salesSummary.create({
+          const { errors: salesSummaryErrors } = await dbClient.models.salesSummary.create({
             businessId: business.id,
             itemId,
             itemType: SalesSummaryItemType.MEDICINE,
@@ -44,6 +52,10 @@ export const generateSalesSummaries = async ({ granularity, dbClient }: Generate
             numberOfSales: data.count,
             averageUnitPrice: data.totalRevenue / data.totalUnits
           });
+
+          if (salesSummaryErrors) {
+            logger.error("Failed to create medicine sales summary", salesSummaryErrors);
+          }
         }
       }
 
@@ -57,7 +69,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient }: Generate
 
       if (serviceSales) {
         for (const [itemId, data] of serviceSales) {
-          await dbClient.models.salesSummary.create({
+          const { errors: salesSummaryErrors } = await dbClient.models.salesSummary.create({
             businessId: business.id,
             itemId,
             itemType: SalesSummaryItemType.BUSINESSSERVICE,
@@ -69,6 +81,10 @@ export const generateSalesSummaries = async ({ granularity, dbClient }: Generate
             totalUnitsSold: data.count,
             averageUnitPrice: data.totalRevenue / data.count
           });
+
+          if (salesSummaryErrors) {
+            logger.error("Failed to create service sales summary", salesSummaryErrors);
+          }
         }
       }
 
@@ -82,7 +98,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient }: Generate
 
       if (deliverySales) {
         for (const [itemId, data] of deliverySales) {
-          await dbClient.models.salesSummary.create({
+          const { errors: salesSummaryErrors } = await dbClient.models.salesSummary.create({
             businessId: business.id,
             itemId,
             itemType: SalesSummaryItemType.DRIVER,
@@ -94,10 +110,14 @@ export const generateSalesSummaries = async ({ granularity, dbClient }: Generate
             totalUnitsSold: data.totalUnits,
             averageUnitPrice: data.averageFee
           });
+
+          if (salesSummaryErrors) {
+            logger.error("Failed to create delivery sales summary", salesSummaryErrors);
+          }
         }
       }
     }
   } catch (error) {
-    console.error('Error generating sales summaries:', error);
+    logger.error("Error generating sales summaries", { error });
   }
 };
