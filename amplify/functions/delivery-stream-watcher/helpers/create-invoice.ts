@@ -2,10 +2,10 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { v4 as generateUUIDv4 } from "uuid";
+import { createInvoiceDueDate } from "../../helpers/create-invoice-due-date";
 import { generateHashedIdentifier } from "../../helpers/generateHashedIdentifier";
 import PriceCalculator from "../../helpers/price/priceCalculator";
 import { Invoice, InvoiceSourceType, InvoiceStatus, MedicineOrderItem, PaymentTermsType } from "../../helpers/types/schema";
-import { createInvoiceDueDate } from "./create-invoice-due-date";
 dayjs.extend(utc);
 
 const priceCalculator = new PriceCalculator();
@@ -19,7 +19,7 @@ interface UpdateInventoriesInput {
   totalDeliveryFee: number;
 }
 
-export const createBilling = async ({ client, logger, orderId, pharmacyId, patientId, totalDeliveryFee }: UpdateInventoriesInput) => {
+export const createMedicineOrderInvoice = async ({ client, logger, orderId, pharmacyId, patientId, totalDeliveryFee }: UpdateInventoriesInput) => {
   const { data: orderItemsData, errors: orderErrors } = await client.models.medicineOrderItem.list({
     filter: { orderId: { eq: orderId } }
   });
@@ -53,7 +53,7 @@ export const createBilling = async ({ client, logger, orderId, pharmacyId, patie
     discount: calculated.discount,
     taxes: calculated.taxes,
     totalAmount: totalAmountWithDelivery,
-    status: InvoiceStatus.PENDING,
+    status: InvoiceStatus.PENDING_PAYMENT,
     paymentTerms: paymentTerms
   });
 

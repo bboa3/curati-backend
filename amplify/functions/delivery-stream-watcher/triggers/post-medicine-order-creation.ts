@@ -1,8 +1,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { MedicineOrder, Patient } from '../../helpers/types/schema';
-import { createBilling } from '../helpers/create-billing';
-import { newInvoicePatientEmailNotifier } from '../helpers/new-invoice-patient-email-notifier';
+import { createMedicineOrderInvoice } from '../helpers/create-invoice';
 import { reserveStockInventories } from '../helpers/reserve-stock-inventories';
 
 interface TriggerInput {
@@ -22,29 +20,13 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
     return;
   }
 
-  const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
-
-  if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
-  }
-  const order = orderData as unknown as MedicineOrder
-
-  const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
-
-  if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
-  }
-  const patient = patientData as unknown as Patient
-
   await reserveStockInventories({
     client: dbClient,
     logger,
     orderId
   })
 
-  const invoice = await createBilling({
+  await createMedicineOrderInvoice({
     client: dbClient,
     logger,
     orderId,
@@ -52,14 +34,4 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
     pharmacyId: pharmacyId,
     patientId: patientId
   });
-
-  if (patient?.email && invoice) {
-    await newInvoicePatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      invoice,
-      totalDeliveryFee: Number(totalDeliveryFee)
-    });
-  }
 };

@@ -3,10 +3,13 @@ import { postConfirmation } from '../auth/post-confirmation/resource';
 import { addOrUpdateSearchableRecord } from '../functions/add-or-update-searchable-record/resource';
 import { addUserToGroup } from '../functions/add-user-to-group/resource';
 import { adminCreateUser } from '../functions/admin-create-user/resource';
+import { appointmentStreamWatcher } from '../functions/appointment-stream-watcher/resource';
+import { contractStreamWatcher } from '../functions/contract-stream-watcher/resource';
 import { createStreamToken } from '../functions/create-stream-token/resource';
 import { deleteSearchableRecord } from '../functions/delete-searchable-record/resource';
 import { deliveryStreamWatcher } from '../functions/delivery-stream-watcher/resource';
 import { getSecrets } from '../functions/get-secrets/resource';
+import { invoiceStreamWatcher } from '../functions/invoice-stream-watcher/resource';
 import { medicineOrderStreamWatcher } from '../functions/medicine-order-stream-watcher/resource';
 import { prescriptionStreamWatcher } from '../functions/prescription-stream-watcher/resource';
 import { generateDailySalesSummaries } from '../jobs/generate-daily-sales-summaries/resource';
@@ -44,7 +47,7 @@ const cardBrand = ['MASTERCARD', 'VISA'] as const;
 const mobileProviderName = ['M_PESA', 'E_MOLA', 'M_KESH'] as const;
 const paymentTermsType = ['NET_1', 'NET_7', 'NET_30'] as const;
 const paymentMethodType = ['CREDIT_CARD', 'DEBIT_CARD', 'MOBILE_PAYMENT'] as const;
-const invoiceStatus = ['PENDING', 'PAID', 'PARTIALLY_PAID', 'FAILED', 'OVERDUE'] as const;
+const invoiceStatus = ['AWAITING_PATIENT_REVIEW', 'PENDING_PAYMENT', 'PAID', 'PARTIALLY_PAID', 'FAILED', 'OVERDUE'] as const;
 const paymentTransactionStatus = ['SUCCESS', 'FAILED', 'PENDING', 'REFUNDED'] as const;
 const invoiceSourceType = ['MEDICINE_ORDER', 'CONTRACT'] as const;
 
@@ -74,8 +77,9 @@ const outcome = ['NOT_COMPLETED', 'SUCCESSFUL', 'FOLLOW_UP_REQUIRED', 'REFERRAL_
 const prescriptionStatus = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DISPENSED', 'PENDING_VALIDATION'] as const;
 const prescriptionType = ['INPATIENT', 'OUTPATIENT'] as const;
 
-const appointmentStatus = ['PENDING', 'CONFIRMED', 'RESCHEDULED', 'CANCELLED', 'COMPLETED'] as const;
+const appointmentStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'CONFIRMED', 'IN_PROGRESS', 'RESCHEDULED', 'CANCELLED', 'FAILED', 'COMPLETED'] as const;
 const appointmentType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
+const appointmentCreatedByParticipantType = ['PATIENT', 'PROFESSIONAL'] as const;
 
 const licenseStatus = ['ACTIVE', 'SUSPENDED', 'EXPIRED'] as const;
 const professionalAvailabilityStatus = ['ONLINE', 'OFFLINE', 'ON_BREAK', 'BUSY'] as const;
@@ -487,6 +491,7 @@ const schema = a.schema({
     businessLongitude: a.float().required(),
     businessName: a.string().required(),
     professionalName: a.string().required(),
+    serviceName: a.string().required(),
     ratings: a.hasMany('rating', 'ratedItemId'),
     pricing: a.hasMany('businessServicePricing', 'businessServiceId'),
     service: a.belongsTo('service', 'serviceId'),
@@ -527,11 +532,11 @@ const schema = a.schema({
     duration: a.integer().required(),
     status: a.enum(appointmentStatus),
     type: a.enum(appointmentType),
+    createdByParticipantType: a.enum(appointmentCreatedByParticipantType),
     reason: a.string(),
     notes: a.string(),
     patientRescheduledCount: a.integer().required().default(0),
     professionalRescheduledCount: a.integer().required().default(0),
-    isConfirmed: a.boolean().default(false),
     confirmationDateTime: a.datetime(),
     cancellationReason: a.string(),
     contract: a.belongsTo('contract', 'contractId'),
@@ -1197,6 +1202,9 @@ const schema = a.schema({
     allow.resource(deliveryStreamWatcher),
     allow.resource(prescriptionStreamWatcher),
     allow.resource(medicineOrderStreamWatcher),
+    allow.resource(invoiceStreamWatcher),
+    allow.resource(contractStreamWatcher),
+    allow.resource(appointmentStreamWatcher),
     allow.resource(generateDailySalesSummaries),
     allow.resource(generateMonthlySalesSummaries),
   ]);

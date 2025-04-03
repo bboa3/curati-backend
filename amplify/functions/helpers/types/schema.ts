@@ -242,7 +242,8 @@ export enum PaymentTermsType {
 }
 
 export enum InvoiceStatus {
-  PENDING = 'PENDING',
+  AWAITING_PATIENT_REVIEW = 'AWAITING_PATIENT_REVIEW',
+  PENDING_PAYMENT = 'PENDING_PAYMENT',
   PAID = 'PAID',
   PARTIALLY_PAID = 'PARTIALLY_PAID',
   FAILED = 'FAILED',
@@ -326,10 +327,13 @@ export enum PrescriptionType {
 }
 
 export enum AppointmentStatus {
-  PENDING = 'PENDING',
+  PENDING_PAYMENT = 'PENDING_PAYMENT',
+  PENDING_CONFIRMATION = 'PENDING_CONFIRMATION',
   CONFIRMED = 'CONFIRMED',
+  IN_PROGRESS = 'IN_PROGRESS',
   RESCHEDULED = 'RESCHEDULED',
   CANCELLED = 'CANCELLED',
+  FAILED = 'FAILED',
   COMPLETED = 'COMPLETED'
 }
 
@@ -338,6 +342,11 @@ export enum AppointmentType {
   AUDIO = 'AUDIO',
   TEXT = 'TEXT',
   IN_PERSON = 'IN_PERSON'
+}
+
+export enum AppointmentCreatedByParticipantType {
+  PATIENT = 'PATIENT',
+  PROFESSIONAL = 'PROFESSIONAL'
 }
 
 export enum LicenseStatus {
@@ -592,6 +601,7 @@ type AppointmentSchema = Schema['appointment']['type'];
 export interface Appointment extends AppointmentSchema {
   status: AppointmentStatus
   type: AppointmentType
+  createdByParticipantType: AppointmentCreatedByParticipantType
 };
 
 type ConsultationRecordSchema = Schema['consultationRecord']['type'];
