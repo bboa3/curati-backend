@@ -4,14 +4,14 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { AppointmentStatus } from '../helpers/types/schema';
-import { postAppointmentCancelled } from './triggers/post-appointment-cancelled';
-import { postAppointmentCompleted } from './triggers/post-appointment-completed';
 import { postAppointmentConfirmation } from './triggers/post-appointment-confirmation';
-import { postAppointmentFailed } from './triggers/post-appointment-failed';
 import { postAppointmentReadyForConfirmation } from './triggers/post-appointment-ready-for-confirmation';
-import { postAppointmentRescheduled } from './triggers/post-appointment-rescheduled';
 import { postAppointmentStarted } from './triggers/post-appointment-started';
+
+dayjs.extend(utc);
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
@@ -58,25 +58,32 @@ export const handler: DynamoDBStreamHandler = async (event) => {
           continue;
         }
 
-        if (newStatus === AppointmentStatus.PENDING_CONFIRMATION) {
+        if (newStatus === AppointmentStatus.PENDING_CONFIRMATION || newStatus === AppointmentStatus.RESCHEDULED) {
+          // Notify the relevant party to confirm
+
           await postAppointmentReadyForConfirmation({
             appointmentImage: newImage,
             dbClient: client,
             logger
           });
-
-          // Notify the relevant party to confirm
         }
 
-        if (newStatus === AppointmentStatus.CONFIRMED) {
+        if (newStatus === AppointmentStatus.CONFIRMED || newStatus === AppointmentStatus.CANCELLED || newStatus === AppointmentStatus.FAILED) {
+          const oldImageStatus = oldImage?.status?.S as AppointmentStatus | undefined;
+
+          if (!oldImageStatus) {
+            logger.error(`Missing oldImageStatus for record ${record.eventID}`);
+            continue;
+          }
+
           await postAppointmentConfirmation({
             appointmentImage: newImage,
+            oldImageStatus: oldImageStatus,
             dbClient: client,
             logger
           });
 
           // Notify both parties, schedule reminders
-          // Schedule a reminder (e.g., 24h and 1h before)
         }
 
         if (newStatus === AppointmentStatus.IN_PROGRESS) {
@@ -89,45 +96,15 @@ export const handler: DynamoDBStreamHandler = async (event) => {
           // Notify parties, create/update consultation record
         }
 
-        if (newStatus === AppointmentStatus.COMPLETED) {
-          await postAppointmentCompleted({
-            appointmentImage: newImage,
-            dbClient: client,
-            logger
-          });
+        // if (newStatus === AppointmentStatus.COMPLETED) {
+        //   await postAppointmentCompleted({
+        //     appointmentImage: newImage,
+        //     dbClient: client,
+        //     logger
+        //   });
 
-          /// Notify parties, update consultation record, trigger follow-ups
-        }
-
-        if (newStatus === AppointmentStatus.CANCELLED) {
-          await postAppointmentCancelled({
-            appointmentImage: newImage,
-            dbClient: client,
-            logger
-          });
-
-          // Notify parties, handle fees/refunds, cancel reminders
-        }
-
-        if (newStatus === AppointmentStatus.RESCHEDULED) {
-          await postAppointmentRescheduled({
-            appointmentImage: newImage,
-            dbClient: client,
-            logger
-          });
-
-          // Notify parties, cancel old reminders, schedule new ones
-        }
-
-        if (newStatus === AppointmentStatus.FAILED) {
-          await postAppointmentFailed({
-            appointmentImage: newImage,
-            dbClient: client,
-            logger
-          });
-
-          // Log, notify relevant admin/support
-        }
+        //   /// Notify parties, update consultation record, trigger follow-ups
+        // }
       }
     } catch (error) {
       logger.error("Error processing record", { error });

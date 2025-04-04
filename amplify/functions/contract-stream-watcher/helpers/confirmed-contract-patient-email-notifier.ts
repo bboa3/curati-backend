@@ -1,6 +1,6 @@
 import { env } from '$amplify/env/contract-stream-watcher';
 import { SendEmailCommand, SendEmailCommandInput, SESv2Client } from '@aws-sdk/client-sesv2';
-import dayjs from 'dayjs';
+import { formatDateTimeNumeric } from '../../helpers/date/formatter';
 import { formatToMZN } from '../../helpers/number-formatter';
 import { ContractStatus } from '../../helpers/types/schema';
 import { convertContractStatus } from './contract-status';
@@ -51,13 +51,12 @@ export async function confirmedContractPatientEmailNotifier({
 
   const baseHtmlHead = `<head><style>body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.6; } .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; } h1 { color: #0A0D14; font-size: 1.5em; } h1.success { color: #1BBA66; } h1.failure { color: #dc3545; } p { margin-bottom: 12px; } strong { font-weight: 600; color: #111; } .highlight { background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 5px solid #ffeeba; margin: 20px 0; } a.button { padding: 12px 25px; background-color: #1BBA66; color: white !important; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; font-weight: 500; } .footer { font-size: 0.8em; color: #777; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 15px; text-align: center; }</style></head>`;
 
-
   if (contractStatus === ContractStatus.ACTIVE) {
     if (!invoiceNumber || invoiceTotalAmount === undefined || !invoiceDueDate || !paymentDeepLink) {
       throw new Error(`Invoice details missing for ACTIVE contract ${contractNumber}`);
     }
 
-    const formattedDueDate = dayjs(invoiceDueDate).utc().add(2, 'hour').format('DD/MM/YYYY');
+    const formattedDueDate = formatDateTimeNumeric(invoiceDueDate);
     const formattedTotalAmount = formatToMZN(invoiceTotalAmount);
     subject = `Cúrati: Contrato ${contractNumber} Confirmado - Fatura Pronta!`;
     htmlBody = `
@@ -90,7 +89,6 @@ export async function confirmedContractPatientEmailNotifier({
     textBody = `Contrato Confirmado e Fatura Pronta!\n\nPrezado(a) ${patientName},\n\nExcelente notícia! O seu contrato de serviço (Nº ${contractNumber}) para "${serviceName}" com ${professionalName} foi confirmado com sucesso.\n\nFatura Gerada:\n- Número da Fatura: ${invoiceNumber}\n- Valor Total: ${formattedTotalAmount}\n- Data de Vencimento: ${formattedDueDate}\n\nAção Necessária: O pagamento desta fatura é o próximo passo para agendar o(s) seu(s) serviço(s).\n\nAceda à plataforma Cúrati para pagar:\n${paymentDeepLink}\n\nQuestões? Contacte o suporte.\n\nAtenciosamente,\nEquipa Cúrati Saúde${footerText}`;
 
   } else {
-    // --- REJECTED / SUSPENDED / TERMINATED / etc. Status ---
     const formattedContractStatus = convertContractStatus(contractStatus);
     subject = `Cúrati: Atualização Sobre o Seu Contrato (${contractNumber})`;
     htmlBody = `

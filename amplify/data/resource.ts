@@ -79,7 +79,7 @@ const prescriptionType = ['INPATIENT', 'OUTPATIENT'] as const;
 
 const appointmentStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'CONFIRMED', 'IN_PROGRESS', 'RESCHEDULED', 'CANCELLED', 'FAILED', 'COMPLETED'] as const;
 const appointmentType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
-const appointmentCreatedByParticipantType = ['PATIENT', 'PROFESSIONAL'] as const;
+const appointmentParticipantType = ['PATIENT', 'PROFESSIONAL'] as const;
 
 const licenseStatus = ['ACTIVE', 'SUSPENDED', 'EXPIRED'] as const;
 const professionalAvailabilityStatus = ['ONLINE', 'OFFLINE', 'ON_BREAK', 'BUSY'] as const;
@@ -532,8 +532,9 @@ const schema = a.schema({
     duration: a.integer().required(),
     status: a.enum(appointmentStatus),
     type: a.enum(appointmentType),
-    createdByParticipantType: a.enum(appointmentCreatedByParticipantType),
-    reason: a.string(),
+    requesterType: a.enum(appointmentParticipantType),
+    starterType: a.enum(appointmentParticipantType),
+    purpose: a.string().required(),
     notes: a.string(),
     patientRescheduledCount: a.integer().required().default(0),
     professionalRescheduledCount: a.integer().required().default(0),
@@ -552,13 +553,12 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'delete']),
 
   consultationRecord: a.model({
-    id: a.id().required(),
+    appointmentId: a.id().required(),
     contractId: a.id().required(),
     patientId: a.id().required(),
     businessId: a.id().required(),
     professionalId: a.id().required(),
     businessServiceId: a.id().required(),
-    appointmentId: a.id().required(),
     type: a.enum(consultationType),
     purpose: a.string(),
     notes: a.string(),
@@ -573,6 +573,7 @@ const schema = a.schema({
     appointment: a.belongsTo('appointment', 'appointmentId'),
     contract: a.belongsTo('contract', 'contractId'),
   })
+    .identifier(['appointmentId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.group('PROFESSIONAL').to(['read', 'create', 'update']),
@@ -1093,6 +1094,7 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions']),
 
   reminder: a.model({
+    id: a.id().required(),
     userId: a.id().required(),
     relatedItemRemindedId: a.id().required(),
     remindedItemType: a.enum(remindedItemType),
@@ -1103,7 +1105,6 @@ const schema = a.schema({
     repeat: a.enum(repeatType),
     user: a.belongsTo('user', 'userId'),
   })
-    .identifier(['userId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update', 'delete']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create', 'delete']),

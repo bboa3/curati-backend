@@ -1,12 +1,10 @@
 import { env } from '$amplify/env/delivery-stream-watcher';
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import { formatDateTimeNumeric } from '../../helpers/date/formatter';
 import { formatToMZN } from '../../helpers/number-formatter';
 import { InvoiceStatus, PaymentTermsType } from '../../helpers/types/schema';
 import { convertInvoiceStatus } from './invoice-status';
 import { convertPaymentTermsType } from './payment-terms';
-dayjs.extend(utc);
 
 interface PatientEmailNotifierInput {
   patientName: string;
@@ -49,8 +47,8 @@ export async function newContractInvoicePatientEmailNotifier({
   invoiceDeepLink
 }: PatientEmailNotifierInput) {
   const subject = `Cúrati: Fatura (${invoiceNumber}) Pronta Para Pagamento - ${serviceName}`;
-  const formattedInvoiceDate = dayjs(invoiceCreatedAt).utc().utcOffset(2).format('DD/MM/YYYY [às] HH:mm');
-  const formattedDueDate = dayjs(invoiceDueDate).utc().utcOffset(2).format('DD/MM/YYYY [às] HH:mm');
+  const formattedInvoiceDate = formatDateTimeNumeric(invoiceCreatedAt);
+  const formattedDueDate = formatDateTimeNumeric(invoiceDueDate);
   const currentYear = new Date().getFullYear();
   const footerHtml = `
       <div style="font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">

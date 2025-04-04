@@ -18,7 +18,7 @@ export const postContractConfirmation = async ({ contractImage, dbClient, logger
   const patientId = contractImage?.patientId?.S;
   const businessId = contractImage?.businessId?.S;
   const businessServiceId = contractImage?.businessServiceId?.S;
-  const appliedPricingConditions = contractImage?.appliedPricingConditions?.L;
+  const appliedPricingConditions = contractImage?.appliedPricingConditions?.SS;
 
   if (!contractNumber || !contractId || !contractStatus || !patientId || !businessId || !businessServiceId || !appliedPricingConditions) {
     logger.warn("Missing required contract fields");

@@ -344,7 +344,7 @@ export enum AppointmentType {
   IN_PERSON = 'IN_PERSON'
 }
 
-export enum AppointmentCreatedByParticipantType {
+export enum AppointmentParticipantType {
   PATIENT = 'PATIENT',
   PROFESSIONAL = 'PROFESSIONAL'
 }
@@ -601,7 +601,8 @@ type AppointmentSchema = Schema['appointment']['type'];
 export interface Appointment extends AppointmentSchema {
   status: AppointmentStatus
   type: AppointmentType
-  createdByParticipantType: AppointmentCreatedByParticipantType
+  requesterType: AppointmentParticipantType
+  starterType: AppointmentParticipantType
 };
 
 type ConsultationRecordSchema = Schema['consultationRecord']['type'];

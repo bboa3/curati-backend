@@ -47,7 +47,7 @@ export async function newDeliveryAssignmentDriverEmailNotifier({ toAddresses, de
                                 <li>Rever todos os detalhes da entrega (recolha, destino, itens).</li>
                                 <li>Aceitar a tarefa e iniciar a sua rota.</li>
                               </ul>
-                              <a href="${deliveryDeepLink}" target="_blank" rel="noopener noreferrer" style="padding: 10px 15px; background-color: #1BBA66; color: white; text-decoration: none; border-radius: 5px;">Ver Detalhes da Entrega na App</a>
+                              <a href="${deliveryDeepLink}" target="_blank" rel="noopener noreferrer" style="padding: 10px 15px; background-color: #1BBA66; color: white; text-decoration: none; border-radius: 5px;">Ver Detalhes da Entrega na App Cúrati Go</a>
                               <p>A sua rapidez é essencial para garantirmos um serviço eficiente aos nossos clientes.</p>
                               <p>Obrigado pela sua colaboração.</p>
                               <p>Atenciosamente,</p>
