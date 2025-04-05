@@ -18,7 +18,8 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
 
   try {
     const { data: businessesData, errors: businessesErrors } = await dbClient.models.business.list({
-      filter: { publicationStatus: { eq: PublicationStatus.PUBLISHED } }
+      filter: { publicationStatus: { eq: PublicationStatus.PUBLISHED } },
+      limit: 2000
     });
 
     if (businessesErrors || !businessesData) {
@@ -27,6 +28,8 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
     }
 
     const businesses = businessesData as Business[];
+
+    logger.info(`Found ${businesses.length} businesses`);
 
     for (const business of businesses) {
       const { start, end } = getPeriodDates(granularity, now);
@@ -37,6 +40,8 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
         periodEnd: end,
         dbClient: dbClient
       });
+
+      logger.info(`Aggregated medicine sales for business ${business.id}`);
 
       if (medicineSales) {
         for (const [itemId, data] of medicineSales) {
@@ -59,13 +64,14 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
         }
       }
 
-
       const serviceSales = await aggregateServiceSales({
         businessId: business.id,
         periodStart: start,
         periodEnd: end,
         dbClient: dbClient
       });
+
+      logger.info(`Aggregated service sales for business ${business.id}`);
 
       if (serviceSales) {
         for (const [itemId, data] of serviceSales) {
@@ -88,6 +94,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
         }
       }
 
+      logger.info(`Aggregated delivery sales for business ${business.id}`);
 
       const deliverySales = await aggregateDeliveryFees({
         businessId: business.id,
@@ -116,6 +123,8 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
           }
         }
       }
+
+      logger.info(`Generated sales summaries for business ${business.id}`);
     }
   } catch (error) {
     logger.error("Error generating sales summaries", { error });
