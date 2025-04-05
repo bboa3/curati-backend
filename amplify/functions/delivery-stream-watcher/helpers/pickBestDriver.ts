@@ -1,10 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import dayjs from "dayjs";
-import utc from 'dayjs/plugin/utc';
 import DistanceCalculator from "../../helpers/calculateDistance";
 import { DriverCurrentLocation, Professional, ProfessionalAvailability, ProfessionalAvailabilityStatus, ProfessionalType, Vehicle } from "../../helpers/types/schema";
 import { CuratiLocation } from "../../helpers/types/shared";
-dayjs.extend(utc);
 
 interface DriverLocation extends CuratiLocation {
   driverId: string
@@ -120,16 +118,6 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
     return null;
   }
   const selectedDriver = driverData as Professional
-
-  const { errors: availabilityUpdateErrors } = await client.models.professionalAvailability.update({
-    professionalId: selectedDriver.userId,
-    currentAvailabilityStatus: ProfessionalAvailabilityStatus.BUSY
-  });
-
-  if (availabilityUpdateErrors) {
-    logger.error("Failed to update driver availability", { errors: availabilityUpdateErrors });
-    return null;
-  }
 
   return {
     driver: selectedDriver,

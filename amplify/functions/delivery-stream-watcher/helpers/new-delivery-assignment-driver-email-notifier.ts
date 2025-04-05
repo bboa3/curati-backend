@@ -11,7 +11,7 @@ interface NotifierInput {
 const client = new SESv2Client();
 
 export async function newDeliveryAssignmentDriverEmailNotifier({ toAddresses, deliveryNumber, driverName, deliveryDeepLink }: NotifierInput) {
-  const subject = `Cúrati Driver: Nova Entrega Atribuída (${deliveryNumber})`;
+  const subject = `Cúrati Go: Nova Entrega Atribuída (${deliveryNumber})`;
   const currentYear = new Date().getFullYear();
   const footerHtml = `
       <div style="font-size: 0.8em; color: #444444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">

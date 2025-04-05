@@ -26,7 +26,18 @@ const certifiedItemType = ['PROFESSIONAL', 'BUSINESS'] as const;
 const licensedItemType = ['PROFESSIONAL', 'BUSINESS'] as const
 
 const vehicleType = ['CAR', 'MOTORCYCLE', 'BICYCLE', 'TRUCK'] as const;
-const deliveryStatus = ['PHARMACY_PREPARING', 'READY_FOR_PICKUP', 'DRIVER_ASSIGNED', 'IN_TRANSIT', 'DELIVERED', 'FAILED'] as const;
+const deliveryStatus = [
+  'PHARMACY_PREPARING',
+  'AWAITING_DRIVER_ASSIGNMENT',
+  'DRIVER_ASSIGNED',
+  'PICKED_UP_BY_DRIVER',
+  'IN_TRANSIT',
+  'DELIVERED',
+  'AWAITING_PATIENT_PICKUP',
+  'PICKED_UP_BY_PATIENT',
+  'CANCELLED',
+  'FAILED'
+] as const;
 const deliveryType = ['PICKUP', 'DELIVERY'] as const;
 const medicineOrderStatus = ['PENDING_PAYMENT', 'PHARMACY_REVIEW', 'PROCESSING', 'READY_FOR_DISPATCH', 'DISPATCHED', 'COMPLETED', 'REJECTED', 'CANCELED',] as const;
 
