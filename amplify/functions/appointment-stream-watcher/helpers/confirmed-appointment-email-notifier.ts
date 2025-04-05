@@ -1,4 +1,4 @@
-import { env } from '$amplify/env/contract-stream-watcher';
+import { env } from '$amplify/env/appointment-stream-watcher';
 import { SendEmailCommand, SendEmailCommandInput, SESv2Client } from '@aws-sdk/client-sesv2';
 import { formatDateTimeNumeric } from '../../helpers/date/formatter';
 import { AppointmentParticipantType, AppointmentStatus, AppointmentType } from '../../helpers/types/schema';

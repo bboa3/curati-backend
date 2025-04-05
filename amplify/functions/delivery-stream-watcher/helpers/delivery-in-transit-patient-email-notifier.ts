@@ -1,4 +1,4 @@
-import { env } from '$amplify/env/medicine-order-stream-watcher';
+import { env } from '$amplify/env/delivery-stream-watcher';
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
 import { formatETA } from '../../helpers/date/formatter';
 
