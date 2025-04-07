@@ -1,6 +1,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { Delivery, InvoiceStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
+import { InvoiceStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
 import { newMedicineOrderInvoicePatientEmailNotifier } from "../../helpers/new-medicine-order-invoice-patient-email-notifier";
 
 interface TriggerInput {
@@ -15,6 +15,7 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
   const invoiceDueDate = invoiceImage?.dueDate?.S;
   const invoiceSubTotal = invoiceImage?.subTotal?.N;
   const invoiceDiscount = invoiceImage?.discount?.N;
+  const deliveryFee = invoiceImage?.deliveryFee?.N;
   const invoiceTotalTax = invoiceImage?.taxes?.N;
   const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
   const invoiceDocumentUrl = invoiceImage?.documentUrl?.S;
@@ -22,7 +23,7 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
   const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
   const patientId = invoiceImage?.patientId?.S;
 
-  if (!invoiceNumber || !invoiceSourceId || !invoiceStatus || !patientId || !invoiceCreatedAt || !invoiceDueDate || !invoiceSubTotal || !invoiceDiscount || !invoiceTotalTax || !invoiceTotalAmount) {
+  if (!invoiceNumber || !invoiceSourceId || !invoiceStatus || !patientId || !invoiceCreatedAt || !invoiceDueDate || !deliveryFee || !invoiceSubTotal || !invoiceDiscount || !invoiceTotalTax || !invoiceTotalAmount) {
     logger.warn("Missing required invoice fields");
     return;
   }
@@ -51,15 +52,7 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
     logger.error("Failed to fetch order", { errors: orderErrors });
     return;
   }
-  const order = orderData as unknown as MedicineOrder
-
-  const { data: deliveryData, errors: deliveryErrors } = await dbClient.models.delivery.get({ orderId: order.id });
-
-  if (deliveryErrors || !deliveryData) {
-    logger.error("Failed to fetch order", { errors: deliveryErrors });
-    return;
-  }
-  const delivery = deliveryData as unknown as Delivery
+  const order = orderData as unknown as MedicineOrder;
 
   if (patient.email) {
     await newMedicineOrderInvoicePatientEmailNotifier({
@@ -73,9 +66,9 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
       invoiceDiscount: Number(invoiceDiscount),
       invoiceTotalTax: Number(invoiceTotalTax),
       invoiceTotalAmount: Number(invoiceTotalAmount),
+      totalDeliveryFee: Number(deliveryFee),
       invoiceDocumentUrl,
       invoiceCreatedAt,
-      totalDeliveryFee: Number(delivery.totalDeliveryFee)
     });
   }
 };

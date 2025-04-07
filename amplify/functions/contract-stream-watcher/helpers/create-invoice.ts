@@ -51,6 +51,7 @@ export const createContractInvoice = async ({ client, logger, patientId, busines
     invoiceSourceId: contractId,
     subTotal: subTotal,
     discount: discount,
+    deliveryFee: 0,
     taxes: taxes,
     totalAmount: totalAmount,
     status: InvoiceStatus.AWAITING_PATIENT_REVIEW,

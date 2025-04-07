@@ -1130,6 +1130,7 @@ const schema = a.schema({
     invoiceSourceId: a.id().required(),
     subTotal: a.float().required(),
     discount: a.float().required(),
+    deliveryFee: a.float().required().default(0),
     taxes: a.float().required(),
     totalAmount: a.float().required(),
     paymentTerms: a.enum(paymentTermsType),
