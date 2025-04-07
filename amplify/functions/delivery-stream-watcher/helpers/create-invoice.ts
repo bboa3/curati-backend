@@ -54,8 +54,8 @@ export const createMedicineOrderInvoice = async ({ client, logger, orderId, phar
     deliveryFee: totalDeliveryFee,
     taxes: calculated.taxes,
     totalAmount: totalAmountWithDelivery,
+    paymentTerms: paymentTerms,
     status: InvoiceStatus.PENDING_PAYMENT,
-    paymentTerms: paymentTerms
   });
 
   if (errors || !invoice) {

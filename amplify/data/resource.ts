@@ -1146,8 +1146,9 @@ const schema = a.schema({
     transactions: a.hasMany('paymentTransaction', 'invoiceId'),
   })
     .authorization(allow => [
+      allow.authenticated().to(['read']),
       allow.owner().to(['create', 'read', 'update']),
-      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create']),
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update']),
     ]).disableOperations(['subscriptions', 'delete']),
 
   paymentTransaction: a.model({
@@ -1163,6 +1164,7 @@ const schema = a.schema({
     paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
   })
     .authorization(allow => [
+      allow.authenticated().to(['read']),
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['subscriptions', 'delete']),
