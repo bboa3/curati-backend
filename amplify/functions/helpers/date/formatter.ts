@@ -53,7 +53,7 @@ export const formatDayOfWeek = (dayIndex: number): string => {
   return dayjs().day(dayIndex).locale('pt-br').format('dddd');
 };
 
-export function formatETA(pickedUpAt: DateType, estimatedDurationMinutes: number | undefined | null): string {
+export function formatETA(pickedUpAt: DateType, estimatedDurationMinutes: number): string {
   if (!pickedUpAt || estimatedDurationMinutes === undefined || estimatedDurationMinutes === null) {
     return "Em breve";
   }
