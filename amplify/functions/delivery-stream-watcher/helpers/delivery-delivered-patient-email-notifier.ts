@@ -31,7 +31,7 @@ export async function deliveryDeliveredPatientEmailNotifier({
   const subject = `Cúrati: Encomenda ${orderNumber} Entregue com Sucesso!`;
   const currentYear = new Date().getFullYear();
   const formattedDeliveredAt = formatDateTimeNumeric(deliveredAt);
-  const formattedAddress = `${deliveryAddress.addressLine1}, ${deliveryAddress.neighborhoodOrDistrict}`
+  const formattedAddress = `${deliveryAddress.addressLine1}, ${deliveryAddress.neighborhoodOrDistrict}, ${deliveryAddress.city}`
 
   const footerHtml = `
       <div class="footer">

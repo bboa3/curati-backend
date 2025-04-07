@@ -31,7 +31,7 @@ export async function deliveryDeliveredDriverEmailNotifier({
   const subject = `Cúrati Go: Entrega ${deliveryNumber} Concluída`;
   const currentYear = new Date().getFullYear();
   const formattedDeliveredAt = formatDateTimeNumeric(deliveredAt);
-  const formattedAddress = `${deliveryAddress.addressLine1}, ${deliveryAddress.neighborhoodOrDistrict}`
+  const formattedAddress = `${deliveryAddress.addressLine1}, ${deliveryAddress.neighborhoodOrDistrict}, ${deliveryAddress.city}`
 
   const footerHtml = `
       <div class="footer">

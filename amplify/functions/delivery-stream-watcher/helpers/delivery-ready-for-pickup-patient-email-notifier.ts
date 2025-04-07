@@ -25,7 +25,7 @@ export async function deliveryReadyForPickupPatientEmailNotifier({ patientEmail,
   const baseHtmlHead = `<head><style>body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.6; } .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; } h1 { color: #0056b3; font-size: 1.5em; } p { margin-bottom: 12px; } strong { color: #333; } a.button { padding: 12px 20px; background-color: #28a745; color: white !important; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; } .address { background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 5px; }</style></head>`;
 
   const subject = `Cúrati: Sua Encomenda (${orderNumber}) Está Pronta para Retirada!`;
-  const address = `${pharmacyAddress.addressLine1}, ${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}`
+  const formattedAddress = `${pharmacyAddress.addressLine1}, ${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}`
 
   const htmlBody = `
           <html>
@@ -37,7 +37,7 @@ export async function deliveryReadyForPickupPatientEmailNotifier({ patientEmail,
               <h2>Detalhes da Farmácia:</h2>
               <p><strong>Farmácia:</strong> ${pharmacyName}</p>
               <p><strong>Endereço:</strong></p>
-              <div class="address">${address}</div>
+              <div class="address">${formattedAddress}</div>
               <p><strong>Instruções:</strong> Por favor, dirija-se à farmácia durante o horário de funcionamento para levantar a sua encomenda. Recomendamos que verifique o horário directamente com a farmácia ou na nossa plataforma.</p>
               <p>Não se esqueça de levar um documento de identificação e, se possível, o número da sua encomenda (${orderNumber}) para facilitar o processo.</p>
               <p>Se tiver alguma dúvida, por favor contacte directamente a farmácia ou o nosso suporte.</p>
