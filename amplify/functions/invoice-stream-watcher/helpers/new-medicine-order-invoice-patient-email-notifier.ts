@@ -82,7 +82,7 @@ export async function newMedicineOrderInvoicePatientEmailNotifier({
           </tr>
           ${invoiceDiscount > 0 ? `<tr><td>Desconto Aplicado</td><td style="text-align: right;">-${formatToMZN(invoiceDiscount)}</td></tr>` : ''}
           ${invoiceTotalTax > 0 ? `<tr><td>Impostos (IVA)</td><td style="text-align: right;">${formatToMZN(invoiceTotalTax)}</td></tr>` : ''}
-          ${totalDeliveryFee > 0 ? `<tr><td>Taxa de Entrega</td><td style="text-align: right;">${formatToMZN(totalDeliveryFee)}</td></tr>` : ''}
+          ${totalDeliveryFee > 0 ? `<tr><td>Despesas de entrega</td><td style="text-align: right;">${formatToMZN(totalDeliveryFee)}</td></tr>` : ''}
           <tr class="total-row">
             <td>Valor Total a Pagar</td>
             <td style="text-align: right;">${formatToMZN(invoiceTotalAmount)}</td>
