@@ -425,11 +425,13 @@ const schema = a.schema({
     id: a.id().required(),
     orderId: a.id().required(),
     pharmacyInventoryId: a.id().required(),
-    description: a.string().required(),
+    medicineId: a.id().required(),
+    name: a.string().required(),
     quantity: a.integer().required(),
     unitPrice: a.float().required(),
     order: a.belongsTo('medicineOrder', 'orderId'),
     pharmacyInventory: a.belongsTo('pharmacyInventory', 'pharmacyInventoryId'),
+    medicine: a.belongsTo('medicine', 'medicineId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
@@ -879,6 +881,7 @@ const schema = a.schema({
     category: a.belongsTo('medicineCategory', 'categoryId'),
     prescriptionItems: a.hasMany('prescriptionItem', 'medicineId'),
     pharmacyInventories: a.hasMany('pharmacyInventory', 'medicineId'),
+    orderItems: a.hasMany('medicineOrderItem', 'medicineId'),
     // views: a.hasMany('view', 'viewedItemId'),
     // likes: a.hasMany('like', 'likedItemId'),
     ratings: a.hasMany('rating', 'ratedItemId'),
