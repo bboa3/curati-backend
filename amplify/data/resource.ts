@@ -881,7 +881,7 @@ const schema = a.schema({
     category: a.belongsTo('medicineCategory', 'categoryId'),
     prescriptionItems: a.hasMany('prescriptionItem', 'medicineId'),
     pharmacyInventories: a.hasMany('pharmacyInventory', 'medicineId'),
-    orderItems: a.hasMany('medicineOrderItem', 'medicineId'),
+    medicineOrderItems: a.hasMany('medicineOrderItem', 'medicineId'),
     // views: a.hasMany('view', 'viewedItemId'),
     // likes: a.hasMany('like', 'likedItemId'),
     ratings: a.hasMany('rating', 'ratedItemId'),
