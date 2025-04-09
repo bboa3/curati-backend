@@ -852,7 +852,7 @@ const schema = a.schema({
         .sortKeys(['timestamp'])
         .queryField('listDeliveryStatusHistoryByDeliveryIdAndTimestamp'),
     ]).authorization(allow => [
-      allow.ownerDefinedIn('patientId').to(['read']),
+      allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'create']),
     ]),
 
