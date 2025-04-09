@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { Business, MedicineOrder, Patient, Professional, Vehicle } from "../../helpers/types/schema";
+import { Business, DeliveryStatus, MedicineOrder, Patient, Professional, Vehicle } from "../../helpers/types/schema";
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryPickedUpByDriverPatientEmailNotifier } from "../helpers/delivery-picked-up-by-driver-patient-email-notifier";
 import { deliveryPickedUpByDriverPatientSMSNotifier } from "../helpers/delivery-picked-up-by-driver-patient-sms-notifier";
 
@@ -64,6 +65,14 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient, lo
     return;
   }
   const vehicle = vehicleData as unknown as Vehicle;
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    logger,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.PICKED_UP_BY_DRIVER
+  })
 
   const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
 

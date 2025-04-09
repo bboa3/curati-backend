@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
+import { DeliveryStatus, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryInTransitPatientEmailNotifier } from "../helpers/delivery-in-transit-patient-email-notifier";
 import { deliveryInTransitPatientSMSNotifier } from "../helpers/delivery-in-transit-patient-sms-notifier";
 
@@ -48,6 +49,14 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient, logger }:
     return;
   }
   const driver = driverData as unknown as Professional;
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    logger,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.IN_TRANSIT
+  })
 
   const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
 

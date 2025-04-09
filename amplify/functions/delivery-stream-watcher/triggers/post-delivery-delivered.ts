@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { Address, Business, MedicineOrder, MedicineOrderStatus, Patient, Professional } from "../../helpers/types/schema";
+import { Address, Business, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient, Professional } from "../../helpers/types/schema";
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryDeliveredDriverEmailNotifier } from "../helpers/delivery-delivered-driver-email-notifier";
 import { deliveryDeliveredPatientEmailNotifier } from "../helpers/delivery-delivered-patient-email-notifier";
 import { deliveryDeliveredPharmacyEmailNotifier } from "../helpers/delivery-delivered-pharmacy-email-notifier";
@@ -63,6 +64,14 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient, logger }:
     return;
   }
   const pharmacy = pharmacyData as unknown as Business;
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    logger,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.DELIVERED
+  })
 
   const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;
   const ratingDeepLink = `curati://life.curati.www/(app)/pharmacies/${pharmacyId}`;

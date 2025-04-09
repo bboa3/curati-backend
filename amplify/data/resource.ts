@@ -39,6 +39,7 @@ const deliveryStatus = [
   'CANCELLED',
   'FAILED'
 ] as const;
+const deliveryStatusHistoryActorType = ['SYSTEM', 'PATIENT', 'DRIVER', 'PHARMACIST', 'ADMIN'] as const;
 const deliveryType = ['PICKUP', 'DELIVERY'] as const;
 const medicineOrderStatus = ['PENDING_PAYMENT', 'PHARMACY_REVIEW', 'PROCESSING', 'READY_FOR_DISPATCH', 'DISPATCHED', 'COMPLETED', 'REJECTED', 'CANCELED',] as const;
 
@@ -827,12 +828,31 @@ const schema = a.schema({
     pharmacy: a.belongsTo('business', 'pharmacyId'),
     patient: a.belongsTo('patient', 'patientId'),
     address: a.hasOne('address', 'addressOwnerId'),
+    statusHistory: a.hasMany('deliveryStatusHistory', 'deliveryId'),
   })
     .identifier(['orderId'])
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
     ]).disableOperations(['delete']),
+
+  deliveryStatusHistory: a.model({
+    id: a.id().required(),
+    deliveryId: a.id().required(),
+    patientId: a.id().required(),
+    status: a.enum(deliveryStatus),
+    timestamp: a.datetime().required(),
+    notes: a.string(),
+    actorId: a.string(),
+    actorType: a.enum(deliveryStatusHistoryActorType),
+    latitude: a.float(),
+    longitude: a.float(),
+    delivery: a.belongsTo('delivery', 'deliveryId')
+  })
+    .authorization(allow => [
+      allow.ownerDefinedIn('patientId').to(['read']),
+      allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'create']),
+    ]).disableOperations(['update', 'delete', 'subscriptions']),
 
   medicineCategory: a.model({
     id: a.id().required(),

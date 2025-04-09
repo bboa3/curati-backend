@@ -7,6 +7,7 @@ import type { DynamoDBStreamHandler } from "aws-lambda";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import { DeliveryStatus } from '../helpers/types/schema';
+import { postDeliveryCreation } from './triggers/post-delivery-creation';
 import { postDeliveryDelivered } from './triggers/post-delivery-delivered';
 import { postDeliveryFailed } from './triggers/post-delivery-failed';
 import { postDeliveryInTransit } from './triggers/post-delivery-in-transit';
@@ -44,11 +45,18 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       }
 
       if (record.eventName === "INSERT") {
+        await postDeliveryCreation({
+          deliveryImage: newImage,
+          dbClient: client,
+          logger
+        });
+
         await postMedicineOrderCreation({
           deliveryImage: newImage,
           dbClient: client,
           logger
         });
+
       } else if (record.eventName === "MODIFY") {
         const oldStatus = oldImage?.status?.S as DeliveryStatus;
         const newStatus = newImage?.status?.S as DeliveryStatus;

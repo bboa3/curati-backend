@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
 import { Address, DeliveryStatus, MedicineOrder, Patient, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryDriverAssignedPatientEmailNotifier } from "../helpers/delivery-driver-assigned-patient-email-notifier";
 import { deliveryDriverAssignedPatientSMSNotifier } from "../helpers/delivery-driver-assigned-patient-sms-notifier";
 import { newDeliveryAssignmentDriverEmailNotifier } from "../helpers/new-delivery-assignment-driver-email-notifier";
@@ -49,6 +50,14 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
     logger.error("Failed to fetch pharmacy address", { errors: pharmacyAddressErrors });
     return;
   }
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    logger,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.AWAITING_DRIVER_ASSIGNMENT
+  })
 
   const deliveryDeepLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
 

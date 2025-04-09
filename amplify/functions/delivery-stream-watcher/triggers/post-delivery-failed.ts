@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
 import { Business, DeliveryStatus, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryFailedDriverEmailNotifier } from "../helpers/delivery-failed-driver-email-notifier";
 import { deliveryFailedPatientEmailNotifier } from "../helpers/delivery-failed-patient-email-notifier";
 import { deliveryFailedPharmacyEmailNotifier } from "../helpers/delivery-failed-pharmacy-email-notifier";
@@ -55,6 +56,14 @@ export const postDeliveryFailed = async ({ deliveryImage, dbClient, logger }: Tr
     return;
   }
   const pharmacy = pharmacyData as unknown as Business;
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    logger,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.FAILED
+  })
 
   const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;
   const deliveryDeepLink = `curati://life.curati.go/(app)/deliveries/${orderId}`;

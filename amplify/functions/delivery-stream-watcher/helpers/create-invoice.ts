@@ -1,12 +1,9 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { v4 as generateUUIDv4 } from "uuid";
 import { createInvoiceDueDate } from "../../helpers/create-invoice-due-date";
 import { generateHashedIdentifier } from "../../helpers/generateHashedIdentifier";
 import PriceCalculator from "../../helpers/price/priceCalculator";
 import { Invoice, InvoiceSourceType, InvoiceStatus, MedicineOrderItem, PaymentTermsType } from "../../helpers/types/schema";
-dayjs.extend(utc);
 
 const priceCalculator = new PriceCalculator();
 

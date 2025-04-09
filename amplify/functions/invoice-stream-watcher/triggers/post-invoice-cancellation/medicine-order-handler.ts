@@ -23,7 +23,7 @@ export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
     id: invoiceSourceId,
-    status: MedicineOrderStatus.PROCESSING
+    status: MedicineOrderStatus.PENDING_PAYMENT
   })
 
   if (orderUpdateErrors) {

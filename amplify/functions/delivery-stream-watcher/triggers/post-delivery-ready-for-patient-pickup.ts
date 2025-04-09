@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { Address, Business, MedicineOrder, Patient } from "../../helpers/types/schema";
+import { Address, Business, DeliveryStatus, MedicineOrder, Patient } from "../../helpers/types/schema";
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryReadyForPickupPatientEmailNotifier } from "../helpers/delivery-ready-for-pickup-patient-email-notifier";
 import { deliveryReadyForPickupPatientSMSNotifier } from "../helpers/delivery-ready-for-pickup-patient-sms-notifier";
 
@@ -53,6 +54,14 @@ export const postDeliveryReadyForPatientPickup = async ({ deliveryImage, dbClien
     logger.error("Failed to fetch pharmacy address", { errors: pharmacyAddressErrors });
     return;
   }
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    logger,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.AWAITING_PATIENT_PICKUP
+  })
 
   if (patient.email) {
     await deliveryReadyForPickupPatientEmailNotifier({
