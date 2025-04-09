@@ -847,7 +847,9 @@ const schema = a.schema({
     latitude: a.float(),
     longitude: a.float(),
   })
-    .authorization(allow => [
+    .secondaryIndexes((index) => [
+      index('deliveryId').sortKeys(['timestamp']),
+    ]).authorization(allow => [
       allow.ownerDefinedIn('patientId').to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'create']),
     ]),
