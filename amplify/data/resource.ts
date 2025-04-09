@@ -27,6 +27,7 @@ const licensedItemType = ['PROFESSIONAL', 'BUSINESS'] as const
 
 const vehicleType = ['CAR', 'MOTORCYCLE', 'BICYCLE', 'TRUCK'] as const;
 const deliveryStatus = [
+  'PENDING',
   'PHARMACY_PREPARING',
   'AWAITING_DRIVER_ASSIGNMENT',
   'DRIVER_ASSIGNED',
@@ -798,8 +799,8 @@ const schema = a.schema({
     ]).disableOperations(['subscriptions', 'delete']),
 
   delivery: a.model({
-    patientId: a.id().required(),
     orderId: a.id().required(),
+    patientId: a.id().required(),
     deliveryNumber: a.string().required(),
     driverId: a.id(),
     vehicleId: a.id(),

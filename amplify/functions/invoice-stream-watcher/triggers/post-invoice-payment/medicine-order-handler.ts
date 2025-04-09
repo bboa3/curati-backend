@@ -1,6 +1,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { InvoiceStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
+import { DeliveryStatus, InvoiceStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
 import { newMedicineOrderInvoicePatientEmailNotifier } from "../../helpers/new-medicine-order-invoice-patient-email-notifier";
 
 interface TriggerInput {
@@ -35,6 +35,16 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
 
   if (orderUpdateErrors) {
     logger.error("Failed to update order", { errors: orderUpdateErrors });
+    return;
+  }
+
+  const { errors: deliveryUpdateErrors } = await dbClient.models.delivery.update({
+    orderId: invoiceSourceId,
+    status: DeliveryStatus.PHARMACY_PREPARING,
+  })
+
+  if (deliveryUpdateErrors) {
+    logger.error("Failed to update delivery", { errors: deliveryUpdateErrors });
     return;
   }
 
