@@ -848,7 +848,7 @@ const schema = a.schema({
     longitude: a.float(),
   })
     .secondaryIndexes((index) => [
-      index('deliveryId').sortKeys(['timestamp']),
+      index('deliveryId').sortKeys(['timestamp']).queryField('listDeliveryStatusHistoryByDeliveryIdAndTimestamp'),
     ]).authorization(allow => [
       allow.ownerDefinedIn('patientId').to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'create']),
