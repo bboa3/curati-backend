@@ -850,7 +850,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.ownerDefinedIn('patientId').to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'create']),
-    ]).disableOperations(['update', 'delete', 'subscriptions']),
+    ]).disableOperations(['update', 'delete']),
 
   medicineCategory: a.model({
     id: a.id().required(),
