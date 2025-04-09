@@ -10,7 +10,6 @@ import { AppointmentStatus } from '../helpers/types/schema';
 import { postAppointmentConfirmation } from './triggers/post-appointment-confirmation';
 import { postAppointmentReadyForConfirmation } from './triggers/post-appointment-ready-for-confirmation';
 import { postAppointmentStarted } from './triggers/post-appointment-started';
-
 dayjs.extend(utc);
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);

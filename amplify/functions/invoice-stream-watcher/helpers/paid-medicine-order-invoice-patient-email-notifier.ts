@@ -1,10 +1,7 @@
 import { env } from '$amplify/env/invoice-stream-watcher';
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { formatToMZN } from '../../helpers/number-formatter';
 import { DeliveryType } from '../../helpers/types/schema';
-dayjs.extend(utc);
 
 interface PatientEmailNotifierInput {
   patientName: string;

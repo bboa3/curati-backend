@@ -4,10 +4,12 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
+import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
 import { PrescriptionStatus } from '../helpers/types/schema';
 import { postPrescriptionCreation } from './triggers/post-prescription-creation';
 import { postPrescriptionValidation } from './triggers/post-prescription-validation';
-
+dayjs.extend(utc);
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
 Amplify.configure(resourceConfig, libraryOptions);

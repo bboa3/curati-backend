@@ -4,11 +4,14 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
 import type { DynamoDBStreamHandler } from "aws-lambda";
+import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
 import { InvoiceStatus } from '../helpers/types/schema';
 import { postInvoiceCancellation } from './triggers/post-invoice-cancellation';
 import { postInvoiceCreation } from './triggers/post-invoice-creation';
 import { postInvoicePayment } from './triggers/post-invoice-payment';
 import { postInvoiceReadyForPayment } from './triggers/post-invoice-ready-for-payment';
+dayjs.extend(utc);
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 
