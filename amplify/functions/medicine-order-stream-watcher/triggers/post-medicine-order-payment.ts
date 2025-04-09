@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
 import { DeliveryStatus, Professional } from '../../helpers/types/schema';
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { newOrderPharmacyEmailNotifier } from '../helpers/new-order-pharmacy-email-notifier';
 import { newOrderPharmacySMSNotifier } from '../helpers/new-order-pharmacy-sms-notifier';
 import { updateStockInventories } from '../helpers/update-stock-inventories';
@@ -15,8 +16,9 @@ export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient, l
   const orderId = medicineOrderImage?.id?.S;
   const orderNumber = medicineOrderImage?.orderNumber?.S;
   const pharmacyId = medicineOrderImage?.businessId?.S;
+  const patientId = medicineOrderImage?.patientId?.S;
 
-  if (!orderId || !orderNumber || !pharmacyId) {
+  if (!orderId || !orderNumber || !pharmacyId || !patientId) {
     logger.warn("Missing required order fields");
     return;
   }
@@ -40,7 +42,15 @@ export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient, l
   await dbClient.models.delivery.update({
     orderId,
     status: DeliveryStatus.PHARMACY_PREPARING
-  })
+  });
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    logger,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.PHARMACY_PREPARING
+  });
 
   const emails = pharmacists.map((p: Professional) => p.email).filter(Boolean);
   const phones = pharmacists.map((p) => `+258${p.phone.replace(/\D/g, '')}`).filter(Boolean);

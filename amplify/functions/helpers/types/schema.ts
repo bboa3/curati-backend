@@ -1,5 +1,4 @@
 import { Schema } from "../../../data/resource";
-
 type ComparisonOperator =
   | 'eq'           // Equal
   | 'ne'           // Not Equal
@@ -598,12 +597,22 @@ export interface Service extends ServiceSchema {
 };
 
 type BusinessServiceSchema = Schema['businessService']['type'];
-export interface BusinessService extends BusinessServiceSchema {
+
+interface BusinessServiceRequirements {
+  image: string
+}
+
+export interface BusinessService extends BusinessServiceSchema, BusinessServiceRequirements {
   professionalType: ProfessionalType
   businessType: BusinessType
   publicationStatus: PublicationStatus
 };
-export interface ServiceInventory extends BusinessService, Service { };
+
+export interface ServiceInventory extends BusinessServiceSchema, Service {
+  professionalType: ProfessionalType
+  businessType: BusinessType
+  publicationStatus: PublicationStatus
+};
 
 type BusinessServicePricingSchema = Schema['businessServicePricing']['type'];
 export interface BusinessServicePricing extends BusinessServicePricingSchema {

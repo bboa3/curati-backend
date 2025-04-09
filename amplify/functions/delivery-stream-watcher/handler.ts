@@ -13,7 +13,6 @@ import { postDeliveryFailed } from './triggers/post-delivery-failed';
 import { postDeliveryInTransit } from './triggers/post-delivery-in-transit';
 import { postDeliveryPickedUpByDriver } from './triggers/post-delivery-picked-up-by-driver';
 import { postDeliveryPickedUpByPatient } from './triggers/post-delivery-picked-up-by-patient';
-import { postDeliveryPreparing } from './triggers/post-delivery-preparing';
 import { postDeliveryReadyForDriverAssignment } from './triggers/post-delivery-ready-for-driver-assignment';
 import { postDeliveryReadyForPatientPickup } from './triggers/post-delivery-ready-for-patient-pickup';
 import { postMedicineOrderCreation } from './triggers/post-medicine-order-creation';
@@ -65,14 +64,6 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         if (oldStatus === newStatus) {
           logger.info(`Skipping record ${record.eventID}: Status did not change ('${newStatus}').`);
           continue;
-        }
-
-        if (newStatus === DeliveryStatus.PHARMACY_PREPARING) {
-          await postDeliveryPreparing({
-            deliveryImage: newImage,
-            dbClient: client,
-            logger
-          })
         }
 
         if (newStatus === DeliveryStatus.AWAITING_DRIVER_ASSIGNMENT) {
