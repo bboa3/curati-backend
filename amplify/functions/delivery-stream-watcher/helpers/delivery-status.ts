@@ -13,6 +13,7 @@ const DELIVERY_STATUS_DESCRIPTIONS = new Map<DeliveryStatus, string>([
   [DeliveryStatus.CANCELLED, 'Cancelado'],
   [DeliveryStatus.FAILED, 'Falhou'],
 ]);
+
 export const convertDeliveryStatus = (type: DeliveryStatus): string => {
   return DELIVERY_STATUS_DESCRIPTIONS.get(type) || '';
 };
