@@ -828,7 +828,6 @@ const schema = a.schema({
     pharmacy: a.belongsTo('business', 'pharmacyId'),
     patient: a.belongsTo('patient', 'patientId'),
     address: a.hasOne('address', 'addressOwnerId'),
-    statusHistory: a.hasMany('deliveryStatusHistory', 'deliveryId'),
   })
     .identifier(['orderId'])
     .authorization(allow => [
@@ -847,7 +846,6 @@ const schema = a.schema({
     actorType: a.enum(deliveryStatusHistoryActorType),
     latitude: a.float(),
     longitude: a.float(),
-    delivery: a.belongsTo('delivery', 'deliveryId')
   })
     .authorization(allow => [
       allow.ownerDefinedIn('patientId').to(['read']),
