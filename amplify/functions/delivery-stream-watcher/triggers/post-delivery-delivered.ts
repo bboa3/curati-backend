@@ -1,6 +1,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { Address, Business, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient, Professional } from "../../helpers/types/schema";
+import { Address, Business, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
 import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryDeliveredDriverEmailNotifier } from "../helpers/delivery-delivered-driver-email-notifier";
 import { deliveryDeliveredPatientEmailNotifier } from "../helpers/delivery-delivered-patient-email-notifier";
@@ -64,6 +64,16 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient, logger }:
     return;
   }
   const pharmacy = pharmacyData as unknown as Business;
+
+  const { errors: updateAvailabilityErrors } = await dbClient.models.professionalAvailability.update({
+    professionalId: driverId,
+    currentAvailabilityStatus: ProfessionalAvailabilityStatus.ONLINE
+  });
+
+  if (updateAvailabilityErrors) {
+    logger.error("Failed to update driver availability", { errors: updateAvailabilityErrors });
+    return;
+  }
 
   await createDeliveryStatusHistory({
     client: dbClient,
