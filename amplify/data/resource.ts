@@ -766,7 +766,7 @@ const schema = a.schema({
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
     ])
-    .disableOperations(['subscriptions', 'delete']),
+    .disableOperations(['delete']),
 
   driverLocationHistory: a.model({
     id: a.id().required(),
