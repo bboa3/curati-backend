@@ -22,6 +22,8 @@ interface PickBestDriverOutput {
 
 const distanceCalculator = new DistanceCalculator();
 
+const ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES = 30;
+
 export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickBestDriverInput): Promise<PickBestDriverOutput | null> => {
   const { data: availabilityData, errors: availabilityErrors } = await client.models.professionalAvailability.list({
     filter: {
@@ -59,7 +61,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
     filter: {
       and: [
         { or: locationFilters },
-        { timestamp: { gt: dayjs().utc().subtract(5, 'minute').toISOString() } }
+        { timestamp: { gt: dayjs().utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString() } }
       ]
     },
     limit: 1000
