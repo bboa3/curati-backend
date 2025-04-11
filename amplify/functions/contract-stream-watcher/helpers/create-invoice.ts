@@ -16,11 +16,12 @@ interface UpdateInventoriesInput {
   contractId: string;
   patientId: string;
   businessId: string;
+  paymentMethodId: string;
   businessServiceId: string;
   appliedPricingConditions: PricingCondition[];
 }
 
-export const createContractInvoice = async ({ client, logger, patientId, businessId, contractId, businessServiceId, appliedPricingConditions }: UpdateInventoriesInput) => {
+export const createContractInvoice = async ({ client, logger, patientId, businessId, contractId, paymentMethodId, businessServiceId, appliedPricingConditions }: UpdateInventoriesInput) => {
   const { data: servicePricingData, errors: pricingErrors } = await client.models.businessServicePricing.list({
     filter: { businessServiceId: { eq: businessServiceId } }
   });
@@ -46,6 +47,7 @@ export const createContractInvoice = async ({ client, logger, patientId, busines
     invoiceNumber: invoiceNumber,
     patientId: patientId,
     businessId: businessId,
+    paymentMethodId: paymentMethodId,
     dueDate: dueDate,
     invoiceSourceType: InvoiceSourceType.CONTRACT,
     invoiceSourceId: contractId,

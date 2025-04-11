@@ -12,11 +12,12 @@ interface UpdateInventoriesInput {
   logger: Logger;
   pharmacyId: string;
   patientId: string;
+  paymentMethodId: string;
   orderId: string;
   totalDeliveryFee: number;
 }
 
-export const createMedicineOrderInvoice = async ({ client, logger, orderId, pharmacyId, patientId, totalDeliveryFee }: UpdateInventoriesInput) => {
+export const createMedicineOrderInvoice = async ({ client, logger, orderId, pharmacyId, paymentMethodId, patientId, totalDeliveryFee }: UpdateInventoriesInput) => {
   const { data: orderItemsData, errors: orderErrors } = await client.models.medicineOrderItem.list({
     filter: { orderId: { eq: orderId } }
   });
@@ -43,6 +44,7 @@ export const createMedicineOrderInvoice = async ({ client, logger, orderId, phar
     invoiceNumber: invoiceNumber,
     patientId: patientId,
     businessId: pharmacyId,
+    paymentMethodId: paymentMethodId,
     dueDate: dueDate,
     invoiceSourceType: InvoiceSourceType.MEDICINE_ORDER,
     invoiceSourceId: orderId,

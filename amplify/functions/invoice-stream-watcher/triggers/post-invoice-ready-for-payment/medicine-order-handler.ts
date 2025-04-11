@@ -1,6 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
-import { MedicineOrder } from "../../../helpers/types/schema";
 import { createInvoiceTransaction } from "../../helpers/create-invoice-transaction";
 
 interface TriggerInput {
@@ -13,25 +12,18 @@ export const postInvoiceReadyForPaymentMedicineOrderHandler = async ({ invoiceIm
   const invoiceId = invoiceImage?.id?.S;
   const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
   const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
+  const paymentMethodId = invoiceImage?.paymentMethodId?.S;
 
-  if (!invoiceId || !invoiceSourceId || !invoiceTotalAmount) {
+  if (!invoiceId || !invoiceSourceId || !invoiceTotalAmount || !paymentMethodId) {
     logger.warn("Missing required invoice fields");
     return;
   }
-
-  const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: invoiceSourceId });
-
-  if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
-  }
-  const order = orderData as unknown as MedicineOrder
 
   await createInvoiceTransaction({
     client: dbClient,
     logger,
     invoiceId: invoiceId,
-    paymentMethodId: order.paymentMethodId,
+    paymentMethodId: paymentMethodId,
     amount: Number(invoiceTotalAmount)
   });
 };

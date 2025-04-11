@@ -18,9 +18,10 @@ export const postContractConfirmation = async ({ contractImage, dbClient, logger
   const patientId = contractImage?.patientId?.S;
   const businessId = contractImage?.businessId?.S;
   const businessServiceId = contractImage?.businessServiceId?.S;
+  const paymentMethodId = contractImage?.paymentMethodId?.S;
   const appliedPricingConditions = contractImage?.appliedPricingConditions?.SS;
 
-  if (!contractNumber || !contractId || !contractStatus || !patientId || !businessId || !businessServiceId || !appliedPricingConditions) {
+  if (!contractNumber || !contractId || !contractStatus || !patientId || !paymentMethodId || !businessId || !businessServiceId || !appliedPricingConditions) {
     logger.warn("Missing required contract fields");
     return;
   }
@@ -51,6 +52,7 @@ export const postContractConfirmation = async ({ contractImage, dbClient, logger
       contractId: contractId,
       patientId: patientId,
       businessId: businessId,
+      paymentMethodId: paymentMethodId,
       businessServiceId: businessServiceId,
       appliedPricingConditions: appliedPricingConditions as unknown as PricingCondition[]
     });

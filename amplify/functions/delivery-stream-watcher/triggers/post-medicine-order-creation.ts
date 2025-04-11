@@ -1,5 +1,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
+import { MedicineOrder } from "../../helpers/types/schema";
 import { createMedicineOrderInvoice } from '../helpers/create-invoice';
 import { reserveStockInventories } from '../helpers/reserve-stock-inventories';
 
@@ -20,6 +21,14 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
     return;
   }
 
+  const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
+
+  if (orderErrors || !orderData) {
+    logger.error("Failed to fetch order", { errors: orderErrors });
+    return;
+  }
+  const order = orderData as unknown as MedicineOrder
+
   await reserveStockInventories({
     client: dbClient,
     logger,
@@ -30,6 +39,7 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
     client: dbClient,
     logger,
     orderId,
+    paymentMethodId: order.paymentMethodId,
     totalDeliveryFee: Number(totalDeliveryFee),
     pharmacyId: pharmacyId,
     patientId: patientId

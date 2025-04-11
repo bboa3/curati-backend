@@ -1154,6 +1154,7 @@ const schema = a.schema({
     businessId: a.id().required(),
     invoiceSourceType: a.enum(invoiceSourceType),
     invoiceSourceId: a.id().required(),
+    paymentMethodId: a.id().required(),
     subTotal: a.float().required(),
     discount: a.float().required(),
     deliveryFee: a.float().required().default(0),
@@ -1170,6 +1171,7 @@ const schema = a.schema({
     contract: a.belongsTo('contract', 'invoiceSourceId'),
     business: a.belongsTo('business', 'businessId'),
     transactions: a.hasMany('paymentTransaction', 'invoiceId'),
+    paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
@@ -1187,7 +1189,7 @@ const schema = a.schema({
     status: a.enum(paymentTransactionStatus),
     notes: a.string(),
     invoice: a.belongsTo('invoice', 'invoiceId'),
-    paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
+    // paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
   })
     .authorization(allow => [
       allow.authenticated().to(['read']),
@@ -1211,7 +1213,7 @@ const schema = a.schema({
       mobileProviderName: a.enum(mobileProviderName),
     }),
     patient: a.belongsTo('patient', 'patientId'),
-    transactions: a.hasMany('paymentTransaction', 'paymentMethodId'),
+    invoices: a.hasMany('invoice', 'paymentMethodId'),
     contracts: a.hasMany('contract', 'paymentMethodId'),
     orders: a.hasMany('medicineOrder', 'paymentMethodId'),
   })
