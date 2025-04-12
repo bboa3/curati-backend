@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
+import { Invoice, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
 import { failedMedicineOrderInvoicePatientEmailNotifier } from "../../helpers/failed-medicine-order-invoice-patient-email-notifier";
 
 interface TriggerInput {
@@ -10,15 +11,8 @@ interface TriggerInput {
 }
 
 export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoiceNumber = invoiceImage?.invoiceNumber?.S;
-  const invoiceDueDate = invoiceImage?.dueDate?.S;
-  const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
-  const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
-  const patientId = invoiceImage?.patientId?.S;
-
-  if (!invoiceNumber || !invoiceSourceId || !patientId || !invoiceDueDate || !invoiceTotalAmount) {
-    throw new Error("Missing required invoice fields");
-  }
+  const invoice = unmarshall(invoiceImage) as Invoice;
+  const { invoiceNumber, invoiceSourceId, patientId, dueDate, totalAmount } = invoice
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
     id: invoiceSourceId,
@@ -51,9 +45,9 @@ export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage
       patientEmail: patient.email,
       orderNumber: order.orderNumber,
       invoiceNumber,
-      invoiceDueDate,
+      invoiceDueDate: dueDate,
       invoiceDeepLink,
-      invoiceTotalAmount: Number(invoiceTotalAmount),
+      invoiceTotalAmount: totalAmount,
     });
   }
 };

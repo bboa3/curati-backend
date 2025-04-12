@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { Appointment, AppointmentStatus } from '../../helpers/types/schema';
+import { Appointment, AppointmentStatus, Contract } from '../../helpers/types/schema';
 
 interface TriggerInput {
   contractImage: { [key: string]: AttributeValue; };
@@ -9,11 +10,8 @@ interface TriggerInput {
 }
 
 export const postContractPayment = async ({ contractImage, dbClient }: TriggerInput) => {
-  const contractId = contractImage?.id?.S;
-
-  if (!contractId) {
-    throw new Error("Missing required contract fields");
-  }
+  const contract = unmarshall(contractImage) as Contract;
+  const { id: contractId } = contract;
 
   const { data: appointmentsData, errors: appointmentErrors } = await dbClient.models.appointment.list({
     filter: {

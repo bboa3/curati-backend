@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import { AppointmentParticipantType, AppointmentType, Patient, Professional } from '../../helpers/types/schema';
+import { Appointment, AppointmentParticipantType, Patient, Professional } from '../../helpers/types/schema';
 import { sendAppointmentConfirmationRequestEmail } from "../helpers/send-appointment-confirmation-request-email";
 import { sendAppointmentConfirmationRequestSMS } from "../helpers/send-appointment-confirmation-request-sms";
 
@@ -11,19 +12,8 @@ interface TriggerInput {
 }
 
 export const postAppointmentReadyForConfirmation = async ({ appointmentImage, dbClient }: TriggerInput) => {
-  const appointmentNumber = appointmentImage?.appointmentNumber?.S;
-  const appointmentId = appointmentImage?.id?.S;
-  const patientId = appointmentImage?.patientId?.S;
-  const professionalId = appointmentImage?.professionalId?.S;
-  const appointmentType = appointmentImage?.appointmentType?.S as AppointmentType;
-  const requesterType = appointmentImage?.requesterType?.S as AppointmentParticipantType;
-  const appointmentDateTime = appointmentImage?.appointmentDateTime?.S;
-  const duration = appointmentImage?.duration?.N;
-  const purpose = appointmentImage?.purpose?.S;
-
-  if (!appointmentNumber || !purpose || !appointmentId || !duration || !patientId || !professionalId || !requesterType || !appointmentType || !appointmentDateTime) {
-    throw new Error("Missing required appointment fields");
-  }
+  const appointment = unmarshall(appointmentImage) as Appointment;
+  const { id: appointmentId, appointmentNumber, appointmentDateTime, duration, type: appointmentType, purpose, patientId, professionalId, requesterType } = appointment;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 

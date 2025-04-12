@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { BusinessService, Contract, InvoiceStatus, Patient, PaymentTermsType } from "../../../helpers/types/schema";
+import { BusinessService, Contract, Invoice, Patient } from "../../../helpers/types/schema";
 import { newContractInvoicePatientEmailNotifier } from "../../helpers/new-contract-invoice-patient-email-notifier";
 
 interface TriggerInput {
@@ -10,22 +11,8 @@ interface TriggerInput {
 }
 
 export const postInvoiceCreationContractHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoiceNumber = invoiceImage?.invoiceNumber?.S;
-  const invoiceCreatedAt = invoiceImage?.createdAt?.S;
-  const invoiceDueDate = invoiceImage?.dueDate?.S;
-  const invoiceSubTotal = invoiceImage?.subTotal?.N;
-  const invoiceDiscount = invoiceImage?.discount?.N;
-  const invoiceTotalTax = invoiceImage?.taxes?.N;
-  const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
-  const invoiceDocumentUrl = invoiceImage?.documentUrl?.S;
-  const invoiceStatus = invoiceImage?.status?.S as InvoiceStatus;
-  const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
-  const patientId = invoiceImage?.patientId?.S;
-  const paymentTerms = invoiceImage?.paymentTerms?.S as PaymentTermsType;
-
-  if (!invoiceNumber || !invoiceSourceId || !paymentTerms || !invoiceStatus || !patientId || !invoiceCreatedAt || !invoiceDueDate || !invoiceSubTotal || !invoiceDiscount || !invoiceTotalTax || !invoiceTotalAmount) {
-    throw new Error("Missing required invoice fields");
-  }
+  const invoice = unmarshall(invoiceImage) as Invoice;
+  const { invoiceNumber, invoiceSourceId, paymentTerms, status, patientId, createdAt, dueDate, subTotal, discount, taxes, totalAmount, documentUrl } = invoice
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -56,14 +43,14 @@ export const postInvoiceCreationContractHandler = async ({ invoiceImage, dbClien
       patientEmail: patient.email,
       contractNumber: contract.contractNumber,
       invoiceNumber,
-      invoiceCreatedAt,
-      invoiceDueDate,
-      invoiceStatus,
-      invoiceSubTotal: Number(invoiceSubTotal),
-      invoiceDiscount: Number(invoiceDiscount),
-      invoiceTotalTax: Number(invoiceTotalTax),
-      invoiceTotalAmount: Number(invoiceTotalAmount),
-      invoiceDocumentUrl,
+      invoiceCreatedAt: createdAt,
+      invoiceDueDate: dueDate,
+      invoiceStatus: status,
+      invoiceSubTotal: subTotal,
+      invoiceDiscount: discount,
+      invoiceTotalTax: taxes,
+      invoiceTotalAmount: totalAmount,
+      invoiceDocumentUrl: documentUrl || undefined,
       serviceName: service.serviceName,
       paymentTerms: paymentTerms,
       professionalName: service.professionalName,

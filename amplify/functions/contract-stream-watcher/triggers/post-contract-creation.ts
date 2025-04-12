@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { Business, BusinessService, ContractType, Patient, Professional } from '../../helpers/types/schema';
+import { Business, BusinessService, Contract, Patient, Professional } from '../../helpers/types/schema';
 import { newContractProfessionalEmailNotifier } from '../helpers/new-contract-professional-email-notifier';
 import { newContractProfessionalSMSNotifier } from "../helpers/new-contract-professional-sms-notifier";
 
@@ -11,15 +12,8 @@ interface TriggerInput {
 }
 
 export const postContractCreation = async ({ contractImage, dbClient }: TriggerInput) => {
-  const contractNumber = contractImage?.contractNumber?.S;
-  const businessServiceId = contractImage?.businessServiceId?.S;
-  const businessId = contractImage?.businessId?.S;
-  const patientId = contractImage?.patientId?.S;
-  const contractType = contractImage?.type?.S as ContractType;
-
-  if (!contractNumber || !businessServiceId || !businessId || !patientId || !contractType) {
-    throw new Error("Missing required contract fields");
-  }
+  const contract = unmarshall(contractImage) as Contract;
+  const { contractNumber, patientId, businessId, businessServiceId, type: contractType } = contract;
 
   const { data: serviceData, errors: serviceErrors } = await dbClient.models.businessService.get({ id: businessServiceId });
 

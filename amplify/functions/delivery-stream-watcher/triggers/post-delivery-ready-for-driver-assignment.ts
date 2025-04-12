@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { Address, DeliveryStatus, MedicineOrder, Patient, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
+import { Address, Delivery, DeliveryStatus, MedicineOrder, Patient, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
 import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryDriverAssignedPatientEmailNotifier } from "../helpers/delivery-driver-assigned-patient-email-notifier";
 import { deliveryDriverAssignedPatientSMSNotifier } from "../helpers/delivery-driver-assigned-patient-sms-notifier";
@@ -15,14 +16,8 @@ interface TriggerInput {
 }
 
 export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
-  const orderId = deliveryImage?.orderId?.S;
-  const deliveryNumber = deliveryImage?.deliveryNumber?.S;
-  const patientId = deliveryImage?.patientId?.S;
-  const pharmacyId = deliveryImage?.pharmacyId?.S;
-
-  if (!orderId || !deliveryNumber || !patientId || !pharmacyId) {
-    throw new Error("Missing required order fields");
-  }
+  const delivery = unmarshall(deliveryImage) as Delivery;
+  const { orderId, deliveryNumber, patientId, pharmacyId } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 

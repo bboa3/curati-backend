@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import { AppointmentParticipantType, AppointmentStatus, AppointmentType, Patient, Professional } from '../../helpers/types/schema';
+import { Appointment, AppointmentParticipantType, AppointmentStatus, Patient, Professional } from '../../helpers/types/schema';
 import { confirmedAppointmentEmailNotifier } from "../helpers/confirmed-appointment-email-notifier";
 import { confirmedAppointmentSMSNotifier } from "../helpers/confirmed-appointment-sms-notifier";
 import { createReminders } from "../helpers/create-reminders";
@@ -14,20 +15,8 @@ interface TriggerInput {
 }
 
 export const postAppointmentConfirmation = async ({ appointmentImage, oldImageStatus, dbClient }: TriggerInput) => {
-  const appointmentNumber = appointmentImage?.appointmentNumber?.S;
-  const appointmentId = appointmentImage?.id?.S;
-  const patientId = appointmentImage?.patientId?.S;
-  const professionalId = appointmentImage?.professionalId?.S;
-  const appointmentType = appointmentImage?.appointmentType?.S as AppointmentType;
-  const appointmentStatus = appointmentImage?.status?.S as AppointmentStatus;
-  const appointmentDateTime = appointmentImage?.appointmentDateTime?.S;
-  const cancellationReason = appointmentImage?.cancellationReason?.S;
-  const duration = appointmentImage?.duration?.N;
-  const purpose = appointmentImage?.purpose?.S;
-
-  if (!appointmentNumber || !purpose || !appointmentId || !appointmentStatus || !duration || !patientId || !professionalId || !appointmentType || !appointmentDateTime) {
-    throw new Error("Missing required appointment fields");
-  }
+  const appointment = unmarshall(appointmentImage) as Appointment;
+  const { id: appointmentId, appointmentNumber, appointmentDateTime, duration, type: appointmentType, purpose, status: appointmentStatus, cancellationReason, patientId, professionalId } = appointment;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -77,7 +66,7 @@ export const postAppointmentConfirmation = async ({ appointmentImage, oldImageSt
         appointmentType,
         purpose,
         finalStatus: appointmentStatus,
-        cancellationReason,
+        cancellationReason: cancellationReason || undefined,
         appointmentDeepLink,
       })
     }

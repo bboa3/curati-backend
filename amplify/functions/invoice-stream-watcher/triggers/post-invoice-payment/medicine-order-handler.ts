@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { DeliveryStatus, InvoiceStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
+import { DeliveryStatus, Invoice, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
 import { newMedicineOrderInvoicePatientEmailNotifier } from "../../helpers/new-medicine-order-invoice-patient-email-notifier";
 
 interface TriggerInput {
@@ -10,22 +11,8 @@ interface TriggerInput {
 }
 
 export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoiceNumber = invoiceImage?.invoiceNumber?.S;
-  const invoiceCreatedAt = invoiceImage?.createdAt?.S;
-  const invoiceDueDate = invoiceImage?.dueDate?.S;
-  const invoiceSubTotal = invoiceImage?.subTotal?.N;
-  const invoiceDiscount = invoiceImage?.discount?.N;
-  const deliveryFee = invoiceImage?.deliveryFee?.N;
-  const invoiceTotalTax = invoiceImage?.taxes?.N;
-  const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
-  const invoiceDocumentUrl = invoiceImage?.documentUrl?.S;
-  const invoiceStatus = invoiceImage?.status?.S as InvoiceStatus;
-  const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
-  const patientId = invoiceImage?.patientId?.S;
-
-  if (!invoiceNumber || !invoiceSourceId || !invoiceStatus || !patientId || !invoiceCreatedAt || !invoiceDueDate || !deliveryFee || !invoiceSubTotal || !invoiceDiscount || !invoiceTotalTax || !invoiceTotalAmount) {
-    throw new Error("Missing required invoice fields");
-  }
+  const invoice = unmarshall(invoiceImage) as Invoice;
+  const { invoiceNumber, invoiceSourceId, patientId, dueDate, totalAmount, documentUrl, status, deliveryFee, subTotal, discount, taxes, createdAt } = invoice
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
     id: invoiceSourceId,
@@ -65,15 +52,15 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
       patientEmail: patient.email,
       orderNumber: order.orderNumber,
       invoiceNumber,
-      invoiceDueDate,
-      invoiceStatus,
-      invoiceSubTotal: Number(invoiceSubTotal),
-      invoiceDiscount: Number(invoiceDiscount),
-      invoiceTotalTax: Number(invoiceTotalTax),
-      invoiceTotalAmount: Number(invoiceTotalAmount),
-      totalDeliveryFee: Number(deliveryFee),
-      invoiceDocumentUrl,
-      invoiceCreatedAt,
+      invoiceDueDate: dueDate,
+      invoiceStatus: status,
+      invoiceSubTotal: subTotal,
+      invoiceDiscount: discount,
+      invoiceTotalTax: taxes,
+      invoiceTotalAmount: totalAmount,
+      totalDeliveryFee: deliveryFee,
+      invoiceDocumentUrl: documentUrl || undefined,
+      invoiceCreatedAt: createdAt
     });
   }
 };

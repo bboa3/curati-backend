@@ -1,5 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
+import { MedicineOrder } from "../../helpers/types/schema";
 import { cancelReservedStockInventories } from "../helpers/cancel-reserved-stock-inventories";
 
 interface TriggerInput {
@@ -9,11 +11,8 @@ interface TriggerInput {
 }
 
 export const postMedicineOrderCancellation = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
-  const orderId = medicineOrderImage?.id?.S;
-
-  if (!orderId) {
-    throw new Error("Missing required order fields");
-  }
+  const order = unmarshall(medicineOrderImage) as MedicineOrder;
+  const { id: orderId } = order;
 
   await cancelReservedStockInventories({
     client: dbClient,

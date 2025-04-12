@@ -1,6 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { Address, Business, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
+import dayjs from "dayjs";
+import { Address, Business, Delivery, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
 import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryDeliveredDriverEmailNotifier } from "../helpers/delivery-delivered-driver-email-notifier";
 import { deliveryDeliveredPatientEmailNotifier } from "../helpers/delivery-delivered-patient-email-notifier";
@@ -13,16 +15,8 @@ interface TriggerInput {
 }
 
 export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: TriggerInput) => {
-  const orderId = deliveryImage?.orderId?.S;
-  const patientId = deliveryImage?.patientId?.S;
-  const pharmacyId = deliveryImage?.pharmacyId?.S;
-  const deliveryNumber = deliveryImage?.deliveryNumber?.S;
-  const driverId = deliveryImage?.driverId?.S;
-  const deliveredAt = deliveryImage?.deliveredAt?.S;
-
-  if (!orderId || !patientId || !pharmacyId || !driverId || !deliveredAt || !deliveryNumber) {
-    throw new Error("Missing required order fields");
-  }
+  const delivery = unmarshall(deliveryImage) as Delivery;
+  const { orderId, patientId, driverId, pharmacyId, deliveryNumber, deliveredAt } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
@@ -86,7 +80,7 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
       orderNumber: order.orderNumber,
       deliveryNumber: deliveryNumber,
       driverName: driver.name,
-      deliveredAt: deliveredAt,
+      deliveredAt: deliveredAt || dayjs().utc().toISOString(),
       deliveryAddress,
       ratingDeepLink,
       orderDeepLink
@@ -100,7 +94,7 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
     patientName: patient.name,
     orderNumber: order.orderNumber,
     deliveryNumber,
-    deliveredAt,
+    deliveredAt: deliveredAt || dayjs().utc().toISOString(),
     deliveryAddress,
     driverStatsDeepLink
   })
@@ -112,7 +106,7 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
     orderNumber: order.orderNumber,
     deliveryNumber,
     driverName: driver.name,
-    deliveredAt,
+    deliveredAt: deliveredAt || dayjs().utc().toISOString()
   })
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({

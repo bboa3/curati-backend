@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { User } from '../../helpers/types/schema';
+import { Prescription, User } from '../../helpers/types/schema';
 import { newPrescriptionAdminEmailNotifier } from '../helpers/new-prescription-admin-email-notifier';
 import { newPrescriptionAdminSMSNotifier } from '../helpers/new-prescription-admin-sms-notifier';
 
@@ -11,11 +12,8 @@ interface TriggerInput {
 }
 
 export const postPrescriptionCreation = async ({ prescriptionImage, dbClient }: TriggerInput) => {
-  const prescriptionNumber = prescriptionImage?.prescriptionNumber?.S;
-
-  if (!prescriptionNumber) {
-    throw new Error("Missing required prescription fields");
-  }
+  const prescription = unmarshall(prescriptionImage) as Prescription;
+  const { prescriptionNumber } = prescription;
 
   const { data: admins, errors: adminErrors } = await dbClient.models.user.list({
     filter: { role: { eq: 'ADMIN' } }

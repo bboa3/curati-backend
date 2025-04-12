@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import { Patient, PrescriptionStatus } from '../../helpers/types/schema';
+import { Patient, Prescription } from '../../helpers/types/schema';
 import { validatedPrescriptionPatientEmailNotifier } from '../helpers/validated-prescription-patient-email-notifier';
 import { validatedPrescriptionPatientSMSNotifier } from '../helpers/validated-prescription-patient-sms-notifier';
 
@@ -11,14 +12,8 @@ interface TriggerInput {
 }
 
 export const postPrescriptionValidation = async ({ prescriptionImage, dbClient }: TriggerInput) => {
-  const prescriptionNumber = prescriptionImage?.prescriptionNumber?.S;
-  const prescriptionId = prescriptionImage?.id?.S;
-  const prescriptionStatus = prescriptionImage?.status?.S as PrescriptionStatus;
-  const patientId = prescriptionImage?.patientId?.S;
-
-  if (!prescriptionNumber || !prescriptionId || !prescriptionStatus || !patientId) {
-    throw new Error("Missing required prescription fields");
-  }
+  const prescription = unmarshall(prescriptionImage) as Prescription;
+  const { id: prescriptionId, prescriptionNumber, status: prescriptionStatus, patientId } = prescription;
 
   const { data: patient, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 

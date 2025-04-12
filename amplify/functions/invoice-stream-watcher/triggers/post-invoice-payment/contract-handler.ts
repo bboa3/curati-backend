@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { BusinessService, Contract, ContractStatus, InvoiceStatus, Patient } from "../../../helpers/types/schema";
+import { BusinessService, Contract, ContractStatus, Invoice, Patient } from "../../../helpers/types/schema";
 import { paidContractInvoicePatientEmailNotifier } from "../../helpers/paid-contract-invoice-patient-email-notifier";
 
 interface TriggerInput {
@@ -10,21 +11,8 @@ interface TriggerInput {
 }
 
 export const postInvoicePaymentContractHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoiceNumber = invoiceImage?.invoiceNumber?.S;
-  const invoiceCreatedAt = invoiceImage?.createdAt?.S;
-  const invoiceDueDate = invoiceImage?.dueDate?.S;
-  const invoiceSubTotal = invoiceImage?.subTotal?.N;
-  const invoiceDiscount = invoiceImage?.discount?.N;
-  const invoiceTotalTax = invoiceImage?.taxes?.N;
-  const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
-  const invoiceDocumentUrl = invoiceImage?.documentUrl?.S;
-  const invoiceStatus = invoiceImage?.status?.S as InvoiceStatus;
-  const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
-  const patientId = invoiceImage?.patientId?.S;
-
-  if (!invoiceNumber || !invoiceSourceId || !invoiceStatus || !patientId || !invoiceCreatedAt || !invoiceDueDate || !invoiceSubTotal || !invoiceDiscount || !invoiceTotalTax || !invoiceTotalAmount) {
-    throw new Error("Missing required invoice fields");
-  }
+  const invoice = unmarshall(invoiceImage) as Invoice;
+  const { invoiceNumber, invoiceSourceId, patientId, totalAmount, documentUrl } = invoice
 
   const { errors: contractUpdateErrors } = await dbClient.models.contract.update({
     id: invoiceSourceId,
@@ -62,8 +50,8 @@ export const postInvoicePaymentContractHandler = async ({ invoiceImage, dbClient
       patientEmail: patient.email,
       contractNumber: contract.contractNumber,
       invoiceNumber,
-      invoiceTotalAmount: Number(invoiceTotalAmount),
-      invoiceDocumentUrl,
+      invoiceTotalAmount: totalAmount,
+      invoiceDocumentUrl: documentUrl || undefined,
       professionalName: service.professionalName,
       serviceName: service.serviceName
     });

@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { DeliveryStatus, Professional } from '../../helpers/types/schema';
+import { DeliveryStatus, MedicineOrder, Professional } from '../../helpers/types/schema';
 import { newOrderPharmacyEmailNotifier } from '../helpers/new-order-pharmacy-email-notifier';
 import { newOrderPharmacySMSNotifier } from '../helpers/new-order-pharmacy-sms-notifier';
 import { updateStockInventories } from '../helpers/update-stock-inventories';
@@ -12,14 +13,8 @@ interface TriggerInput {
 }
 
 export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
-  const orderId = medicineOrderImage?.id?.S;
-  const orderNumber = medicineOrderImage?.orderNumber?.S;
-  const pharmacyId = medicineOrderImage?.businessId?.S;
-  const patientId = medicineOrderImage?.patientId?.S;
-
-  if (!orderId || !orderNumber || !pharmacyId || !patientId) {
-    throw new Error("Missing required order fields");
-  }
+  const order = unmarshall(medicineOrderImage) as MedicineOrder;
+  const { id: orderId, orderNumber, businessId: pharmacyId } = order;
 
   const { data: pharmacistsData, errors: pharmacistErrors } = await dbClient.models.professional.list({
     filter: { businessId: { eq: pharmacyId } }

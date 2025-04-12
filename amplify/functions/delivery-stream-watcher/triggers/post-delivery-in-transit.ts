@@ -1,6 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { DeliveryStatus, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
+import dayjs from "dayjs";
+import { Delivery, DeliveryStatus, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
 import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryInTransitPatientEmailNotifier } from "../helpers/delivery-in-transit-patient-email-notifier";
 import { deliveryInTransitPatientSMSNotifier } from "../helpers/delivery-in-transit-patient-sms-notifier";
@@ -12,18 +14,8 @@ interface TriggerInput {
 }
 
 export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: TriggerInput) => {
-  const orderId = deliveryImage?.orderId?.S;
-  const patientId = deliveryImage?.patientId?.S;
-  const pharmacyId = deliveryImage?.pharmacyId?.S;
-  const pickedUpAt = deliveryImage?.pickedUpAt?.S;
-  const deliveryNumber = deliveryImage?.deliveryNumber?.S;
-  const driverId = deliveryImage?.driverId?.S;
-  const vehicleId = deliveryImage?.vehicleId?.S;
-  const estimatedDeliveryDuration = deliveryImage?.estimatedDeliveryDuration?.N;
-
-  if (!orderId || !patientId || !pharmacyId || !driverId || !vehicleId || !estimatedDeliveryDuration || !pickedUpAt || !deliveryNumber) {
-    throw new Error("Missing required order fields");
-  }
+  const delivery = unmarshall(deliveryImage) as Delivery;
+  const { orderId, patientId, driverId, estimatedDeliveryDuration, pickedUpAt, deliveryNumber } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
@@ -62,7 +54,7 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: Trigger
       orderNumber: order.orderNumber,
       deliveryNumber: deliveryNumber,
       driverName: driver.name,
-      pickedUpAt: pickedUpAt,
+      pickedUpAt: pickedUpAt || dayjs().utc().toISOString(),
       estimatedDeliveryDuration: Number(estimatedDeliveryDuration),
       trackingLink,
     })
@@ -72,7 +64,7 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: Trigger
     patientPhoneNumber: `+258${patient.phone.replace(/\D/g, '')}`,
     orderNumber: order.orderNumber,
     driverName: driver.name,
-    pickedUpAt: pickedUpAt,
+    pickedUpAt: pickedUpAt || dayjs().utc().toISOString(),
     estimatedDeliveryDuration: Number(estimatedDeliveryDuration),
     trackingLink: trackingLink
   })

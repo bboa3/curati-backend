@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { InvoiceStatus, MedicineOrder, Patient } from "../../../helpers/types/schema";
+import { Invoice, MedicineOrder, Patient } from "../../../helpers/types/schema";
 import { newMedicineOrderInvoicePatientEmailNotifier } from "../../helpers/new-medicine-order-invoice-patient-email-notifier";
 
 interface TriggerInput {
@@ -10,22 +11,8 @@ interface TriggerInput {
 }
 
 export const postInvoiceCreationMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoiceNumber = invoiceImage?.invoiceNumber?.S;
-  const invoiceCreatedAt = invoiceImage?.createdAt?.S;
-  const invoiceDueDate = invoiceImage?.dueDate?.S;
-  const invoiceSubTotal = invoiceImage?.subTotal?.N;
-  const invoiceDiscount = invoiceImage?.discount?.N;
-  const deliveryFee = invoiceImage?.deliveryFee?.N;
-  const invoiceTotalTax = invoiceImage?.taxes?.N;
-  const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
-  const invoiceDocumentUrl = invoiceImage?.documentUrl?.S;
-  const invoiceStatus = invoiceImage?.status?.S as InvoiceStatus;
-  const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
-  const patientId = invoiceImage?.patientId?.S;
-
-  if (!invoiceNumber || !invoiceSourceId || !invoiceStatus || !patientId || !invoiceCreatedAt || !invoiceDueDate || !deliveryFee || !invoiceSubTotal || !invoiceDiscount || !invoiceTotalTax || !invoiceTotalAmount) {
-    throw new Error("Missing required invoice fields");
-  }
+  const invoice = unmarshall(invoiceImage) as Invoice;
+  const { invoiceNumber, invoiceSourceId, deliveryFee, status, patientId, createdAt, dueDate, subTotal, discount, taxes, totalAmount, documentUrl } = invoice
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -47,15 +34,15 @@ export const postInvoiceCreationMedicineOrderHandler = async ({ invoiceImage, db
       patientEmail: patient.email,
       orderNumber: order.orderNumber,
       invoiceNumber,
-      invoiceDueDate,
-      invoiceStatus,
-      invoiceSubTotal: Number(invoiceSubTotal),
-      invoiceDiscount: Number(invoiceDiscount),
-      invoiceTotalTax: Number(invoiceTotalTax),
-      invoiceTotalAmount: Number(invoiceTotalAmount),
-      totalDeliveryFee: Number(deliveryFee),
-      invoiceDocumentUrl,
-      invoiceCreatedAt,
+      invoiceDueDate: dueDate,
+      invoiceStatus: status,
+      invoiceSubTotal: subTotal,
+      invoiceDiscount: discount,
+      invoiceTotalTax: taxes,
+      invoiceTotalAmount: totalAmount,
+      totalDeliveryFee: deliveryFee,
+      invoiceDocumentUrl: documentUrl || undefined,
+      invoiceCreatedAt: createdAt
     });
   }
 };

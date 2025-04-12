@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { InvoiceStatus } from "../../../helpers/types/schema";
+import { Invoice, InvoiceStatus } from "../../../helpers/types/schema";
 import { createInvoiceTransaction } from "../../helpers/create-invoice-transaction";
 
 interface TriggerInput {
@@ -10,14 +11,8 @@ interface TriggerInput {
 }
 
 export const postInvoiceReadyForPaymentMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoiceId = invoiceImage?.id?.S;
-  const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
-  const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
-  const paymentMethodId = invoiceImage?.paymentMethodId?.S;
-
-  if (!invoiceId || !invoiceSourceId || !invoiceTotalAmount || !paymentMethodId) {
-    throw new Error("Missing required invoice fields");
-  }
+  const invoice = unmarshall(invoiceImage) as Invoice;
+  const { id: invoiceId, invoiceSourceId, totalAmount: invoiceTotalAmount, paymentMethodId } = invoice;
 
   await createInvoiceTransaction({
     client: dbClient,

@@ -11,18 +11,9 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
-  const orderId = deliveryImage?.orderId?.S;
-  const patientId = deliveryImage?.patientId?.S;
-  const pharmacyId = deliveryImage?.pharmacyId?.S;
-  const totalDeliveryFee = deliveryImage?.totalDeliveryFee?.N;
+export const postMedicineOrderCreation = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const delivery = unmarshall(deliveryImage) as Delivery;
-
-  logger.error("delivery", JSON.stringify(delivery));
-
-  if (!orderId || !totalDeliveryFee || !patientId || !pharmacyId) {
-    throw new Error("Missing required order fields");
-  }
+  const { orderId, patientId, pharmacyId, totalDeliveryFee } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 

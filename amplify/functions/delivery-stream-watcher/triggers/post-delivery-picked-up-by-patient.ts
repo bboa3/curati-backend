@@ -1,6 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { Business, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../helpers/types/schema";
+import dayjs from "dayjs";
+import { Business, Delivery, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../helpers/types/schema";
 import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryPickedUpPatientEmailNotifier } from "../helpers/delivery-picked-up-patient-email-notifier";
 import { deliveryPickedUpPharmacyEmailNotifier } from "../helpers/delivery-picked-up-pharmacy-email-notifier";
@@ -12,14 +14,8 @@ interface TriggerInput {
 }
 
 export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient }: TriggerInput) => {
-  const orderId = deliveryImage?.orderId?.S;
-  const patientId = deliveryImage?.patientId?.S;
-  const pharmacyId = deliveryImage?.pharmacyId?.S;
-  const deliveredAt = deliveryImage?.deliveredAt?.S;
-
-  if (!orderId || !patientId || !pharmacyId || !deliveredAt) {
-    throw new Error("Missing required order fields");
-  }
+  const delivery = unmarshall(deliveryImage) as Delivery;
+  const { orderId, patientId, pharmacyId, deliveredAt } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
@@ -58,7 +54,7 @@ export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient }:
       patientEmail: patient.email,
       orderNumber: order.orderNumber,
       pharmacyName: pharmacy.name,
-      pickupTimestamp: deliveredAt,
+      pickupTimestamp: deliveredAt || dayjs().utc().toISOString(),
       ratingDeepLink,
       orderDeepLink
     })
@@ -69,7 +65,7 @@ export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient }:
     pharmacyEmail: pharmacy.email,
     patientName: patient.name,
     orderNumber: order.orderNumber,
-    pickupTimestamp: deliveredAt
+    pickupTimestamp: deliveredAt || dayjs().utc().toISOString()
   })
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
