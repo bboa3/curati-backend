@@ -4,7 +4,6 @@ import type { AttributeValue } from "aws-lambda";
 import { DeliveryStatus, MedicineOrder, Professional } from '../../helpers/types/schema';
 import { newOrderPharmacyEmailNotifier } from '../helpers/new-order-pharmacy-email-notifier';
 import { newOrderPharmacySMSNotifier } from '../helpers/new-order-pharmacy-sms-notifier';
-import { updateStockInventories } from '../helpers/update-stock-inventories';
 
 interface TriggerInput {
   medicineOrderImage: { [key: string]: AttributeValue; };
@@ -24,11 +23,6 @@ export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient }:
     throw new Error(`Failed to fetch pharmacists: ${JSON.stringify(pharmacistErrors)}`);
   }
   const pharmacists = pharmacistsData as Professional[]
-
-  await updateStockInventories({
-    client: dbClient,
-    orderId
-  })
 
   await dbClient.models.delivery.update({
     orderId,
