@@ -18,7 +18,7 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
   const totalDeliveryFee = deliveryImage?.totalDeliveryFee?.N;
   const delivery = unmarshall(deliveryImage);
 
-  logger.debug("delivery", delivery);
+  logger.error("delivery", delivery);
 
 
   if (!orderId || !totalDeliveryFee || !patientId || !pharmacyId) {
