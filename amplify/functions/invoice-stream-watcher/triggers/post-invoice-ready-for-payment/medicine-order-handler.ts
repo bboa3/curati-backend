@@ -12,18 +12,18 @@ interface TriggerInput {
 
 export const postInvoiceReadyForPaymentMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoice = unmarshall(invoiceImage) as Invoice;
-  const { id: invoiceId, invoiceSourceId, totalAmount: invoiceTotalAmount, paymentMethodId } = invoice;
+  const { id: invoiceId, totalAmount, paymentMethodId } = invoice;
 
   await createInvoiceTransaction({
     client: dbClient,
     invoiceId: invoiceId,
     paymentMethodId: paymentMethodId,
-    amount: Number(invoiceTotalAmount)
+    amount: totalAmount
   });
 
   // update Invoice On a Successful Payment
   const { errors: invoiceUpdateErrors } = await dbClient.models.invoice.update({
-    id: invoiceSourceId,
+    id: invoiceId,
     status: InvoiceStatus.PAID
   });
 
