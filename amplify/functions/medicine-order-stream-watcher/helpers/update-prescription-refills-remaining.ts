@@ -1,19 +1,16 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import { Schema } from "../../../data/resource";
 
 interface UpdateInventoriesInput {
   client: any;
-  logger: Logger;
   prescriptionId: string;
 }
 type Prescription = Schema['prescription']['type'];
 
-export const updatePrescriptionRefillsRemaining = async ({ client, logger, prescriptionId }: UpdateInventoriesInput) => {
+export const updatePrescriptionRefillsRemaining = async ({ client, prescriptionId }: UpdateInventoriesInput) => {
   const { data: prescriptionData, errors: prescriptionErrors } = await client.models.prescription.get({ id: prescriptionId });
 
   if (prescriptionErrors || !prescriptionData) {
-    logger.error("Failed to fetch prescription", { errors: prescriptionErrors });
-    return;
+    throw new Error(`Failed to fetch prescription: ${JSON.stringify(prescriptionErrors)}`);
   }
   const prescription = prescriptionData as Prescription;
 
@@ -23,7 +20,6 @@ export const updatePrescriptionRefillsRemaining = async ({ client, logger, presc
   });
 
   if (errors) {
-    logger.error(`Failed to update prescription remaining refills`, { errors });
-    return;
+    throw new Error(`Failed to update prescription: ${JSON.stringify(errors)}`);
   }
 }

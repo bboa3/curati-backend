@@ -10,7 +10,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postContractCreation = async ({ contractImage, dbClient, logger }: TriggerInput) => {
+export const postContractCreation = async ({ contractImage, dbClient }: TriggerInput) => {
   const contractNumber = contractImage?.contractNumber?.S;
   const businessServiceId = contractImage?.businessServiceId?.S;
   const businessId = contractImage?.businessId?.S;
@@ -18,39 +18,34 @@ export const postContractCreation = async ({ contractImage, dbClient, logger }: 
   const contractType = contractImage?.type?.S as ContractType;
 
   if (!contractNumber || !businessServiceId || !businessId || !patientId || !contractType) {
-    logger.warn("Missing required contract fields");
-    return;
+    throw new Error("Missing required contract fields");
   }
 
   const { data: serviceData, errors: serviceErrors } = await dbClient.models.businessService.get({ id: businessServiceId });
 
   if (serviceErrors || !serviceData) {
-    logger.error("Failed to fetch service", { errors: serviceErrors });
-    return;
+    throw new Error(`Failed to fetch service: ${JSON.stringify(serviceErrors)}`);
   }
   const service = serviceData as BusinessService;
 
   const { data: businessData, errors: businessErrors } = await dbClient.models.business.get({ id: businessId });
 
   if (businessErrors || !businessData) {
-    logger.error("Failed to fetch business", { errors: businessErrors });
-    return;
+    throw new Error(`Failed to fetch business: ${JSON.stringify(businessErrors)}`);
   }
   const business = businessData as Business;
 
   const { data: professionalData, errors: professionalErrors } = await dbClient.models.professional.get({ userId: service.professionalId });
 
   if (professionalErrors || !professionalData) {
-    logger.error("Failed to fetch professional", { errors: professionalErrors });
-    return;
+    throw new Error(`Failed to fetch professional: ${JSON.stringify(professionalErrors)}`);
   }
   const professional = professionalData as Professional;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 

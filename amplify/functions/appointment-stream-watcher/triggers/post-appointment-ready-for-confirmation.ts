@@ -10,7 +10,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postAppointmentReadyForConfirmation = async ({ appointmentImage, dbClient, logger }: TriggerInput) => {
+export const postAppointmentReadyForConfirmation = async ({ appointmentImage, dbClient }: TriggerInput) => {
   const appointmentNumber = appointmentImage?.appointmentNumber?.S;
   const appointmentId = appointmentImage?.id?.S;
   const patientId = appointmentImage?.patientId?.S;
@@ -22,23 +22,20 @@ export const postAppointmentReadyForConfirmation = async ({ appointmentImage, db
   const purpose = appointmentImage?.purpose?.S;
 
   if (!appointmentNumber || !purpose || !appointmentId || !duration || !patientId || !professionalId || !requesterType || !appointmentType || !appointmentDateTime) {
-    logger.warn("Missing required appointment fields");
-    return;
+    throw new Error("Missing required appointment fields");
   }
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
   const { data: professionalData, errors: professionalErrors } = await dbClient.models.professional.get({ userId: professionalId });
 
   if (professionalErrors || !professionalData) {
-    logger.error("Failed to fetch patient", { errors: professionalErrors });
-    return;
+    throw new Error(`Failed to fetch professional: ${JSON.stringify(professionalErrors)}`);
   }
   const professional = professionalData as unknown as Professional;
 

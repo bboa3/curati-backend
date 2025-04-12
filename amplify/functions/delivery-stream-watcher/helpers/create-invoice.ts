@@ -1,4 +1,3 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import { v4 as generateUUIDv4 } from "uuid";
 import { createInvoiceDueDate } from "../../helpers/create-invoice-due-date";
 import { generateHashedIdentifier } from "../../helpers/generateHashedIdentifier";
@@ -9,7 +8,6 @@ const priceCalculator = new PriceCalculator();
 
 interface UpdateInventoriesInput {
   client: any;
-  logger: Logger;
   pharmacyId: string;
   patientId: string;
   paymentMethodId: string;
@@ -17,14 +15,13 @@ interface UpdateInventoriesInput {
   totalDeliveryFee: number;
 }
 
-export const createMedicineOrderInvoice = async ({ client, logger, orderId, pharmacyId, paymentMethodId, patientId, totalDeliveryFee }: UpdateInventoriesInput) => {
+export const createMedicineOrderInvoice = async ({ client, orderId, pharmacyId, paymentMethodId, patientId, totalDeliveryFee }: UpdateInventoriesInput) => {
   const { data: orderItemsData, errors: orderErrors } = await client.models.medicineOrderItem.list({
     filter: { orderId: { eq: orderId } }
   });
 
   if (orderErrors || !orderItemsData) {
-    logger.error("Failed to fetch medicine order items", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order items: ${JSON.stringify(orderErrors)}`);
   }
   const orderItems = orderItemsData as MedicineOrderItem[] || [];
 
@@ -58,8 +55,7 @@ export const createMedicineOrderInvoice = async ({ client, logger, orderId, phar
   });
 
   if (errors || !invoice) {
-    logger.error(`Failed to create invoice`, { errors });
-    return;
+    throw new Error(`Failed to create invoice: ${JSON.stringify(errors)}`);
   }
 
   return invoice as unknown as Invoice

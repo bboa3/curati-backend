@@ -11,7 +11,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postContractConfirmation = async ({ contractImage, dbClient, logger }: TriggerInput) => {
+export const postContractConfirmation = async ({ contractImage, dbClient }: TriggerInput) => {
   const contractNumber = contractImage?.contractNumber?.S;
   const contractId = contractImage?.id?.S;
   const contractStatus = contractImage?.status?.S as ContractStatus;
@@ -22,15 +22,13 @@ export const postContractConfirmation = async ({ contractImage, dbClient, logger
   const appliedPricingConditions = contractImage?.appliedPricingConditions?.SS;
 
   if (!contractNumber || !contractId || !contractStatus || !patientId || !paymentMethodId || !businessId || !businessServiceId || !appliedPricingConditions) {
-    logger.warn("Missing required contract fields");
-    return;
+    throw new Error("Missing required contract fields");
   }
 
   const { data: serviceData, errors: serviceErrors } = await dbClient.models.businessService.get({ id: businessServiceId });
 
   if (serviceErrors || !serviceData) {
-    logger.error("Failed to fetch service", { errors: serviceErrors });
-    return;
+    throw new Error(`Failed to fetch service: ${JSON.stringify(serviceErrors)}`);
   }
   const service = serviceData as BusinessService;
 
@@ -38,8 +36,7 @@ export const postContractConfirmation = async ({ contractImage, dbClient, logger
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", patientErrors);
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient
 
@@ -48,7 +45,6 @@ export const postContractConfirmation = async ({ contractImage, dbClient, logger
   if (contractStatus === ContractStatus.PENDING_PAYMENT) {
     invoice = await createContractInvoice({
       client: dbClient,
-      logger,
       contractId: contractId,
       patientId: patientId,
       businessId: businessId,

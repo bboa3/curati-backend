@@ -13,7 +13,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postAppointmentConfirmation = async ({ appointmentImage, oldImageStatus, dbClient, logger }: TriggerInput) => {
+export const postAppointmentConfirmation = async ({ appointmentImage, oldImageStatus, dbClient }: TriggerInput) => {
   const appointmentNumber = appointmentImage?.appointmentNumber?.S;
   const appointmentId = appointmentImage?.id?.S;
   const patientId = appointmentImage?.patientId?.S;
@@ -26,23 +26,20 @@ export const postAppointmentConfirmation = async ({ appointmentImage, oldImageSt
   const purpose = appointmentImage?.purpose?.S;
 
   if (!appointmentNumber || !purpose || !appointmentId || !appointmentStatus || !duration || !patientId || !professionalId || !appointmentType || !appointmentDateTime) {
-    logger.warn("Missing required appointment fields");
-    return;
+    throw new Error("Missing required appointment fields");
   }
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
   const { data: professionalData, errors: professionalErrors } = await dbClient.models.professional.get({ userId: professionalId });
 
   if (professionalErrors || !professionalData) {
-    logger.error("Failed to fetch patient", { errors: professionalErrors });
-    return;
+    throw new Error(`Failed to fetch professional: ${JSON.stringify(professionalErrors)}`);
   }
   const professional = professionalData as unknown as Professional;
 
@@ -101,7 +98,6 @@ export const postAppointmentConfirmation = async ({ appointmentImage, oldImageSt
   if (oldImageStatus === AppointmentStatus.RESCHEDULED) {
     await deleteReminders({
       dbClient,
-      logger,
       appointmentId,
       recipients: recipients.map(({ userId }) => ({ userId }))
     })
@@ -110,7 +106,6 @@ export const postAppointmentConfirmation = async ({ appointmentImage, oldImageSt
   if (appointmentStatus === AppointmentStatus.CONFIRMED) {
     await createReminders({
       dbClient,
-      logger,
       appointmentDateTime,
       purpose,
       professionalType: professional.type,
@@ -125,7 +120,6 @@ export const postAppointmentConfirmation = async ({ appointmentImage, oldImageSt
   } else {
     await deleteReminders({
       dbClient,
-      logger,
       appointmentId,
       recipients: recipients.map(({ userId }) => ({ userId }))
     })

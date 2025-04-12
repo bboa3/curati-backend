@@ -9,18 +9,16 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postDeliveryCreation = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
+export const postDeliveryCreation = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const orderId = deliveryImage?.orderId?.S;
   const patientId = deliveryImage?.patientId?.S;
 
   if (!orderId || !patientId) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   await createDeliveryStatusHistory({
     client: dbClient,
-    logger,
     patientId: patientId,
     deliveryId: orderId,
     status: DeliveryStatus.PENDING

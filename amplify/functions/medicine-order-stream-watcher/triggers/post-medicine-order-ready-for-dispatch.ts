@@ -9,7 +9,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, dbClient, logger }: TriggerInput) => {
+export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
   const orderId = medicineOrderImage?.id?.S;
   const orderNumber = medicineOrderImage?.orderNumber?.S;
   const pharmacyId = medicineOrderImage?.businessId?.S;
@@ -17,15 +17,13 @@ export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, db
   const prescriptionId = medicineOrderImage?.prescriptionId?.S;
 
   if (!orderId || !orderNumber || !pharmacyId || !patientId) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.business.get({ id: pharmacyId });
 
   if (pharmacyErrors || !pharmacyData) {
-    logger.error("Failed to fetch pharmacy", { errors: pharmacyErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacy: ${JSON.stringify(pharmacyErrors)}`);
   }
   const pharmacy = pharmacyData as unknown as Professional
 
@@ -34,10 +32,7 @@ export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, db
   if (prescriptionId) {
     await updatePrescriptionRefillsRemaining({
       client: dbClient,
-      logger,
       prescriptionId: prescriptionId
     })
   }
-
-
 };

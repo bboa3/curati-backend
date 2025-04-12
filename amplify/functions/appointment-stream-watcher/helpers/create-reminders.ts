@@ -1,11 +1,9 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import dayjs from "dayjs";
 import { formatDateTimeNumeric, formatTime } from "../../helpers/date/formatter";
 import { AppointmentParticipantType, AppointmentType, ProfessionalType, RemindedItemType, ReminderStatus, RepeatType } from "../../helpers/types/schema";
 
 interface CreateReminderInput {
   dbClient: any;
-  logger: Logger;
   appointmentId: string;
   purpose: string;
   appointmentDateTime: string;
@@ -18,7 +16,7 @@ interface CreateReminderInput {
   }[];
 }
 
-export async function createReminders({ dbClient, logger, appointmentDateTime, purpose, professionalType, appointmentType, appointmentId, recipients }: CreateReminderInput) {
+export async function createReminders({ dbClient, appointmentDateTime, purpose, professionalType, appointmentType, appointmentId, recipients }: CreateReminderInput) {
   await Promise.all(recipients.map(async recipient => {
     const now = dayjs().utc();
     const appointmentDate = dayjs(appointmentDateTime).utc();
@@ -88,8 +86,7 @@ export async function createReminders({ dbClient, logger, appointmentDateTime, p
       })
 
       if (errors) {
-        logger.error(`Failed to create reminder ${dateTime.toISOString()}`, { errors });
-        return;
+        throw new Error(`Failed to create reminder ${dateTime.toISOString()}: ${JSON.stringify(errors)}`);
       }
     }
   }))

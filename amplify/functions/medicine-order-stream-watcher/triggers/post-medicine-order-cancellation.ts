@@ -8,17 +8,15 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postMedicineOrderCancellation = async ({ medicineOrderImage, dbClient, logger }: TriggerInput) => {
+export const postMedicineOrderCancellation = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
   const orderId = medicineOrderImage?.id?.S;
 
   if (!orderId) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   await cancelReservedStockInventories({
     client: dbClient,
-    logger,
     orderId
   })
 };

@@ -21,23 +21,20 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
   const pharmacyId = deliveryImage?.pharmacyId?.S;
 
   if (!orderId || !deliveryNumber || !patientId || !pharmacyId) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
   if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order: ${JSON.stringify(orderErrors)}`);
   }
   const order = orderData as unknown as MedicineOrder
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
@@ -47,13 +44,11 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
   const pharmacyAddressLongitude = pharmacyAddress?.longitude;
 
   if (pharmacyAddressErrors || !pharmacyAddress || !pharmacyAddressLongitude || !pharmacyAddressLatitude) {
-    logger.error("Failed to fetch pharmacy address", { errors: pharmacyAddressErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacy address: ${JSON.stringify(pharmacyAddressErrors)}`);
   }
 
   await createDeliveryStatusHistory({
     client: dbClient,
-    logger,
     patientId: patientId,
     deliveryId: orderId,
     status: DeliveryStatus.AWAITING_DRIVER_ASSIGNMENT
@@ -71,8 +66,7 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
   })
 
   if (!picked) {
-    logger.warn("No drivers are currently ONLINE.");
-    return;
+    throw new Error("Failed to pick best driver");
   }
   const { driver, vehicle } = picked;
 
@@ -82,8 +76,7 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
   });
 
   if (availabilityUpdateErrors) {
-    logger.error("Failed to update driver availability", { errors: availabilityUpdateErrors });
-    return null;
+    throw new Error(`Failed to update driver availability: ${JSON.stringify(availabilityUpdateErrors)}`);
   }
 
   const { errors: deliveryUpdateErrors } = await dbClient.models.delivery.update({
@@ -95,8 +88,7 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
   })
 
   if (deliveryUpdateErrors) {
-    logger.error("Failed to update delivery", { errors: deliveryUpdateErrors });
-    return;
+    throw new Error(`Failed to update delivery: ${JSON.stringify(deliveryUpdateErrors)}`);
   }
 
   await newDeliveryAssignmentDriverEmailNotifier({

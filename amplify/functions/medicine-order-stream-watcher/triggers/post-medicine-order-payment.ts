@@ -11,15 +11,14 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient, logger }: TriggerInput) => {
+export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
   const orderId = medicineOrderImage?.id?.S;
   const orderNumber = medicineOrderImage?.orderNumber?.S;
   const pharmacyId = medicineOrderImage?.businessId?.S;
   const patientId = medicineOrderImage?.patientId?.S;
 
   if (!orderId || !orderNumber || !pharmacyId || !patientId) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: pharmacistsData, errors: pharmacistErrors } = await dbClient.models.professional.list({
@@ -27,14 +26,12 @@ export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient, l
   });
 
   if (pharmacistErrors || !pharmacistsData) {
-    logger.error("Failed to fetch pharmacists", { errors: pharmacistErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacists: ${JSON.stringify(pharmacistErrors)}`);
   }
   const pharmacists = pharmacistsData as Professional[]
 
   await updateStockInventories({
     client: dbClient,
-    logger,
     orderId
   })
 

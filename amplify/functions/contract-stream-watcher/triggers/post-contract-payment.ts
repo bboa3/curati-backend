@@ -8,12 +8,11 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postContractPayment = async ({ contractImage, dbClient, logger }: TriggerInput) => {
+export const postContractPayment = async ({ contractImage, dbClient }: TriggerInput) => {
   const contractId = contractImage?.id?.S;
 
   if (!contractId) {
-    logger.warn("Missing required contract fields");
-    return;
+    throw new Error("Missing required contract fields");
   }
 
   const { data: appointmentsData, errors: appointmentErrors } = await dbClient.models.appointment.list({
@@ -24,8 +23,7 @@ export const postContractPayment = async ({ contractImage, dbClient, logger }: T
   });
 
   if (appointmentErrors || !appointmentsData) {
-    logger.error("Failed to fetch appointments", appointmentErrors);
-    return;
+    throw new Error(`Failed to fetch appointments: ${JSON.stringify(appointmentErrors)}`);
   }
   const appointments = appointmentsData as Appointment[]
 

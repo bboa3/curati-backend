@@ -1,6 +1,3 @@
-import { Logger } from "@aws-lambda-powertools/logger";
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { v4 as generateUUIDv4 } from "uuid";
 import { createInvoiceDueDate } from "../../helpers/create-invoice-due-date";
 import { generateHashedIdentifier } from "../../helpers/generateHashedIdentifier";
@@ -8,11 +5,9 @@ import ServicePriceCalculator from "../../helpers/price/ServicePriceCalculator";
 import { BusinessServicePricing, Invoice, InvoiceSourceType, InvoiceStatus, PaymentTermsType, PricingCondition } from "../../helpers/types/schema";
 
 const servicePriceCalculator = new ServicePriceCalculator();
-dayjs.extend(utc);
 
 interface UpdateInventoriesInput {
   client: any;
-  logger: Logger;
   contractId: string;
   patientId: string;
   businessId: string;
@@ -21,14 +16,13 @@ interface UpdateInventoriesInput {
   appliedPricingConditions: PricingCondition[];
 }
 
-export const createContractInvoice = async ({ client, logger, patientId, businessId, contractId, paymentMethodId, businessServiceId, appliedPricingConditions }: UpdateInventoriesInput) => {
+export const createContractInvoice = async ({ client, patientId, businessId, contractId, paymentMethodId, businessServiceId, appliedPricingConditions }: UpdateInventoriesInput) => {
   const { data: servicePricingData, errors: pricingErrors } = await client.models.businessServicePricing.list({
     filter: { businessServiceId: { eq: businessServiceId } }
   });
 
   if (pricingErrors || !servicePricingData) {
-    logger.error("Failed to fetch medicine pricing items", { errors: pricingErrors });
-    return;
+    throw new Error(`Failed to fetch business service pricing: ${JSON.stringify(pricingErrors)}`);
   }
   const businessServicePricing = servicePricingData as BusinessServicePricing[] || [];
 
@@ -61,8 +55,7 @@ export const createContractInvoice = async ({ client, logger, patientId, busines
   });
 
   if (errors || !invoice) {
-    logger.error(`Failed to create invoice`, { errors });
-    return;
+    throw new Error(`Failed to create invoice: ${JSON.stringify(errors)}`);
   }
 
   return invoice as unknown as Invoice

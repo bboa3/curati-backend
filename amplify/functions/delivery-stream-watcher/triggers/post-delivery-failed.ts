@@ -12,7 +12,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postDeliveryFailed = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
+export const postDeliveryFailed = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const orderId = deliveryImage?.orderId?.S;
   const patientId = deliveryImage?.patientId?.S;
   const pharmacyId = deliveryImage?.pharmacyId?.S;
@@ -21,45 +21,39 @@ export const postDeliveryFailed = async ({ deliveryImage, dbClient, logger }: Tr
   const deliveryStatus = deliveryImage?.status?.S as DeliveryStatus;
 
   if (!orderId || !patientId || !pharmacyId || !driverId || !deliveryStatus || !deliveryNumber) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
   if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order: ${JSON.stringify(orderErrors)}`);
   }
   const order = orderData as unknown as MedicineOrder
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
   const { data: driverData, errors: driverErrors } = await dbClient.models.professional.get({ userId: driverId });
 
   if (driverErrors) {
-    logger.error("Failed to fetch driver", { errors: driverErrors });
-    return;
+    throw new Error(`Failed to fetch driver: ${JSON.stringify(driverErrors)}`);
   }
   const driver = driverData as unknown as Professional | null;
 
   const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.business.get({ id: pharmacyId });
 
   if (pharmacyErrors || !pharmacyData) {
-    logger.error("Failed to fetch pharmacy", { errors: pharmacyErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacy: ${JSON.stringify(pharmacyErrors)}`);
   }
   const pharmacy = pharmacyData as unknown as Business;
 
   await createDeliveryStatusHistory({
     client: dbClient,
-    logger,
     patientId: patientId,
     deliveryId: orderId,
     status: DeliveryStatus.FAILED

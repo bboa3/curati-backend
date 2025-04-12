@@ -1,20 +1,17 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import { MedicineOrderItem, PharmacyInventory } from "../../helpers/types/schema";
 
 interface UpdateInventoriesInput {
   client: any;
-  logger: Logger;
   orderId: string;
 }
 
-export const updateStockInventories = async ({ client, logger, orderId }: UpdateInventoriesInput) => {
+export const updateStockInventories = async ({ client, orderId }: UpdateInventoriesInput) => {
   const { data: medicineOrderItems, errors: itemsErrors } = await client.models.medicineOrderItem.list({
     filter: { orderId: { eq: orderId } }
   });
 
   if (itemsErrors || !medicineOrderItems) {
-    logger.error("Failed to fetch medicine order items", { errors: itemsErrors });
-    return;
+    throw new Error(`Failed to fetch order items: ${JSON.stringify(itemsErrors)}`);
   }
   const items = medicineOrderItems as MedicineOrderItem[] || [];
 
@@ -32,8 +29,7 @@ export const updateStockInventories = async ({ client, logger, orderId }: Update
   });
 
   if (inventoriesErrors || !pharmacyInventoriesData) {
-    logger.error("Failed to fetch pharmacy inventories", { errors: inventoriesErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacy inventories: ${JSON.stringify(inventoriesErrors)}`);
   }
   const pharmacyInventories = pharmacyInventoriesData as PharmacyInventory[] || [];
 
@@ -44,8 +40,7 @@ export const updateStockInventories = async ({ client, logger, orderId }: Update
     });
 
     if (errors) {
-      logger.error(`Failed to update inventory stock, id: ${inventory.id}`, { errors });
-      return;
+      throw new Error(`Failed to update pharmacy inventory: ${JSON.stringify(errors)}`);
     }
   });
 

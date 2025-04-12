@@ -1,22 +1,19 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import { Schema } from "../../../data/resource";
 
 interface ReserveStockInventoriesInput {
   client: any;
-  logger: Logger;
   orderId: string;
 }
 type MedicineOrderItem = Schema['medicineOrderItem']['type'];
 type PharmacyInventory = Schema['pharmacyInventory']['type'];
 
-export const reserveStockInventories = async ({ client, logger, orderId }: ReserveStockInventoriesInput) => {
+export const reserveStockInventories = async ({ client, orderId }: ReserveStockInventoriesInput) => {
   const { data: medicineOrderItems, errors: itemsErrors } = await client.models.medicineOrderItem.list({
     filter: { orderId: { eq: orderId } }
   });
 
   if (itemsErrors || !medicineOrderItems) {
-    logger.error("Failed to fetch medicine order items", { errors: itemsErrors });
-    return;
+    throw new Error(`Failed to fetch order items: ${JSON.stringify(itemsErrors)}`);
   }
   const items = medicineOrderItems as MedicineOrderItem[] || [];
 
@@ -34,8 +31,7 @@ export const reserveStockInventories = async ({ client, logger, orderId }: Reser
   });
 
   if (inventoriesErrors || !pharmacyInventoriesData) {
-    logger.error("Failed to fetch pharmacy inventories", { errors: inventoriesErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacy inventories: ${JSON.stringify(inventoriesErrors)}`);
   }
   const pharmacyInventories = pharmacyInventoriesData as PharmacyInventory[] || [];
 
@@ -46,8 +42,7 @@ export const reserveStockInventories = async ({ client, logger, orderId }: Reser
   });
 
   if (!hasAllMedicines) {
-    logger.error("Failed to update inventories. Not enough stock");
-    return;
+    throw new Error("Not enough stock");
   };
 
   const promises = pharmacyInventories.map(async (inventory) => {
@@ -58,8 +53,7 @@ export const reserveStockInventories = async ({ client, logger, orderId }: Reser
     });
 
     if (errors) {
-      logger.error(`Failed to update inventory stock, id: ${inventory.id}`, { errors });
-      return;
+      throw new Error(`Failed to update pharmacy inventory: ${JSON.stringify(errors)}`);
     }
   });
 

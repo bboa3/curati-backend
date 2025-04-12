@@ -23,8 +23,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
     });
 
     if (businessesErrors || !businessesData) {
-      logger.error("Failed to fetch businesses", businessesErrors);
-      return;
+      throw new Error(`Failed to fetch businesses: ${JSON.stringify(businessesErrors)}`);
     }
 
     const businesses = businessesData as Business[];
@@ -59,7 +58,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
           });
 
           if (salesSummaryErrors) {
-            logger.error("Failed to create medicine sales summary", salesSummaryErrors);
+            throw new Error(`Failed to create medicine sales summary: ${JSON.stringify(salesSummaryErrors)}`);
           }
         }
       }
@@ -89,7 +88,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
           });
 
           if (salesSummaryErrors) {
-            logger.error("Failed to create service sales summary", salesSummaryErrors);
+            throw new Error(`Failed to create service sales summary: ${JSON.stringify(salesSummaryErrors)}`);
           }
         }
       }
@@ -119,7 +118,7 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
           });
 
           if (salesSummaryErrors) {
-            logger.error("Failed to create delivery sales summary", salesSummaryErrors);
+            throw new Error(`Failed to create delivery sales summary: ${JSON.stringify(salesSummaryErrors)}`);
           }
         }
       }

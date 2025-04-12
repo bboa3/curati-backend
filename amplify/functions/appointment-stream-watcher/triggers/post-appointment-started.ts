@@ -11,7 +11,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postAppointmentStarted = async ({ appointmentImage, dbClient, logger }: TriggerInput) => {
+export const postAppointmentStarted = async ({ appointmentImage, dbClient }: TriggerInput) => {
   const appointmentNumber = appointmentImage?.appointmentNumber?.S;
   const appointmentId = appointmentImage?.id?.S;
   const patientId = appointmentImage?.patientId?.S;
@@ -23,23 +23,20 @@ export const postAppointmentStarted = async ({ appointmentImage, dbClient, logge
   const purpose = appointmentImage?.purpose?.S;
 
   if (!appointmentNumber || !appointmentId || !contractId || !patientId || !professionalId || !businessServiceId || !appointmentType || !purpose) {
-    logger.warn("Missing required appointment fields");
-    return;
+    throw new Error("Missing required appointment fields");
   }
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
   const { data: professionalData, errors: professionalErrors } = await dbClient.models.professional.get({ userId: professionalId });
 
   if (professionalErrors || !professionalData) {
-    logger.error("Failed to fetch patient", { errors: professionalErrors });
-    return;
+    throw new Error(`Failed to fetch professional: ${JSON.stringify(professionalErrors)}`);
   }
   const professional = professionalData as unknown as Professional;
 
@@ -84,7 +81,6 @@ export const postAppointmentStarted = async ({ appointmentImage, dbClient, logge
   })
 
   if (consultationRecordErrors) {
-    logger.error('Failed to create consultation record', { errors: consultationRecordErrors });
-    return;
+    throw new Error(`Failed to create consultation record: ${JSON.stringify(consultationRecordErrors)}`);
   }
 };

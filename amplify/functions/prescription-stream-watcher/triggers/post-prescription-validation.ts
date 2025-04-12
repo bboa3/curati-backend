@@ -10,22 +10,20 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postPrescriptionValidation = async ({ prescriptionImage, dbClient, logger }: TriggerInput) => {
+export const postPrescriptionValidation = async ({ prescriptionImage, dbClient }: TriggerInput) => {
   const prescriptionNumber = prescriptionImage?.prescriptionNumber?.S;
   const prescriptionId = prescriptionImage?.id?.S;
   const prescriptionStatus = prescriptionImage?.status?.S as PrescriptionStatus;
   const patientId = prescriptionImage?.patientId?.S;
 
   if (!prescriptionNumber || !prescriptionId || !prescriptionStatus || !patientId) {
-    logger.warn("Missing required prescription fields");
-    return;
+    throw new Error("Missing required prescription fields");
   }
 
   const { data: patient, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patient) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
 
   const { name, email, phone } = patient as unknown as Patient;

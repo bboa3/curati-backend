@@ -34,8 +34,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
   });
 
   if (availabilityErrors || !availabilityData || availabilityData.length === 0) {
-    logger.error("Failed to fetch driver availability", { errors: availabilityErrors });
-    return null;
+    throw new Error(`Failed to fetch drivers: ${JSON.stringify(availabilityErrors)}`);
   }
   const availabilities = availabilityData as ProfessionalAvailability[];
   const availableDriverIds = new Set<string>();
@@ -68,8 +67,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
   });
 
   if (locationsErrors || !locationsData || locationsData.length === 0) {
-    logger.error("Failed to fetch current drivers location", { errors: locationsErrors });
-    return null;
+    throw new Error(`Failed to fetch drivers: ${JSON.stringify(locationsErrors)}`);
   }
 
   const driversLocation = locationsData as DriverCurrentLocation[];
@@ -106,8 +104,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
   });
 
   if (vehicleErrors || !vehicleData || vehicleData.length === 0) {
-    logger.error("Failed to fetch vehicle for the selected driver or driver has no vehicle assigned", { driverId: closestDriverWithDistance.driverId, errors: vehicleErrors });
-    return null;
+    throw new Error(`Failed to fetch drivers: ${JSON.stringify(vehicleErrors)}`);
   }
   const selectedVehicle = vehicleData[0] as Vehicle;
 
@@ -116,8 +113,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
   })
 
   if (driverErrors || !driverData) {
-    logger.error("Failed to fetch driver for the selected driver", { driverId: closestDriverWithDistance.driverId, errors: driverErrors });
-    return null;
+    throw new Error(`Failed to fetch drivers: ${JSON.stringify(driverErrors)}`);
   }
   const selectedDriver = driverData as Professional
 

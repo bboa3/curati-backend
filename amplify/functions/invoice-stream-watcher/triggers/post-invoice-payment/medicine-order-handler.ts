@@ -9,7 +9,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbClient, logger }: TriggerInput) => {
+export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoiceNumber = invoiceImage?.invoiceNumber?.S;
   const invoiceCreatedAt = invoiceImage?.createdAt?.S;
   const invoiceDueDate = invoiceImage?.dueDate?.S;
@@ -24,8 +24,7 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
   const patientId = invoiceImage?.patientId?.S;
 
   if (!invoiceNumber || !invoiceSourceId || !invoiceStatus || !patientId || !invoiceCreatedAt || !invoiceDueDate || !deliveryFee || !invoiceSubTotal || !invoiceDiscount || !invoiceTotalTax || !invoiceTotalAmount) {
-    logger.warn("Missing required invoice fields");
-    return;
+    throw new Error("Missing required invoice fields");
   }
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
@@ -34,8 +33,7 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
   })
 
   if (orderUpdateErrors) {
-    logger.error("Failed to update order", { errors: orderUpdateErrors });
-    return;
+    throw new Error(`Failed to update order: ${JSON.stringify(orderUpdateErrors)}`);
   }
 
   const { errors: deliveryUpdateErrors } = await dbClient.models.delivery.update({
@@ -44,23 +42,20 @@ export const postInvoicePaymentMedicineOrderHandler = async ({ invoiceImage, dbC
   })
 
   if (deliveryUpdateErrors) {
-    logger.error("Failed to update delivery", { errors: deliveryUpdateErrors });
-    return;
+    throw new Error(`Failed to update delivery: ${JSON.stringify(deliveryUpdateErrors)}`);
   }
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", patientErrors);
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: invoiceSourceId });
 
   if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order: ${JSON.stringify(orderErrors)}`);
   }
   const order = orderData as unknown as MedicineOrder;
 

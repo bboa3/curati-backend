@@ -11,44 +11,39 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
+export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const orderId = deliveryImage?.orderId?.S;
   const patientId = deliveryImage?.patientId?.S;
   const pharmacyId = deliveryImage?.pharmacyId?.S;
   const deliveredAt = deliveryImage?.deliveredAt?.S;
 
   if (!orderId || !patientId || !pharmacyId || !deliveredAt) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
   if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order: ${JSON.stringify(orderErrors)}`);
   }
   const order = orderData as unknown as MedicineOrder
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
   const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.business.get({ id: pharmacyId });
 
   if (pharmacyErrors || !pharmacyData) {
-    logger.error("Failed to fetch pharmacy", { errors: pharmacyErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacy: ${JSON.stringify(pharmacyErrors)}`);
   }
   const pharmacy = pharmacyData as unknown as Business;
 
   await createDeliveryStatusHistory({
     client: dbClient,
-    logger,
     patientId: patientId,
     deliveryId: orderId,
     status: DeliveryStatus.PICKED_UP_BY_PATIENT
@@ -83,7 +78,6 @@ export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient, l
   });
 
   if (orderUpdateErrors) {
-    logger.error("Failed to update order", { errors: orderUpdateErrors });
-    return;
+    throw new Error(`Failed to update order: ${JSON.stringify(orderUpdateErrors)}`);
   }
 };

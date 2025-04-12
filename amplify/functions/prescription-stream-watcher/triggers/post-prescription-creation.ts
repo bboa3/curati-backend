@@ -10,12 +10,11 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postPrescriptionCreation = async ({ prescriptionImage, dbClient, logger }: TriggerInput) => {
+export const postPrescriptionCreation = async ({ prescriptionImage, dbClient }: TriggerInput) => {
   const prescriptionNumber = prescriptionImage?.prescriptionNumber?.S;
 
   if (!prescriptionNumber) {
-    logger.warn("Missing required prescription fields");
-    return;
+    throw new Error("Missing required prescription fields");
   }
 
   const { data: admins, errors: adminErrors } = await dbClient.models.user.list({
@@ -23,8 +22,7 @@ export const postPrescriptionCreation = async ({ prescriptionImage, dbClient, lo
   });
 
   if (adminErrors || !admins || admins.length === 0) {
-    logger.error("Failed to fetch admins", { errors: adminErrors });
-    return;
+    throw new Error(`Failed to fetch admins: ${JSON.stringify(adminErrors)}`);
   }
 
   const emails = admins.map((p: User) => p.email).filter(Boolean) as string[];

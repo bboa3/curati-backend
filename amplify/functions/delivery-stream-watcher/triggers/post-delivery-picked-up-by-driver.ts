@@ -11,7 +11,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
+export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const orderId = deliveryImage?.orderId?.S;
   const patientId = deliveryImage?.patientId?.S;
   const pharmacyId = deliveryImage?.pharmacyId?.S;
@@ -22,53 +22,46 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient, lo
   const estimatedDeliveryDuration = deliveryImage?.estimatedDeliveryDuration?.N;
 
   if (!orderId || !patientId || !pharmacyId || !driverId || !vehicleId || !estimatedDeliveryDuration || !pickedUpAt || !deliveryNumber) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
   if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order: ${JSON.stringify(orderErrors)}`);
   }
   const order = orderData as unknown as MedicineOrder
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
   const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.business.get({ id: pharmacyId });
 
   if (pharmacyErrors || !pharmacyData) {
-    logger.error("Failed to fetch pharmacy", { errors: pharmacyErrors });
-    return;
+    throw new Error(`Failed to fetch pharmacy: ${JSON.stringify(pharmacyErrors)}`);
   }
   const pharmacy = pharmacyData as unknown as Business;
 
   const { data: driverData, errors: driverErrors } = await dbClient.models.professional.get({ userId: driverId });
 
   if (driverErrors || !driverData) {
-    logger.error("Failed to fetch driver", { errors: driverErrors });
-    return;
+    throw new Error(`Failed to fetch driver: ${JSON.stringify(driverErrors)}`);
   }
   const driver = driverData as unknown as Professional;
 
   const { data: vehicleData, errors: vehicleErrors } = await dbClient.models.vehicle.get({ id: vehicleId });
 
   if (vehicleErrors || !vehicleData) {
-    logger.error("Failed to fetch vehicle", { errors: vehicleErrors });
-    return;
+    throw new Error(`Failed to fetch vehicle: ${JSON.stringify(vehicleErrors)}`);
   }
   const vehicle = vehicleData as unknown as Vehicle;
 
   await createDeliveryStatusHistory({
     client: dbClient,
-    logger,
     patientId: patientId,
     deliveryId: orderId,
     status: DeliveryStatus.PICKED_UP_BY_DRIVER

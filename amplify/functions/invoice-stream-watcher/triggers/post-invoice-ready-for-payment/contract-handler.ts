@@ -9,20 +9,18 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postInvoiceReadyForPaymentContractHandler = async ({ invoiceImage, dbClient, logger }: TriggerInput) => {
+export const postInvoiceReadyForPaymentContractHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoiceId = invoiceImage?.id?.S;
   const invoiceTotalAmount = invoiceImage?.totalAmount?.N;
   const invoiceSourceId = invoiceImage?.invoiceSourceId?.S;
   const paymentMethodId = invoiceImage?.paymentMethodId?.S;
 
   if (!invoiceId || !invoiceSourceId || !invoiceTotalAmount! || !paymentMethodId) {
-    logger.warn("Missing required invoice fields");
-    return;
+    throw new Error("Missing required invoice fields");
   }
 
   await createInvoiceTransaction({
     client: dbClient,
-    logger,
     invoiceId: invoiceId,
     paymentMethodId: paymentMethodId,
     amount: Number(invoiceTotalAmount)
@@ -36,7 +34,6 @@ export const postInvoiceReadyForPaymentContractHandler = async ({ invoiceImage, 
   });
 
   if (contractUpdateErrors) {
-    logger.error("Failed to update contract", { errors: contractUpdateErrors });
-    return;
+    throw new Error(`Failed to update contract: ${JSON.stringify(contractUpdateErrors)}`);
   }
 };

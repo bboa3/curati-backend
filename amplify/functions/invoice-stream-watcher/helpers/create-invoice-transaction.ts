@@ -1,4 +1,3 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import dayjs from "dayjs";
 import { v4 as generateUUIDv4 } from "uuid";
 import { generateHashedIdentifier } from "../../helpers/generateHashedIdentifier";
@@ -6,13 +5,12 @@ import { PaymentTransactionStatus } from "../../helpers/types/schema";
 
 interface UpdateInventoriesInput {
   client: any;
-  logger: Logger;
   invoiceId: string;
   paymentMethodId: string;
   amount: number;
 }
 
-export const createInvoiceTransaction = async ({ client, logger, invoiceId, paymentMethodId, amount }: UpdateInventoriesInput) => {
+export const createInvoiceTransaction = async ({ client, invoiceId, paymentMethodId, amount }: UpdateInventoriesInput) => {
   const now = dayjs().utc();
   const temporaryTransactionId = await generateHashedIdentifier(invoiceId, 'TEMP');
 
@@ -27,7 +25,6 @@ export const createInvoiceTransaction = async ({ client, logger, invoiceId, paym
   });
 
   if (errors || !data) {
-    logger.error(`Failed to create invoice transaction`, { errors });
-    return;
+    throw new Error(`Failed to create payment transaction: ${JSON.stringify(errors)}`);
   }
 }

@@ -11,7 +11,7 @@ interface TriggerInput {
   logger: Logger;
 }
 
-export const postDeliveryInTransit = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
+export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const orderId = deliveryImage?.orderId?.S;
   const patientId = deliveryImage?.patientId?.S;
   const pharmacyId = deliveryImage?.pharmacyId?.S;
@@ -22,37 +22,32 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient, logger }:
   const estimatedDeliveryDuration = deliveryImage?.estimatedDeliveryDuration?.N;
 
   if (!orderId || !patientId || !pharmacyId || !driverId || !vehicleId || !estimatedDeliveryDuration || !pickedUpAt || !deliveryNumber) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
   if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order: ${JSON.stringify(orderErrors)}`);
   }
   const order = orderData as unknown as MedicineOrder
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
-    logger.error("Failed to fetch patient", { errors: patientErrors });
-    return;
+    throw new Error(`Failed to fetch patient: ${JSON.stringify(patientErrors)}`);
   }
   const patient = patientData as unknown as Patient;
 
   const { data: driverData, errors: driverErrors } = await dbClient.models.professional.get({ userId: driverId });
 
   if (driverErrors || !driverData) {
-    logger.error("Failed to fetch driver", { errors: driverErrors });
-    return;
+    throw new Error(`Failed to fetch driver: ${JSON.stringify(driverErrors)}`);
   }
   const driver = driverData as unknown as Professional;
 
   await createDeliveryStatusHistory({
     client: dbClient,
-    logger,
     patientId: patientId,
     deliveryId: orderId,
     status: DeliveryStatus.IN_TRANSIT

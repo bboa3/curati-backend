@@ -20,29 +20,24 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
 
   logger.error("delivery", JSON.stringify(delivery));
 
-
   if (!orderId || !totalDeliveryFee || !patientId || !pharmacyId) {
-    logger.warn("Missing required order fields");
-    return;
+    throw new Error("Missing required order fields");
   }
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
   if (orderErrors || !orderData) {
-    logger.error("Failed to fetch order", { errors: orderErrors });
-    return;
+    throw new Error(`Failed to fetch order: ${JSON.stringify(orderErrors)}`);
   }
   const order = orderData as unknown as MedicineOrder
 
   await reserveStockInventories({
     client: dbClient,
-    logger,
     orderId
   })
 
   await createMedicineOrderInvoice({
     client: dbClient,
-    logger,
     orderId,
     paymentMethodId: order.paymentMethodId,
     totalDeliveryFee: Number(totalDeliveryFee),
