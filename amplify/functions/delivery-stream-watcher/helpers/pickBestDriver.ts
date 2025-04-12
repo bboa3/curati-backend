@@ -24,7 +24,7 @@ const distanceCalculator = new DistanceCalculator();
 
 const ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES = 30;
 
-export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickBestDriverInput): Promise<PickBestDriverOutput | null> => {
+export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickBestDriverInput): Promise<PickBestDriverOutput> => {
   const { data: availabilityData, errors: availabilityErrors } = await client.models.professionalAvailability.list({
     filter: {
       currentAvailabilityStatus: { eq: ProfessionalAvailabilityStatus.ONLINE },
@@ -46,8 +46,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
   }
 
   if (availableDriverIds.size === 0) {
-    logger.warn("No drivers are currently ONLINE.");
-    return null;
+    throw new Error("No drivers are currently ONLINE.");
   }
   logger.info(`${availableDriverIds.size} drivers are currently ONLINE.`);
 
@@ -82,8 +81,7 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
   }
 
   if (onlineDriverLocations.length === 0) {
-    logger.warn("Could not find any ONLINE drivers with valid, recent location data.");
-    return null;
+    throw new Error("No ONLINE drivers with valid, recent location data.");
   }
 
   logger.info(`Found ${onlineDriverLocations.length} drivers with valid recent locations after individual checks.`);

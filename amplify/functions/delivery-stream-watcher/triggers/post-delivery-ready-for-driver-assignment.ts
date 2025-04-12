@@ -51,7 +51,7 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
 
   const deliveryDeepLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
 
-  const picked = await pickBestDriver({
+  const { driver, vehicle } = await pickBestDriver({
     client: dbClient,
     logger: logger,
     pharmacyLocation: {
@@ -59,11 +59,6 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
       lng: pharmacyAddressLongitude
     }
   })
-
-  if (!picked) {
-    throw new Error("Failed to pick best driver");
-  }
-  const { driver, vehicle } = picked;
 
   const { errors: availabilityUpdateErrors } = await dbClient.models.professionalAvailability.update({
     professionalId: driver.userId,
