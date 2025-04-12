@@ -53,7 +53,7 @@ export const postDeliveryFailed = async ({ deliveryImage, dbClient }: TriggerInp
   })
 
   const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;
-  const deliveryDeepLink = `curati://life.curati.go/(app)/deliveries/${orderId}`;
+  const deliveryDeepLink = `curati://life.curati.go/(app)/profile/deliveries/${orderId}`;
 
   if (patient.email) {
     await deliveryFailedPatientEmailNotifier({

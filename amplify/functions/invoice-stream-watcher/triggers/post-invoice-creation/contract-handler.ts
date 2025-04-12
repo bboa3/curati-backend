@@ -12,7 +12,7 @@ interface TriggerInput {
 
 export const postInvoiceCreationContractHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoice = unmarshall(invoiceImage) as Invoice;
-  const { invoiceNumber, invoiceSourceId, paymentTerms, status, patientId, createdAt, dueDate, subTotal, discount, taxes, totalAmount, documentUrl } = invoice
+  const { id: invoiceId, invoiceNumber, invoiceSourceId, paymentTerms, status, patientId, createdAt, dueDate, subTotal, discount, taxes, totalAmount, documentUrl } = invoice
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -35,7 +35,7 @@ export const postInvoiceCreationContractHandler = async ({ invoiceImage, dbClien
   }
   const service = serviceData as unknown as BusinessService;
 
-  const invoiceDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoiceNumber}`
+  const invoiceDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoiceId}`
 
   if (patient.email) {
     await newContractInvoicePatientEmailNotifier({

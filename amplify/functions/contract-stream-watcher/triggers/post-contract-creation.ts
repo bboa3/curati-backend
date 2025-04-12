@@ -13,7 +13,7 @@ interface TriggerInput {
 
 export const postContractCreation = async ({ contractImage, dbClient }: TriggerInput) => {
   const contract = unmarshall(contractImage) as Contract;
-  const { contractNumber, patientId, businessId, businessServiceId, type: contractType } = contract;
+  const { id: contractId, contractNumber, patientId, businessId, businessServiceId, type: contractType } = contract;
 
   const { data: serviceData, errors: serviceErrors } = await dbClient.models.businessService.get({ id: businessServiceId });
 
@@ -46,7 +46,7 @@ export const postContractCreation = async ({ contractImage, dbClient }: TriggerI
   const emails = [professional.email, business.email].filter(Boolean) as string[];
   const phones = [professional.phone, business.phone].filter(Boolean) as string[];
 
-  const contractDeepLink = `curati://life.curati.www/(app)/profile/contracts/${contractNumber}`
+  const contractDeepLink = `curati://life.curati.www/(app)/profile/contracts/${contractId}`;
 
   await newContractProfessionalEmailNotifier({
     toAddresses: emails,

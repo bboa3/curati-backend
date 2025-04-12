@@ -1,7 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import { BusinessService, Contract, ContractStatus, Invoice, Patient, PricingCondition } from '../../helpers/types/schema';
+import { BusinessService, Contract, Patient, PricingCondition } from '../../helpers/types/schema';
 import { confirmedContractPatientEmailNotifier } from '../helpers/confirmed-contract-patient-email-notifier';
 import { confirmedContractPatientSMSNotifier } from '../helpers/confirmed-contract-patient-sms-notifier';
 import { createContractInvoice } from "../helpers/create-invoice";
@@ -23,7 +23,6 @@ export const postContractConfirmation = async ({ contractImage, dbClient }: Trig
   }
   const service = serviceData as BusinessService;
 
-
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
   if (patientErrors || !patientData) {
@@ -31,21 +30,17 @@ export const postContractConfirmation = async ({ contractImage, dbClient }: Trig
   }
   const patient = patientData as unknown as Patient
 
-  let invoice: Invoice | undefined = undefined;
+  const invoice = await createContractInvoice({
+    client: dbClient,
+    contractId: contractId,
+    patientId: patientId,
+    businessId: businessId,
+    paymentMethodId: paymentMethodId,
+    businessServiceId: businessServiceId,
+    appliedPricingConditions: appliedPricingConditions as unknown as PricingCondition[]
+  });
 
-  if (contractStatus === ContractStatus.PENDING_PAYMENT) {
-    invoice = await createContractInvoice({
-      client: dbClient,
-      contractId: contractId,
-      patientId: patientId,
-      businessId: businessId,
-      paymentMethodId: paymentMethodId,
-      businessServiceId: businessServiceId,
-      appliedPricingConditions: appliedPricingConditions as unknown as PricingCondition[]
-    });
-  }
-
-  const contractDeepLink = `curati://life.curati.www/(app)/profile/invoices/${contractId}`;
+  const contractDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoice.id}`;
 
   if (patient?.email) {
     await confirmedContractPatientEmailNotifier({
@@ -55,10 +50,10 @@ export const postContractConfirmation = async ({ contractImage, dbClient }: Trig
       contractStatus: contractStatus,
       toAddresses: [patient.email],
       contractNumber: contractNumber,
-      invoiceNumber: invoice?.invoiceNumber,
-      invoiceTotalAmount: invoice?.totalAmount,
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceTotalAmount: invoice.totalAmount,
       paymentDeepLink: contractDeepLink,
-      invoiceDueDate: invoice?.dueDate
+      invoiceDueDate: invoice.dueDate
     });
   }
 
@@ -70,7 +65,7 @@ export const postContractConfirmation = async ({ contractImage, dbClient }: Trig
       professionalName: service.professionalName,
       contractStatus: contractStatus,
       contractNumber: contractNumber,
-      invoiceNumber: invoice?.invoiceNumber,
+      invoiceNumber: invoice.invoiceNumber,
       paymentDeepLink: contractDeepLink
     });
   }

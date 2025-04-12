@@ -12,7 +12,7 @@ interface TriggerInput {
 
 export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoice = unmarshall(invoiceImage) as Invoice;
-  const { invoiceNumber, invoiceSourceId, patientId, dueDate, totalAmount } = invoice
+  const { id: invoiceId, invoiceNumber, invoiceSourceId, patientId, dueDate, totalAmount } = invoice
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
     id: invoiceSourceId,
@@ -37,7 +37,7 @@ export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage
   }
   const order = orderData as unknown as MedicineOrder
 
-  const invoiceDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoiceNumber}`
+  const invoiceDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoiceId}`
 
   if (patient.email) {
     await failedMedicineOrderInvoicePatientEmailNotifier({
