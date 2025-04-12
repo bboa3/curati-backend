@@ -1,5 +1,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import type { AttributeValue } from "aws-lambda";
+import { MedicineOrderStatus } from "../../../helpers/types/schema";
 import { createInvoiceTransaction } from "../../helpers/create-invoice-transaction";
 
 interface TriggerInput {
@@ -26,4 +27,16 @@ export const postInvoiceReadyForPaymentMedicineOrderHandler = async ({ invoiceIm
     paymentMethodId: paymentMethodId,
     amount: Number(invoiceTotalAmount)
   });
+
+
+  // update order On a Successfull Payment
+  const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
+    id: invoiceSourceId,
+    status: MedicineOrderStatus.PROCESSING
+  });
+
+  if (orderUpdateErrors) {
+    logger.error("Failed to update order", { errors: orderUpdateErrors });
+    return;
+  }
 };
