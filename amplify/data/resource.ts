@@ -1183,7 +1183,7 @@ const schema = a.schema({
     id: a.id().required(),
     invoiceId: a.id().required(),
     paymentMethodId: a.id().required(),
-    transactionID: a.string(),
+    transactionID: a.string().required(),
     amount: a.float().required(),
     transactionDate: a.datetime().required(),
     status: a.enum(paymentTransactionStatus),

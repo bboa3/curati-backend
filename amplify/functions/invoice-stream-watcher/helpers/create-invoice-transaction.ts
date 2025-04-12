@@ -16,7 +16,7 @@ export const createInvoiceTransaction = async ({ client, logger, invoiceId, paym
   const now = dayjs().utc();
   const temporaryTransactionId = await generateHashedIdentifier(invoiceId, 'TEMP');
 
-  const { data, errors } = await client.models.paymentTransaction.update({
+  const { data, errors } = await client.models.paymentTransaction.create({
     id: generateUUIDv4(),
     invoiceId: invoiceId,
     paymentMethodId: paymentMethodId,

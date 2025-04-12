@@ -9,53 +9,20 @@ interface TriggerInput {
   logger: Logger;
 }
 
-
 export const postDeliveryPreparing = async ({ deliveryImage, dbClient, logger }: TriggerInput) => {
-
-
   const orderId = deliveryImage?.orderId?.S;
-
-
   const patientId = deliveryImage?.patientId?.S;
 
-
-
-
-
   if (!orderId || !patientId) {
-
-
     logger.warn("Missing required order fields");
-
-
     return;
-
-
   }
 
-
-
-
-
   await createDeliveryStatusHistory({
-
-
     client: dbClient,
-
-
     logger,
-
-
     patientId: patientId,
-
-
     deliveryId: orderId,
-
-
     status: DeliveryStatus.PHARMACY_PREPARING
-
-
   })
-
-
 };

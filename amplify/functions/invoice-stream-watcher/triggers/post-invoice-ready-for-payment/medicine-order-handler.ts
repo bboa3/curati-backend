@@ -29,7 +29,7 @@ export const postInvoiceReadyForPaymentMedicineOrderHandler = async ({ invoiceIm
   });
 
 
-  // update order On a Successfull Payment
+  // update order On a Successful Payment
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
     id: invoiceSourceId,
     status: MedicineOrderStatus.PROCESSING
