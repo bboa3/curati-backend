@@ -1,7 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { MedicineOrder } from "../../helpers/types/schema";
+import { Delivery, MedicineOrder } from "../../helpers/types/schema";
 import { createMedicineOrderInvoice } from '../helpers/create-invoice';
 import { reserveStockInventories } from '../helpers/reserve-stock-inventories';
 
@@ -16,9 +16,9 @@ export const postMedicineOrderCreation = async ({ deliveryImage, dbClient, logge
   const patientId = deliveryImage?.patientId?.S;
   const pharmacyId = deliveryImage?.pharmacyId?.S;
   const totalDeliveryFee = deliveryImage?.totalDeliveryFee?.N;
-  const delivery = unmarshall(deliveryImage);
+  const delivery = unmarshall(deliveryImage) as Delivery;
 
-  logger.error("delivery", delivery);
+  logger.error("delivery", JSON.stringify(delivery));
 
 
   if (!orderId || !totalDeliveryFee || !patientId || !pharmacyId) {
