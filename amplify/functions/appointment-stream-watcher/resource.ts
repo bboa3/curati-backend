@@ -4,6 +4,7 @@ export const appointmentStreamWatcher = defineFunction({
   name: "appointment-stream-watcher",
   resourceGroupName: "data",
   entry: "./handler.ts",
+  timeoutSeconds: 60 * 2,
   environment: {
     SUPPORT_PHONE: "874444689",
     VERIFIED_SES_SENDER_EMAIL: "sales@curati.life",
