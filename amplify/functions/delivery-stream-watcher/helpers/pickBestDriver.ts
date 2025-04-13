@@ -22,10 +22,14 @@ const MAX_RETRY_ATTEMPTS = 5;
 const INITIAL_RETRY_DELAY_MS = 30000; // 30 seconds
 const RETRY_BACKOFF_FACTOR = 2;
 const MAX_RETRY_DELAY_MS = 300000; // 5 minutes
+const MAX_CONSECUTIVE_ERRORS = 3;
+const LOCATION_BATCH_SIZE = 50;
+const LOCATION_CUTOFF_TIME = dayjs().utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString();
 
 export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickBestDriverInput): Promise<PickBestDriverOutput> => {
   let lastError: Error = new Error("All retry attempts failed");
   let attempt = 1;
+  let consecutiveErrors = 0;
 
   while (attempt <= MAX_RETRY_ATTEMPTS) {
     try {
@@ -56,23 +60,25 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
 
       const driverIdsToCheck = Array.from(availableDriverIds);
 
-      const locationFilters = driverIdsToCheck.map(id => ({ driverId: { eq: id } }));
+      const driversLocation = [] as DriverCurrentLocation[];
+      for (let i = 0; i < driverIdsToCheck.length; i += LOCATION_BATCH_SIZE) {
+        const batch = driverIdsToCheck.slice(i, i + LOCATION_BATCH_SIZE);
+        const locationFilters = batch.map(id => ({ driverId: { eq: id } }));
 
-      const { data: locationsData, errors: locationsErrors } = await client.models.driverCurrentLocation.list({
-        filter: {
-          and: [
-            { or: locationFilters },
-            { timestamp: { gt: dayjs().utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString() } }
-          ]
-        },
-        limit: 1000
-      });
+        const { data, errors } = await client.models.driverCurrentLocation.list({
+          filter: {
+            and: [
+              { or: locationFilters },
+              { timestamp: { gt: LOCATION_CUTOFF_TIME } }
+            ]
+          },
+          limit: 1000
+        });
 
-      if (locationsErrors || !locationsData) {
-        throw new Error(`Failed to fetch driver locations: ${JSON.stringify(locationsErrors)}`);
+        if (errors) throw new Error(`Location batch failed: ${JSON.stringify(errors)}`);
+        driversLocation.push(...(data || []));
       }
 
-      const driversLocation = locationsData as DriverCurrentLocation[];
       if (driversLocation.length === 0) {
         throw new Error("No ONLINE drivers with valid recent locations");
       }
@@ -115,10 +121,13 @@ export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickB
       };
 
     } catch (error: any) {
-      lastError = error as Error;
-      logger.error(`Attempt ${attempt} failed: ${error?.message}`);
+      consecutiveErrors++;
+      lastError = error;
+      logger.error(`Attempt ${attempt} failed: ${error.message}`);
 
-      if (attempt === MAX_RETRY_ATTEMPTS) break;
+      if (attempt === MAX_RETRY_ATTEMPTS || consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        break;
+      }
 
       const delay = Math.min(
         INITIAL_RETRY_DELAY_MS * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1) +
