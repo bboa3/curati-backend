@@ -42,13 +42,6 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
     throw new Error(`Failed to fetch pharmacy address: ${JSON.stringify(pharmacyAddressErrors)}`);
   }
 
-  await createDeliveryStatusHistory({
-    client: dbClient,
-    patientId: patientId,
-    deliveryId: orderId,
-    status: DeliveryStatus.AWAITING_DRIVER_ASSIGNMENT
-  })
-
   const deliveryDeepLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
 
   const { driver, vehicle } = await pickBestDriver({
@@ -80,6 +73,13 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
   if (deliveryUpdateErrors) {
     throw new Error(`Failed to update delivery: ${JSON.stringify(deliveryUpdateErrors)}`);
   }
+
+  await createDeliveryStatusHistory({
+    client: dbClient,
+    patientId: patientId,
+    deliveryId: orderId,
+    status: DeliveryStatus.DRIVER_ASSIGNED
+  })
 
   await newDeliveryAssignmentDriverEmailNotifier({
     toAddresses: [driver.email],

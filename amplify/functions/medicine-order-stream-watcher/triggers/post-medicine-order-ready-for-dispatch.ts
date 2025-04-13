@@ -2,6 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { Delivery, DeliveryStatus, DeliveryType, MedicineOrder } from "../../helpers/types/schema";
+import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { updatePrescriptionRefillsRemaining } from "../helpers/update-prescription-refills-remaining";
 import { updateStockInventories } from '../helpers/update-stock-inventories';
 
@@ -13,7 +14,7 @@ interface TriggerInput {
 
 export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
   const order = unmarshall(medicineOrderImage) as MedicineOrder;
-  const { id: orderId, prescriptionId } = order;
+  const { id: orderId, patientId, prescriptionId } = order;
 
   const { data: deliveryData, errors: deliveryErrors } = await dbClient.models.delivery.get({ orderId });
 
@@ -32,6 +33,13 @@ export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, db
       throw new Error(`Failed to update delivery: ${JSON.stringify(deliveryUpdateErrors)}`);
     }
 
+    await createDeliveryStatusHistory({
+      client: dbClient,
+      patientId: patientId,
+      deliveryId: orderId,
+      status: DeliveryStatus.AWAITING_DRIVER_ASSIGNMENT
+    })
+
   } else {
     const { errors: deliveryUpdateErrors } = await dbClient.models.delivery.update({
       orderId,
@@ -41,6 +49,13 @@ export const postMedicineOrderReadyForDispatch = async ({ medicineOrderImage, db
     if (deliveryUpdateErrors) {
       throw new Error(`Failed to update delivery: ${JSON.stringify(deliveryUpdateErrors)}`);
     }
+
+    await createDeliveryStatusHistory({
+      client: dbClient,
+      patientId: patientId,
+      deliveryId: orderId,
+      status: DeliveryStatus.AWAITING_PATIENT_PICKUP
+    })
   }
 
   await updateStockInventories({
