@@ -49,7 +49,7 @@ export async function deliveryDeliveredPatientEmailNotifier({
         <div class="container">
           <h1 style="color: #179E57;">Encomenda Entregue!</h1>
           <p>Prezado(a) ${patientName},</p>
-          <p>Ótimas notícias! A sua encomenda de medicamentos Cúrati (Nº <strong>${orderNumber}</strong> / Entrega Nº <strong>${deliveryNumber}</strong>) foi entregue com sucesso.</p>
+          <p>Óptimas notícias! A sua encomenda de medicamentos Cúrati (Nº <strong>${orderNumber}</strong> / Entrega Nº <strong>${deliveryNumber}</strong>) foi entregue com sucesso.</p>
 
           <h2>Detalhes da Entrega:</h2>
           <ul>

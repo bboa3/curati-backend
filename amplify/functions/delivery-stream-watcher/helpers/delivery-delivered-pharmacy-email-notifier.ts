@@ -23,7 +23,7 @@ export async function deliveryDeliveredPharmacyEmailNotifier({
   driverName,
   deliveredAt,
 }: NotifierInput) {
-  const subject = `Cúrati Biz: Encomenda ${orderNumber} Entregue ao Cliente`;
+  const subject = `Cúrati RX: Encomenda ${orderNumber} Entregue ao Cliente`;
   const currentYear = new Date().getFullYear();
   const formattedDeliveredAt = formatDateTimeNumeric(deliveredAt);
 

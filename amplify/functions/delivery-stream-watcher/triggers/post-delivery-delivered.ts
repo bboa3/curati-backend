@@ -53,6 +53,15 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
   }
   const pharmacy = pharmacyData as unknown as Business;
 
+  const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
+    id: orderId,
+    status: MedicineOrderStatus.COMPLETED
+  });
+
+  if (orderUpdateErrors) {
+    throw new Error(`Failed to update order: ${JSON.stringify(orderUpdateErrors)}`);
+  }
+
   const { errors: updateAvailabilityErrors } = await dbClient.models.professionalAvailability.update({
     professionalId: driverId,
     currentAvailabilityStatus: ProfessionalAvailabilityStatus.ONLINE
@@ -108,13 +117,4 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
     driverName: driver.name,
     deliveredAt: deliveredAt || dayjs().utc().toISOString()
   })
-
-  const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
-    id: orderId,
-    status: MedicineOrderStatus.COMPLETED
-  });
-
-  if (orderUpdateErrors) {
-    throw new Error(`Failed to update order: ${JSON.stringify(orderUpdateErrors)}`);
-  }
 };

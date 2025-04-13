@@ -4,11 +4,6 @@ import DistanceCalculator from "../../helpers/calculateDistance";
 import { DriverCurrentLocation, Professional, ProfessionalAvailability, ProfessionalAvailabilityStatus, ProfessionalType, Vehicle } from "../../helpers/types/schema";
 import { CuratiLocation } from "../../helpers/types/shared";
 
-interface DriverLocation extends CuratiLocation {
-  driverId: string
-  timestamp: string
-}
-
 interface PickBestDriverInput {
   client: any;
   logger: Logger;
@@ -23,100 +18,119 @@ interface PickBestDriverOutput {
 const distanceCalculator = new DistanceCalculator();
 
 const ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES = 30;
+const MAX_RETRY_ATTEMPTS = 5;
+const INITIAL_RETRY_DELAY_MS = 30000; // 30 seconds
+const RETRY_BACKOFF_FACTOR = 2;
+const MAX_RETRY_DELAY_MS = 300000; // 5 minutes
 
 export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickBestDriverInput): Promise<PickBestDriverOutput> => {
-  const { data: availabilityData, errors: availabilityErrors } = await client.models.professionalAvailability.list({
-    filter: {
-      currentAvailabilityStatus: { eq: ProfessionalAvailabilityStatus.ONLINE },
-      professionalType: { eq: ProfessionalType.DRIVER }
-    },
-    limit: 1000
-  });
+  let lastError: Error = new Error("All retry attempts failed");
+  let attempt = 1;
 
-  if (availabilityErrors || !availabilityData || availabilityData.length === 0) {
-    throw new Error(`Failed to fetch drivers: ${JSON.stringify(availabilityErrors)}`);
-  }
-  const availabilities = availabilityData as ProfessionalAvailability[];
-  const availableDriverIds = new Set<string>();
+  while (attempt <= MAX_RETRY_ATTEMPTS) {
+    try {
+      const { data: availabilityData, errors: availabilityErrors } = await client.models.professionalAvailability.list({
+        filter: {
+          currentAvailabilityStatus: { eq: ProfessionalAvailabilityStatus.ONLINE },
+          professionalType: { eq: ProfessionalType.DRIVER }
+        },
+        limit: 1000
+      });
 
-  for (const avail of availabilities) {
-    if (avail.currentAvailabilityStatus === ProfessionalAvailabilityStatus.ONLINE) {
-      availableDriverIds.add(avail.professionalId);
+      if (availabilityErrors || !availabilityData) {
+        throw new Error(`Failed to fetch driver availability: ${JSON.stringify(availabilityErrors)}`);
+      }
+
+      const availabilities = availabilityData as ProfessionalAvailability[];
+      const availableDriverIds = new Set(
+        availabilities
+          .filter(avail => avail.currentAvailabilityStatus === ProfessionalAvailabilityStatus.ONLINE)
+          .map(avail => avail.professionalId)
+      );
+
+      if (availableDriverIds.size === 0) {
+        throw new Error("No drivers are currently ONLINE");
+      }
+
+      logger.info(`Attempt ${attempt}: ${availableDriverIds.size} drivers online`);
+
+      const driverIdsToCheck = Array.from(availableDriverIds);
+
+      const locationFilters = driverIdsToCheck.map(id => ({ driverId: { eq: id } }));
+
+      const { data: locationsData, errors: locationsErrors } = await client.models.driverCurrentLocation.list({
+        filter: {
+          and: [
+            { or: locationFilters },
+            { timestamp: { gt: dayjs().utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString() } }
+          ]
+        },
+        limit: 1000
+      });
+
+      if (locationsErrors || !locationsData) {
+        throw new Error(`Failed to fetch driver locations: ${JSON.stringify(locationsErrors)}`);
+      }
+
+      const driversLocation = locationsData as DriverCurrentLocation[];
+      if (driversLocation.length === 0) {
+        throw new Error("No ONLINE drivers with valid recent locations");
+      }
+
+      // Calculate distances and sort
+      const driversWithDistance = driversLocation.map(loc => ({
+        driverId: loc.driverId,
+        distance: distanceCalculator.calculateDistance({
+          startPoint: pharmacyLocation,
+          destination: { lat: loc.latitude, lng: loc.longitude }
+        }),
+        timestamp: loc.timestamp
+      })).sort((a, b) => a.distance - b.distance);
+
+      // Select best candidate (closest + freshest location)
+      const bestCandidate = driversWithDistance.reduce((best, current) => {
+        if (current.distance < best.distance) return current;
+        if (current.distance === best.distance && dayjs(current.timestamp).isAfter(best.timestamp)) return current;
+        return best;
+      }, driversWithDistance[0]);
+
+      logger.info(`Best candidate: ${bestCandidate.driverId} (${bestCandidate.distance.toFixed(2)}m)`);
+
+      const [vehicleResult, driverResult] = await Promise.allSettled([
+        client.models.vehicle.list({ filter: { driverId: { eq: bestCandidate.driverId } } }),
+        client.models.professional.get({ userId: bestCandidate.driverId })
+      ]);
+
+      if (vehicleResult.status === 'rejected' || !vehicleResult.value.data?.[0]) {
+        throw new Error(`Vehicle lookup failed for driver ${bestCandidate.driverId}`);
+      }
+
+      if (driverResult.status === 'rejected' || !driverResult.value.data) {
+        throw new Error(`Driver details lookup failed for ${bestCandidate.driverId}`);
+      }
+
+      return {
+        driver: driverResult.value.data as Professional,
+        vehicle: vehicleResult.value.data[0] as Vehicle
+      };
+
+    } catch (error: any) {
+      lastError = error as Error;
+      logger.error(`Attempt ${attempt} failed: ${error?.message}`);
+
+      if (attempt === MAX_RETRY_ATTEMPTS) break;
+
+      const delay = Math.min(
+        INITIAL_RETRY_DELAY_MS * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1) +
+        Math.random() * 10000,
+        MAX_RETRY_DELAY_MS
+      );
+
+      logger.info(`Retrying in ${Math.round(delay / 1000)} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      attempt++;
     }
   }
 
-  if (availableDriverIds.size === 0) {
-    throw new Error("No drivers are currently ONLINE.");
-  }
-  logger.info(`${availableDriverIds.size} drivers are currently ONLINE.`);
-
-  const onlineDriverLocations: DriverLocation[] = [];
-  const driverIdsToCheck = Array.from(availableDriverIds);
-
-  const locationFilters = driverIdsToCheck.map(id => ({ driverId: { eq: id } }));
-
-  const { data: locationsData, errors: locationsErrors } = await client.models.driverCurrentLocation.list({
-    filter: {
-      and: [
-        { or: locationFilters },
-        { timestamp: { gt: dayjs().utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString() } }
-      ]
-    },
-    limit: 1000
-  });
-
-  if (locationsErrors || !locationsData || locationsData.length === 0) {
-    throw new Error(`Failed to fetch drivers: ${JSON.stringify(locationsErrors)}`);
-  }
-
-  const driversLocation = locationsData as DriverCurrentLocation[];
-
-  for (const location of driversLocation) {
-    onlineDriverLocations.push({
-      driverId: location.driverId,
-      lat: location.latitude,
-      lng: location.longitude,
-      timestamp: location.timestamp,
-    });
-  }
-
-  if (onlineDriverLocations.length === 0) {
-    throw new Error("No ONLINE drivers with valid, recent location data.");
-  }
-
-  logger.info(`Found ${onlineDriverLocations.length} drivers with valid recent locations after individual checks.`);
-
-  const driversWithDistance = onlineDriverLocations.map(loc => {
-    const distance = distanceCalculator.calculateDistance({
-      startPoint: pharmacyLocation,
-      destination: { lat: loc.lat, lng: loc.lng }
-    });
-    return { ...loc, distance };
-  }).sort((a, b) => a.distance - b.distance);
-
-  const closestDriverWithDistance = driversWithDistance[0];
-  logger.info(`Closest driver found: ${closestDriverWithDistance.driverId} at ${closestDriverWithDistance.distance.toFixed(2)} m distance.`);
-
-  const { data: vehicleData, errors: vehicleErrors } = await client.models.vehicle.list({
-    filter: { driverId: { eq: closestDriverWithDistance.driverId } },
-  });
-
-  if (vehicleErrors || !vehicleData || vehicleData.length === 0) {
-    throw new Error(`Failed to fetch drivers: ${JSON.stringify(vehicleErrors)}`);
-  }
-  const selectedVehicle = vehicleData[0] as Vehicle;
-
-  const { data: driverData, errors: driverErrors } = await client.models.professional.get({
-    userId: closestDriverWithDistance.driverId
-  })
-
-  if (driverErrors || !driverData) {
-    throw new Error(`Failed to fetch drivers: ${JSON.stringify(driverErrors)}`);
-  }
-  const selectedDriver = driverData as Professional
-
-  return {
-    driver: selectedDriver,
-    vehicle: selectedVehicle,
-  };
+  throw lastError;
 };
