@@ -1,3 +1,4 @@
+import { Logger } from "@aws-lambda-powertools/logger";
 import { Dayjs } from "dayjs";
 import { BusinessService, BusinessServicePricing, ConsultationRecord } from "../../../functions/helpers/types/schema";
 
@@ -6,9 +7,10 @@ interface AggregatorInput {
   periodStart: Dayjs;
   periodEnd: Dayjs;
   dbClient: any;
+  logger: Logger
 }
 
-export const aggregateServiceSales = async ({ businessId, periodStart, periodEnd, dbClient }: AggregatorInput) => {
+export const aggregateServiceSales = async ({ businessId, periodStart, periodEnd, dbClient, logger }: AggregatorInput) => {
   const { data: consultationsData, errors: consultationsErrors } = await dbClient.models.consultationRecord.list({
     filter: {
       businessId: { eq: businessId },
@@ -17,6 +19,8 @@ export const aggregateServiceSales = async ({ businessId, periodStart, periodEnd
       }
     }
   });
+
+  logger.info(`Found ${consultationsData.length} consultation records from ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
 
   if (!consultationsData || consultationsData.length === 0) return null;
 

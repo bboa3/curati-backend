@@ -8,7 +8,6 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { SalesSummaryTimeGranularity } from '../../functions/helpers/types/schema';
 import { generateSalesSummaries } from '../helpers/generate-sales-summaries';
-
 dayjs.extend(utc);
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);

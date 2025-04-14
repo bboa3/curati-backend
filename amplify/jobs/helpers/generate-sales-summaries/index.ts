@@ -25,7 +25,6 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
     if (businessesErrors || !businessesData) {
       throw new Error(`Failed to fetch businesses: ${JSON.stringify(businessesErrors)}`);
     }
-
     const businesses = businessesData as Business[];
 
     logger.info(`Found ${businesses.length} businesses`);
@@ -37,7 +36,8 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
         businessId: business.id,
         periodStart: start,
         periodEnd: end,
-        dbClient: dbClient
+        dbClient: dbClient,
+        logger
       });
 
       logger.info(`Aggregated medicine sales for business ${business.id}`);
@@ -67,7 +67,8 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
         businessId: business.id,
         periodStart: start,
         periodEnd: end,
-        dbClient: dbClient
+        dbClient: dbClient,
+        logger
       });
 
       logger.info(`Aggregated service sales for business ${business.id}`);
@@ -99,7 +100,8 @@ export const generateSalesSummaries = async ({ granularity, dbClient, logger }: 
         businessId: business.id,
         periodStart: start,
         periodEnd: end,
-        dbClient: dbClient
+        dbClient: dbClient,
+        logger
       });
 
       if (deliverySales) {

@@ -1,3 +1,4 @@
+import { Logger } from "@aws-lambda-powertools/logger";
 import { Dayjs } from "dayjs";
 import { MedicineOrder, MedicineOrderStatus } from "../../../functions/helpers/types/schema";
 
@@ -6,9 +7,10 @@ interface AggregatorInput {
   periodStart: Dayjs;
   periodEnd: Dayjs;
   dbClient: any;
+  logger: Logger
 }
 
-export const aggregateMedicineSales = async ({ businessId, periodStart, periodEnd, dbClient }: AggregatorInput) => {
+export const aggregateMedicineSales = async ({ businessId, periodStart, periodEnd, dbClient, logger }: AggregatorInput) => {
   const { data: ordersData, errors: orderErrors } = await dbClient.models.medicineOrder.list({
     filter: {
       businessId: { eq: businessId },
@@ -18,6 +20,8 @@ export const aggregateMedicineSales = async ({ businessId, periodStart, periodEn
       }
     }
   });
+
+  logger.info(`Found ${ordersData.length} orders from ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
 
   if (!ordersData || ordersData.length === 0) return null;
 
