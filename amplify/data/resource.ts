@@ -50,7 +50,8 @@ const remindedItemType = ['APPOINTMENT', 'MEDICATION', 'DELIVERY', 'MEDICINE_ORD
 const reminderStatus = ['PENDING', 'COMPLETED', 'SKIPPED'] as const;
 const repeatType = ['NONE', 'DAILY', 'WEEKLY', 'CUSTOM'] as const;
 const contractType = ['ONE_TIME', 'MONTHLY', 'SEMI_ANNUALLY', 'ANNUALLY'] as const;
-const contractStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'ACTIVE', 'EXPIRED', 'TERMINATED', 'REJECTED', 'SUSPENDED'] as const;
+const contractStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'ACTIVE', 'EXPIRED', 'TERMINATED', 'REJECTED'] as const;
+const contractTerminatedBy = ['PATIENT', 'PROFESSIONAL', 'SYSTEM', 'UNTERMINATED'] as const;
 const language = ['PORTUGUESE', 'ENGLISH', 'TSONGA', 'CHANGANA', 'MAKHUWA', 'SENA', 'NDAU'] as const;
 
 const recurrenceType = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'NONE'] as const;
@@ -458,6 +459,8 @@ const schema = a.schema({
     notes: a.string(),
     patientSignature: a.string(),
     businessSignature: a.string(),
+    terminationReason: a.string(),
+    terminatedBy: a.enum(contractTerminatedBy),
     patient: a.belongsTo('patient', 'patientId'),
     business: a.belongsTo('business', 'businessId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
