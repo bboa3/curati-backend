@@ -51,7 +51,7 @@ const reminderStatus = ['PENDING', 'COMPLETED', 'SKIPPED'] as const;
 const repeatType = ['NONE', 'DAILY', 'WEEKLY', 'CUSTOM'] as const;
 const contractType = ['ONE_TIME', 'MONTHLY', 'SEMI_ANNUALLY', 'ANNUALLY'] as const;
 const contractStatus = ['PENDING_PAYMENT', 'PENDING_CONFIRMATION', 'ACTIVE', 'EXPIRED', 'TERMINATED', 'REJECTED'] as const;
-const contractTerminatedBy = ['PATIENT', 'PROFESSIONAL', 'SYSTEM', 'UNTERMINATED'] as const;
+const contractTerminatedBy = ['PATIENT', 'BUSINESS', 'SYSTEM', 'UNTERMINATED'] as const;
 const language = ['PORTUGUESE', 'ENGLISH', 'TSONGA', 'CHANGANA', 'MAKHUWA', 'SENA', 'NDAU'] as const;
 
 const recurrenceType = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'NONE'] as const;
@@ -444,10 +444,10 @@ const schema = a.schema({
   contract: a.model({
     id: a.id().required(),
     contractNumber: a.string().required(),
-    patientId: a.string().required(),
-    businessId: a.string().required(),
-    businessServiceId: a.string().required(),
-    paymentMethodId: a.string().required(),
+    patientId: a.id().required(),
+    businessId: a.id().required(),
+    businessServiceId: a.id().required(),
+    paymentMethodId: a.id().required(),
     type: a.enum(contractType),
     status: a.enum(contractStatus),
     startDate: a.datetime().required(),
@@ -636,7 +636,7 @@ const schema = a.schema({
   ]).disableOperations(['subscriptions']),
 
   media: a.model({
-    mediaFromId: a.string().required(),
+    mediaFromId: a.id().required(),
     mediaFromType: a.enum(mediaFromType),
     url: a.string().required(),
     thumbnailUrl: a.string(),
@@ -845,7 +845,7 @@ const schema = a.schema({
     status: a.enum(deliveryStatus),
     timestamp: a.datetime().required(),
     notes: a.string(),
-    actorId: a.string(),
+    actorId: a.id(),
     actorType: a.enum(deliveryStatusHistoryActorType),
     latitude: a.float(),
     longitude: a.float(),

@@ -203,7 +203,13 @@ export enum ContractStatus {
   EXPIRED = 'EXPIRED',
   TERMINATED = 'TERMINATED',
   REJECTED = 'REJECTED',
-  SUSPENDED = 'SUSPENDED'
+}
+
+export enum ContractTerminatedBy {
+  PATIENT = 'PATIENT',
+  BUSINESS = 'BUSINESS',
+  SYSTEM = 'SYSTEM',
+  UNTERMINATED = 'UNTERMINATED'
 }
 
 export enum Language {
@@ -586,6 +592,7 @@ type ContractSchema = Schema['contract']['type'];
 export interface Contract extends ContractSchema {
   type: ContractType
   status: ContractStatus
+  contractTerminatedBy: ContractTerminatedBy
 };
 
 type ServiceSchema = Schema['service']['type'];
