@@ -66,24 +66,25 @@ const paymentTransactionStatus = ['SUCCESS', 'FAILED', 'PENDING', 'REFUNDED'] as
 const invoiceSourceType = ['MEDICINE_ORDER', 'CONTRACT'] as const;
 
 const pricingCondition = [
-  // Base Prices
+  // Base Price
   'STANDARD',
-  'EMERGENCY',
-  'COMPLEXITY',
-  'FOLLOW_UP',
-  'URGENT_CARE',
 
   // Additional Charges
-  'ADDITIONAL_AFTER_HOURS',
-  'ADDITIONAL_WEEKEND',
-  'ADDITIONAL_SPECIAL_EQUIPMENT',
+  'EMERGENCY_SURCHARGE',
+  'COMPLEXITY_FEE',
+  'AFTER_HOURS_FEE',
+  'WEEKEND_FEE',
+  'SPECIAL_EQUIPMENT_FEE',
 
-  // Discounts and Penalties
-  'MONTHLY_DISCOUNTED',
-  'SEMI_ANNUALLY_DISCOUNTED',
-  'ANNUALLY_DISCOUNTED',
-  'CANCELLATION'
+  // Discounts
+  'MONTHLY_SUBSCRIPTION_DISCOUNT',
+  'ANNUAL_SUBSCRIPTION_DISCOUNT',
+  'PROMOTIONAL_DISCOUNT',
+  'CANCELLATION_FEE'
 ] as const;
+const feeType = ['FIXED', 'PERCENTAGE'] as const;
+const calculationType = ['ADDITIVE', 'MULTIPLICATIVE'] as const;
+
 const addressType = ['HOME', 'WORK', 'PHARMACY', 'HOSPITAL', 'COURIER', 'SHIPPING', 'BILLING'] as const;
 const addressOwnerType = ['PATIENT', 'PROFESSIONAL', 'BUSINESS', 'DELIVERY'] as const;
 const consultationType = ['VIDEO', 'AUDIO', 'TEXT', 'IN_PERSON'] as const;
@@ -531,6 +532,8 @@ const schema = a.schema({
     description: a.string(),
     fee: a.float().required(),
     condition: a.enum(pricingCondition),
+    feeType: a.enum(feeType),
+    calculationType: a.enum(calculationType),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
   })
     .authorization(allow => [

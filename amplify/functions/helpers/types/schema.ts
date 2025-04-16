@@ -281,23 +281,31 @@ export enum PaymentTransactionStatus {
 }
 
 export enum PricingCondition {
-  // Base Prices
+  // Base Price
   STANDARD = 'STANDARD',
-  EMERGENCY = 'EMERGENCY',
-  COMPLEXITY = 'COMPLEXITY',
-  FOLLOW_UP = 'FOLLOW_UP',
-  URGENT_CARE = 'URGENT_CARE',
 
   // Additional Charges
-  ADDITIONAL_AFTER_HOURS = 'ADDITIONAL_AFTER_HOURS',
-  ADDITIONAL_WEEKEND = 'ADDITIONAL_WEEKEND',
-  ADDITIONAL_SPECIAL_EQUIPMENT = 'ADDITIONAL_SPECIAL_EQUIPMENT',
+  EMERGENCY_SURCHARGE = 'EMERGENCY_SURCHARGE',
+  COMPLEXITY_FEE = 'COMPLEXITY_FEE',
+  AFTER_HOURS_FEE = 'AFTER_HOURS_FEE',
+  WEEKEND_FEE = 'WEEKEND_FEE',
+  SPECIAL_EQUIPMENT_FEE = 'SPECIAL_EQUIPMENT_FEE',
 
-  // Discounts and Penalties
-  MONTHLY_DISCOUNTED = 'MONTHLY_DISCOUNTED',
-  SEMI_ANNUALLY_DISCOUNTED = 'SEMI_ANNUALLY_DISCOUNTED',
-  ANNUALLY_DISCOUNTED = 'ANNUALLY_DISCOUNTED',
-  CANCELLATION = 'CANCELLATION'
+  // Discounts
+  MONTHLY_SUBSCRIPTION_DISCOUNT = 'MONTHLY_SUBSCRIPTION_DISCOUNT',
+  ANNUAL_SUBSCRIPTION_DISCOUNT = 'ANNUAL_SUBSCRIPTION_DISCOUNT',
+  PROMOTIONAL_DISCOUNT = 'PROMOTIONAL_DISCOUNT',
+  CANCELLATION_FEE = 'CANCELLATION_FEE'
+}
+
+export enum FeeType {
+  FIXED = 'FIXED',
+  PERCENTAGE = 'PERCENTAGE'
+}
+
+export enum CalculationType {
+  ADDITIVE = 'ADDITIVE',
+  MULTIPLICATIVE = 'MULTIPLICATIVE'
 }
 
 export enum AddressType {
@@ -624,6 +632,8 @@ export interface ServiceInventory extends BusinessServiceSchema, Service {
 type BusinessServicePricingSchema = Schema['businessServicePricing']['type'];
 export interface BusinessServicePricing extends BusinessServicePricingSchema {
   condition: PricingCondition
+  feeType: FeeType
+  calculationType: CalculationType
 };
 
 type AppointmentSchema = Schema['appointment']['type'];
