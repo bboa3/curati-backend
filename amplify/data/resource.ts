@@ -1243,9 +1243,11 @@ const schema = a.schema({
     averageUnitPrice: a.float().required().default(0),
     previousPeriodGrowth: a.float().required().default(0),
   })
+
+
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['create', 'update', 'delete', 'subscriptions'])
+    ]).disableOperations(['update', 'delete', 'subscriptions'])
 })
   .authorization((allow) => [
     allow.resource(postConfirmation),
