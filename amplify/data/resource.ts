@@ -489,6 +489,7 @@ const schema = a.schema({
     image: a.string().required(),
     serviceFeasibility: a.enum(serviceFeasibility),
     baseSessionDurationMinutes: a.integer(),
+    baseSessionFee: a.float().required(),
     businessServices: a.hasMany('businessService', 'serviceId'),
   })
     .authorization(allow => [
