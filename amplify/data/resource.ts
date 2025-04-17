@@ -1247,7 +1247,7 @@ const schema = a.schema({
 
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['update', 'delete', 'subscriptions'])
+    ]).disableOperations(['create', 'update', 'delete', 'subscriptions'])
 })
   .authorization((allow) => [
     allow.resource(postConfirmation),
