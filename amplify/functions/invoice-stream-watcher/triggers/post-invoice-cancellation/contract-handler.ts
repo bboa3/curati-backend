@@ -16,7 +16,7 @@ export const postInvoiceCancellationContractHandler = async ({ invoiceImage, dbC
 
   const { errors: contractUpdateErrors } = await dbClient.models.contract.update({
     id: invoiceSourceId,
-    status: ContractStatus.SUSPENDED
+    status: ContractStatus.TERMINATED
   })
 
   if (contractUpdateErrors) {

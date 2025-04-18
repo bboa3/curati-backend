@@ -7,7 +7,6 @@ const CONTRACT_STATUS_DESCRIPTIONS = new Map<ContractStatus, string>([
   [ContractStatus.EXPIRED, 'Expirada'],
   [ContractStatus.TERMINATED, 'Cancelada'],
   [ContractStatus.REJECTED, 'Rejeitada'],
-  [ContractStatus.SUSPENDED, 'Suspensa'],
 ]);
 
 export const convertContractStatus = (type: ContractStatus): string => {
