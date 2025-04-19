@@ -6,36 +6,37 @@ interface ICalculateServiceTotal {
 }
 
 interface IServiceTotalOrder {
-  subTotal: number;
-  totalAdditionalFees: number;
-  discount: number;
+  basePrice: number;
+  subscriptionType: PricingCondition;
+  serviceFees: number;
+  discounts: number;
+  subtotal: number;
+  taxableAmount: number;
   taxes: number;
   totalAmount: number;
 }
 
 class ServicePriceCalculator {
-  taxPercentage: number;
+  private taxPercentage: number;
+  private readonly baseConditions = [
+    PricingCondition.STANDARD,
+    PricingCondition.MONTHLY_SUBSCRIPTION,
+    PricingCondition.ANNUAL_SUBSCRIPTION
+  ];
 
   constructor() {
     this.taxPercentage = 0.0;
   }
 
-  calculateItemTax(total_price: number): number {
-    return (total_price * this.taxPercentage) / 100;
+  private calculateTaxes(amount: number): number {
+    return (amount * this.taxPercentage) / 100;
   }
 
-  private calculateFeeValue(basePrice: number, pricing: BusinessServicePricing): number {
-    switch (pricing.feeType) {
-      case FeeType.PERCENTAGE:
-        return basePrice * (pricing.fee / 100);
-      case FeeType.FIXED:
-        return pricing.fee;
-      default:
-        return 0;
-    }
+  private isBaseCondition(condition: PricingCondition): boolean {
+    return this.baseConditions.includes(condition);
   }
 
-  private isAdditionalCharge(condition: PricingCondition): boolean {
+  private isServiceFee(condition: PricingCondition): boolean {
     return [
       PricingCondition.EMERGENCY_SURCHARGE,
       PricingCondition.COMPLEXITY_FEE,
@@ -46,48 +47,78 @@ class ServicePriceCalculator {
   }
 
   private isDiscount(condition: PricingCondition): boolean {
-    return [
-      PricingCondition.MONTHLY_SUBSCRIPTION_DISCOUNT,
-      PricingCondition.ANNUAL_SUBSCRIPTION_DISCOUNT,
-      PricingCondition.PROMOTIONAL_DISCOUNT
-    ].includes(condition);
+    return condition === PricingCondition.PROMOTIONAL_DISCOUNT;
   }
 
-  calculateServiceTotal({ businessServicePricing, appliedPricingConditions, }: ICalculateServiceTotal): IServiceTotalOrder {
-    const standardPricing = businessServicePricing.find(p => p.condition === PricingCondition.STANDARD);
+  private validateBaseConditions(conditions: PricingCondition[]): PricingCondition {
+    const baseSelected = conditions.filter(c => this.isBaseCondition(c));
 
-    if (!standardPricing) {
-      throw new Error('No STANDARD pricing found');
+    if (baseSelected.length !== 1) {
+      throw new Error('Must select exactly one base pricing option');
     }
 
-    let basePrice = standardPricing.fee;
-    let additionalFees = 0;
+    return baseSelected[0];
+  }
+
+  private getBasePricing(pricing: BusinessServicePricing[], condition: PricingCondition): BusinessServicePricing {
+    const base = pricing.find(p => p.condition === condition);
+    if (!base) throw new Error(`Base pricing for ${condition} not found`);
+    if (base.feeType !== FeeType.FIXED) {
+      throw new Error(`Base pricing (${condition}) must be a fixed amount`);
+    }
+    return base;
+  }
+
+  private calculateFeeValue(base: number, pricing: BusinessServicePricing): number {
+    switch (pricing.feeType) {
+      case FeeType.PERCENTAGE:
+        return base * (pricing.fee / 100);
+      case FeeType.FIXED:
+        return pricing.fee;
+      default:
+        throw new Error(`Invalid fee type: ${pricing.feeType}`);
+    }
+  }
+
+  calculateServiceTotal({
+    businessServicePricing,
+    appliedPricingConditions
+  }: ICalculateServiceTotal): IServiceTotalOrder {
+    const selectedBase = this.validateBaseConditions(appliedPricingConditions);
+    const basePricing = this.getBasePricing(businessServicePricing, selectedBase);
+
+    let serviceFees = 0;
     let discounts = 0;
+    let cancellationFee = 0;
 
     appliedPricingConditions
-      .filter(c => c !== PricingCondition.STANDARD)
+      .filter(c => !this.isBaseCondition(c))
       .forEach(condition => {
         const pricing = businessServicePricing.find(p => p.condition === condition);
         if (!pricing) return;
 
-        if (this.isAdditionalCharge(condition)) {
-          additionalFees += this.calculateFeeValue(basePrice, pricing);
+        const value = this.calculateFeeValue(basePricing.fee, pricing);
+
+        if (this.isServiceFee(condition)) {
+          serviceFees += value;
         } else if (this.isDiscount(condition)) {
-          discounts += this.calculateFeeValue(basePrice, pricing);
+          discounts += value;
         }
       });
 
-    const subTotal = basePrice + additionalFees;
-    const discountedTotal = Math.max(subTotal - discounts, 0);
-    const taxes = this.calculateItemTax(discountedTotal);
-    const totalAmount = discountedTotal + taxes;
+    const subtotal = basePricing.fee + serviceFees;
+    const preTaxTotal = Math.max(subtotal - discounts, 0) + cancellationFee;
+    const taxes = this.calculateTaxes(preTaxTotal);
 
     return {
-      subTotal: basePrice,
-      totalAdditionalFees: additionalFees,
-      discount: discounts,
-      taxes: taxes,
-      totalAmount: totalAmount,
+      basePrice: basePricing.fee,
+      subscriptionType: selectedBase,
+      serviceFees,
+      discounts,
+      subtotal,
+      taxableAmount: preTaxTotal,
+      taxes,
+      totalAmount: preTaxTotal + taxes
     };
   }
 }

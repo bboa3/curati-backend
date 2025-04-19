@@ -18,11 +18,6 @@ export function createContractEndDate(date: Date, contractType: ContractType) {
     return dueDate
   }
 
-  if (contractType === ContractType.SEMI_ANNUALLY) {
-    dueDate.setMonth(dueDate.getMonth() + 6)
-    return dueDate
-  }
-
   if (contractType === ContractType.ANNUALLY) {
     dueDate.setFullYear(dueDate.getFullYear() + 1)
     return dueDate

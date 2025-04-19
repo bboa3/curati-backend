@@ -26,7 +26,7 @@ export const createContractInvoice = async ({ client, patientId, businessId, con
   }
   const businessServicePricing = servicePricingData as BusinessServicePricing[] || [];
 
-  const { subTotal, discount, taxes, totalAmount } = servicePriceCalculator.calculateServiceTotal({
+  const { subtotal, discounts, taxes, totalAmount } = servicePriceCalculator.calculateServiceTotal({
     businessServicePricing,
     appliedPricingConditions
   });
@@ -45,8 +45,8 @@ export const createContractInvoice = async ({ client, patientId, businessId, con
     dueDate: dueDate,
     invoiceSourceType: InvoiceSourceType.CONTRACT,
     invoiceSourceId: contractId,
-    subTotal: subTotal,
-    discount: discount,
+    subTotal: subtotal,
+    discount: discounts,
     deliveryFee: 0,
     taxes: taxes,
     totalAmount: totalAmount,
