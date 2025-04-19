@@ -30,7 +30,6 @@ export async function newContractProfessionalEmailNotifier({ toAddresses, contra
   switch (contractType) {
     case ContractType.ONE_TIME: formattedContractType = 'Pagamento Único'; break;
     case ContractType.MONTHLY: formattedContractType = 'Mensal'; break;
-    case ContractType.SEMI_ANNUALLY: formattedContractType = 'Semestral'; break;
     case ContractType.ANNUALLY: formattedContractType = 'Anual'; break;
   }
 
