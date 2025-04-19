@@ -68,6 +68,8 @@ const invoiceSourceType = ['MEDICINE_ORDER', 'CONTRACT'] as const;
 const pricingCondition = [
   // Base Price
   'STANDARD',
+  'MONTHLY_SUBSCRIPTION',
+  'ANNUAL_SUBSCRIPTION',
 
   // Additional Charges
   'EMERGENCY_SURCHARGE',
@@ -77,8 +79,6 @@ const pricingCondition = [
   'SPECIAL_EQUIPMENT_FEE',
 
   // Discounts
-  'MONTHLY_SUBSCRIPTION_DISCOUNT',
-  'ANNUAL_SUBSCRIPTION_DISCOUNT',
   'PROMOTIONAL_DISCOUNT',
   'CANCELLATION_FEE'
 ] as const;

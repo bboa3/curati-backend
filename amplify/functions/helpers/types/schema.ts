@@ -1,4 +1,5 @@
 import { Schema } from "../../../data/resource";
+
 type ComparisonOperator =
   | 'eq'           // Equal
   | 'ne'           // Not Equal
@@ -192,7 +193,6 @@ export enum RepeatType {
 export enum ContractType {
   ONE_TIME = 'ONE_TIME',
   MONTHLY = 'MONTHLY',
-  SEMI_ANNUALLY = 'SEMI_ANNUALLY',
   ANNUALLY = 'ANNUALLY'
 }
 
@@ -618,12 +618,6 @@ interface BusinessServiceRequirements {
 }
 
 export interface BusinessService extends BusinessServiceSchema, BusinessServiceRequirements {
-  professionalType: ProfessionalType
-  businessType: BusinessType
-  publicationStatus: PublicationStatus
-};
-
-export interface ServiceInventory extends BusinessServiceSchema, Service {
   professionalType: ProfessionalType
   businessType: BusinessType
   publicationStatus: PublicationStatus
