@@ -1,22 +1,20 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import { Appointment, AppointmentParticipantType, AppointmentStatus, Patient, Professional } from '../../helpers/types/schema';
-import { confirmedAppointmentEmailNotifier } from "../helpers/confirmed-appointment-email-notifier";
-import { confirmedAppointmentSMSNotifier } from "../helpers/confirmed-appointment-sms-notifier";
-import { createReminders } from "../helpers/create-reminders";
+import { Appointment, AppointmentParticipantType, Contract, Patient, Professional } from '../../helpers/types/schema';
+import { canceledAppointmentEmailNotifier } from "../helpers/canceled-appointment-email-notifier";
+import { canceledAppointmentSMSNotifier } from "../helpers/canceled-appointment-sms-notifier";
 import { deleteReminders } from "../helpers/delete-reminders";
 
 interface TriggerInput {
   appointmentImage: { [key: string]: AttributeValue; };
-  oldImageStatus: AppointmentStatus;
   dbClient: any;
   logger: Logger;
 }
 
-export const postAppointmentConfirmation = async ({ appointmentImage, oldImageStatus, dbClient }: TriggerInput) => {
+export const postAppointmentCancellation = async ({ appointmentImage, dbClient }: TriggerInput) => {
   const appointment = unmarshall(appointmentImage) as Appointment;
-  const { id: appointmentId, appointmentNumber, appointmentDateTime, duration, type: appointmentType, purpose, patientId, professionalId } = appointment;
+  const { id: appointmentId, contractId, appointmentNumber, appointmentDateTime, purpose, status: appointmentStatus, cancellationReason, patientId, professionalId } = appointment;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -31,6 +29,13 @@ export const postAppointmentConfirmation = async ({ appointmentImage, oldImageSt
     throw new Error(`Failed to fetch professional: ${JSON.stringify(professionalErrors)}`);
   }
   const professional = professionalData as unknown as Professional;
+
+  const { data: contractData, errors: contractErrors } = await dbClient.models.contract.get({ id: contractId });
+
+  if (contractErrors || !contractData) {
+    throw new Error(`Failed to fetch contract: ${JSON.stringify(contractErrors)}`);
+  }
+  const contract = contractData as unknown as Contract;
 
   const appointmentDeepLink = `curati://life.curati.www/(app)/profile/appointments/${appointmentId}`;
 
@@ -55,51 +60,45 @@ export const postAppointmentConfirmation = async ({ appointmentImage, oldImageSt
 
   await Promise.all(recipients.map(async recipient => {
     if (recipient.email) {
-      await confirmedAppointmentEmailNotifier({
+      await canceledAppointmentEmailNotifier({
         recipientName: recipient.name,
         recipientEmail: recipient.email,
         recipientType: recipient.type,
         otherPartyName: recipient.otherPartyName,
         appointmentNumber,
         appointmentDateTime,
-        duration: Number(duration),
-        appointmentType,
         purpose,
+        finalStatus: appointmentStatus,
+        cancellationReason: cancellationReason || undefined,
         appointmentDeepLink,
       })
     }
   }))
 
   await Promise.all(recipients.map(async recipient => {
-    await confirmedAppointmentSMSNotifier({
+    await canceledAppointmentSMSNotifier({
       recipientPhoneNumber: `+258${recipient.phone.replace(/\D/g, '')}`,
       otherPartyName: recipient.otherPartyName,
       recipientType: recipient.type,
       appointmentNumber,
       appointmentDateTime,
       appointmentDeepLink,
+      finalStatus: appointmentStatus
     })
   }))
 
-  if (oldImageStatus === AppointmentStatus.RESCHEDULED) {
-    await deleteReminders({
-      dbClient,
-      appointmentId,
-      recipients: recipients.map(({ userId }) => ({ userId }))
-    })
-  }
-
-  await createReminders({
+  await deleteReminders({
     dbClient,
-    appointmentDateTime,
-    purpose,
-    professionalType: professional.type,
-    appointmentType,
     appointmentId,
-    recipients: recipients.map(recipient => ({
-      userId: recipient.userId,
-      type: recipient.type,
-      otherPartyName: recipient.otherPartyName
-    }))
+    recipients: recipients.map(({ userId }) => ({ userId }))
   })
+
+  const { errors: contractUpdateErrors } = await dbClient.models.contract.update({
+    id: contractId,
+    appointmentsUsed: contract.appointmentsUsed - 1
+  })
+
+  if (contractUpdateErrors) {
+    throw new Error(`Failed to update contract: ${JSON.stringify(contractUpdateErrors)}`);
+  }
 };

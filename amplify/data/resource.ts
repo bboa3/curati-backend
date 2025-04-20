@@ -455,6 +455,8 @@ const schema = a.schema({
     endDate: a.datetime(),
     isRenewable: a.boolean().default(false),
     renewalDate: a.datetime(),
+    appointmentsAllowed: a.integer().required(),
+    appointmentsUsed: a.integer().required().default(0),
     appliedPricingConditions: a.string().required().array().required(),
     purpose: a.string(),
     notes: a.string(),

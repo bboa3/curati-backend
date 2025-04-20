@@ -1,6 +1,7 @@
 import { PublishCommand, PublishCommandInput, SNSClient } from "@aws-sdk/client-sns";
 import { formatDateTimeNumeric } from "../../helpers/date/formatter";
-import { AppointmentParticipantType } from "../../helpers/types/schema";
+import { AppointmentParticipantType, AppointmentStatus } from "../../helpers/types/schema";
+import { convertAppointmentStatus } from "./appointment-status";
 
 const client = new SNSClient();
 
@@ -11,22 +12,24 @@ interface SendInput {
   appointmentNumber: string;
   appointmentDateTime: string | Date;
   appointmentDeepLink: string;
+  finalStatus: AppointmentStatus;
 }
 
-export async function confirmedAppointmentSMSNotifier({
+export async function canceledAppointmentSMSNotifier({
   recipientPhoneNumber,
   otherPartyName,
   recipientType,
   appointmentNumber,
   appointmentDateTime,
-  appointmentDeepLink
+  appointmentDeepLink,
+  finalStatus
 }: SendInput) {
-
   const formattedDateTime = formatDateTimeNumeric(appointmentDateTime);
+  const formattedStatus = convertAppointmentStatus(finalStatus);
   const isRecipientPatient = recipientType === AppointmentParticipantType.PATIENT;
   const otherPartyText = isRecipientPatient ? `com ${otherPartyName}` : `com Pct ${otherPartyName}`;
 
-  const message = `Curati: Agendamento ${appointmentNumber} ${otherPartyText} p/ ${formattedDateTime} CONFIRMADO. Detalhes na app: ${appointmentDeepLink}`;
+  const message = `Curati: Agendamento ${appointmentNumber} ${otherPartyText} p/ ${formattedDateTime} foi ${formattedStatus}. ${isRecipientPatient ? 'Pode tentar reagendar na app ou contactar suporte.' : 'Horário libertado.'} App: ${appointmentDeepLink}`;
 
   const params: PublishCommandInput = {
     Message: message,

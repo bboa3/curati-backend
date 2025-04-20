@@ -7,7 +7,9 @@ import type { DynamoDBStreamHandler } from "aws-lambda";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { AppointmentStatus } from '../helpers/types/schema';
+import { postAppointmentCancellation } from './triggers/post-appointment-cancellation';
 import { postAppointmentConfirmation } from './triggers/post-appointment-confirmation';
+import { postAppointmentCreation } from './triggers/post-appointment-creation';
 import { postAppointmentReadyForConfirmation } from './triggers/post-appointment-ready-for-confirmation';
 import { postAppointmentStarted } from './triggers/post-appointment-started';
 dayjs.extend(utc);
@@ -41,6 +43,12 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       if (record.eventName === "INSERT") {
         const newStatus = newImage?.status?.S as AppointmentStatus | undefined;
 
+        await postAppointmentCreation({
+          appointmentImage: newImage,
+          dbClient: client,
+          logger
+        });
+
         if (newStatus === AppointmentStatus.PENDING_CONFIRMATION) {
           await postAppointmentReadyForConfirmation({
             appointmentImage: newImage,
@@ -58,8 +66,6 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         }
 
         if (newStatus === AppointmentStatus.PENDING_CONFIRMATION || newStatus === AppointmentStatus.RESCHEDULED) {
-          // Notify the relevant party to confirm
-
           await postAppointmentReadyForConfirmation({
             appointmentImage: newImage,
             dbClient: client,
@@ -81,8 +87,14 @@ export const handler: DynamoDBStreamHandler = async (event) => {
             dbClient: client,
             logger
           });
+        }
 
-          // Notify both parties, schedule reminders
+        if (newStatus === AppointmentStatus.CANCELLED || newStatus === AppointmentStatus.FAILED) {
+          await postAppointmentCancellation({
+            appointmentImage: newImage,
+            dbClient: client,
+            logger
+          });
         }
 
         if (newStatus === AppointmentStatus.IN_PROGRESS) {
