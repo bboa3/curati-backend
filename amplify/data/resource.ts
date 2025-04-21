@@ -458,7 +458,7 @@ const schema = a.schema({
     appointmentsAllowed: a.integer().required(),
     appointmentsUsed: a.integer().required().default(0),
     appliedPricingConditions: a.string().required().array().required(),
-    purpose: a.string(),
+    purpose: a.string().required(),
     notes: a.string(),
     patientSignature: a.string(),
     businessSignature: a.string(),
