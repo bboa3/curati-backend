@@ -447,6 +447,7 @@ const schema = a.schema({
     contractNumber: a.string().required(),
     patientId: a.id().required(),
     businessId: a.id().required(),
+    professionalId: a.id().required(),
     businessServiceId: a.id().required(),
     paymentMethodId: a.id().required(),
     type: a.enum(contractType),
