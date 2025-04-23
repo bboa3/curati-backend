@@ -699,6 +699,7 @@ const schema = a.schema({
     phone: a.string().required(),
     email: a.string().required(),
     name: a.string().required(),
+    legalName: a.string().required(),
     gender: a.enum(gender),
     dateOfBirth: a.date().required(),
     lastLogin: a.datetime(),
