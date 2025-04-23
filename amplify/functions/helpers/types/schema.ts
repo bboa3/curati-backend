@@ -1,5 +1,6 @@
 import { Schema } from "../../../data/resource";
 
+
 type ComparisonOperator =
   | 'eq'           // Equal
   | 'ne'           // Not Equal
@@ -486,6 +487,7 @@ export interface ProfessionalSearchBody {
   phone: string;
   email: string;
   name: string;
+  legalName: string;
   bio?: string;
   specialties: string[];
   image: string;
