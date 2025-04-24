@@ -50,7 +50,9 @@ export const postDeliveryReadyForPatientPickup = async ({ deliveryImage, dbClien
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.AWAITING_PATIENT_PICKUP
+    status: DeliveryStatus.AWAITING_PATIENT_PICKUP,
+    latitude: pharmacyAddressLatitude,
+    longitude: pharmacyAddressLongitude
   })
 
   if (patient.email) {

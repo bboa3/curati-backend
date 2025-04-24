@@ -78,7 +78,9 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.DRIVER_ASSIGNED
+    status: DeliveryStatus.DRIVER_ASSIGNED,
+    latitude: pharmacyAddressLatitude,
+    longitude: pharmacyAddressLongitude
   })
 
   await newDeliveryAssignmentDriverEmailNotifier({

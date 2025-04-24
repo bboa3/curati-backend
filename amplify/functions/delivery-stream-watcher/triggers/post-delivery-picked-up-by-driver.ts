@@ -56,7 +56,9 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: 
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.PICKED_UP_BY_DRIVER
+    status: DeliveryStatus.PICKED_UP_BY_DRIVER,
+    latitude: pharmacy.businessLatitude,
+    longitude: pharmacy.businessLongitude
   })
 
   const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;

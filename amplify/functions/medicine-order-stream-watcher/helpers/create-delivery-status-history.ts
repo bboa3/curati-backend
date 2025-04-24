@@ -7,10 +7,12 @@ interface CreateDeliveryStatusHistoryInput {
   patientId: string;
   deliveryId: string;
   status: DeliveryStatus;
+  latitude: number;
+  longitude: number;
 }
 
 
-export const createDeliveryStatusHistory = async ({ client, patientId, deliveryId, status }: CreateDeliveryStatusHistoryInput) => {
+export const createDeliveryStatusHistory = async ({ client, patientId, deliveryId, status, latitude, longitude }: CreateDeliveryStatusHistoryInput) => {
   const deliveryStatusHistoryId = generateUUIDv4();
   const now = dayjs().utc();
   const { data, errors } = await client.models.deliveryStatusHistory.create({
@@ -19,7 +21,9 @@ export const createDeliveryStatusHistory = async ({ client, patientId, deliveryI
     patientId: patientId,
     status: status,
     timestamp: now.toISOString(),
-    actorType: DeliveryStatusHistoryActorType.SYSTEM
+    actorType: DeliveryStatusHistoryActorType.SYSTEM,
+    latitude: latitude,
+    longitude: longitude,
   });
 
   if (errors || !data) {

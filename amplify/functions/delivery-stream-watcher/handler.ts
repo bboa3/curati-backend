@@ -52,8 +52,6 @@ export const handler: DynamoDBStreamHandler = async (event) => {
           logger
         });
 
-
-
         await postMedicineOrderCreation({
           deliveryImage: newImage,
           dbClient: client,

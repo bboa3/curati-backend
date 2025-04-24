@@ -1,7 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { Delivery, DeliveryStatus } from "../../helpers/types/schema";
+import { Address, Delivery, DeliveryStatus } from "../../helpers/types/schema";
 import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 
 interface TriggerInput {
@@ -12,12 +12,23 @@ interface TriggerInput {
 
 export const postDeliveryPreparing = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const delivery = unmarshall(deliveryImage) as Delivery;
-  const { orderId, patientId } = delivery;
+  const { orderId, patientId, pharmacyId } = delivery;
+
+  const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: pharmacyId });
+  const pharmacyAddress = pharmacyAddressData as unknown as Address
+  const pharmacyAddressLatitude = pharmacyAddress?.latitude;
+  const pharmacyAddressLongitude = pharmacyAddress?.longitude;
+
+  if (pharmacyAddressErrors || !pharmacyAddress || !pharmacyAddressLongitude || !pharmacyAddressLatitude) {
+    throw new Error(`Failed to fetch pharmacy address: ${JSON.stringify(pharmacyAddressErrors)}`);
+  }
 
   await createDeliveryStatusHistory({
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.PHARMACY_PREPARING
+    status: DeliveryStatus.PHARMACY_PREPARING,
+    latitude: pharmacyAddressLatitude,
+    longitude: pharmacyAddressLongitude
   })
 };

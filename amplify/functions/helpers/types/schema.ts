@@ -693,9 +693,6 @@ export interface RecurrencePattern extends RecurrencePatternSchema {
 type DriverCurrentLocationSchema = Schema['driverCurrentLocation']['type'];
 export interface DriverCurrentLocation extends DriverCurrentLocationSchema { };
 
-type DriverLocationHistorySchema = Schema['driverLocationHistory']['type'];
-export interface DriverLocationHistory extends DriverLocationHistorySchema { };
-
 type VehicleSchema = Schema['vehicle']['type'];
 export interface Vehicle extends VehicleSchema {
   type: VehicleType

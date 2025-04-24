@@ -2,8 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import dayjs from "dayjs";
-import { Address, Business, Delivery, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
-import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
+import { Address, Business, Delivery, MedicineOrder, MedicineOrderStatus, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
 import { deliveryDeliveredDriverEmailNotifier } from "../helpers/delivery-delivered-driver-email-notifier";
 import { deliveryDeliveredPatientEmailNotifier } from "../helpers/delivery-delivered-patient-email-notifier";
 import { deliveryDeliveredPharmacyEmailNotifier } from "../helpers/delivery-delivered-pharmacy-email-notifier";
@@ -71,12 +70,12 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
     throw new Error(`Failed to update driver availability: ${JSON.stringify(updateAvailabilityErrors)}`);
   }
 
-  await createDeliveryStatusHistory({
-    client: dbClient,
-    patientId: patientId,
-    deliveryId: orderId,
-    status: DeliveryStatus.DELIVERED
-  })
+  // await createDeliveryStatusHistory({
+  //   client: dbClient,
+  //   patientId: patientId,
+  //   deliveryId: orderId,
+  //   status: DeliveryStatus.DELIVERED
+  // })
 
   const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;
   const ratingDeepLink = `curati://life.curati.www/(app)/pharmacies/${pharmacyId}`;

@@ -49,7 +49,9 @@ export const postDeliveryFailed = async ({ deliveryImage, dbClient }: TriggerInp
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.FAILED
+    status: DeliveryStatus.FAILED,
+    latitude: pharmacy.businessLatitude,
+    longitude: pharmacy.businessLongitude
   })
 
   const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;

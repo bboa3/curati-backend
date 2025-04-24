@@ -2,8 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import dayjs from "dayjs";
-import { Delivery, DeliveryStatus, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
-import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
+import { Delivery, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
 import { deliveryInTransitPatientEmailNotifier } from "../helpers/delivery-in-transit-patient-email-notifier";
 import { deliveryInTransitPatientSMSNotifier } from "../helpers/delivery-in-transit-patient-sms-notifier";
 
@@ -38,12 +37,12 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: Trigger
   }
   const driver = driverData as unknown as Professional;
 
-  await createDeliveryStatusHistory({
-    client: dbClient,
-    patientId: patientId,
-    deliveryId: orderId,
-    status: DeliveryStatus.IN_TRANSIT
-  })
+  // await createDeliveryStatusHistory({
+  //   client: dbClient,
+  //   patientId: patientId,
+  //   deliveryId: orderId,
+  //   status: DeliveryStatus.IN_TRANSIT
+  // })
 
   const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
 

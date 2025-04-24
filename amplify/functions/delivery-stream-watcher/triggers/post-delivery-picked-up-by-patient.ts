@@ -42,7 +42,9 @@ export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient }:
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.PICKED_UP_BY_PATIENT
+    status: DeliveryStatus.PICKED_UP_BY_PATIENT,
+    latitude: pharmacy.businessLatitude,
+    longitude: pharmacy.businessLongitude
   })
 
   const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;

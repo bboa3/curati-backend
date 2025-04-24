@@ -727,7 +727,6 @@ const schema = a.schema({
     vehicles: a.hasMany('vehicle', 'driverId'),
     driverDeliveries: a.hasMany('delivery', 'driverId'),
     driverCurrentLocation: a.hasOne('driverCurrentLocation', 'driverId'),
-    driverLocationHistories: a.hasMany('driverLocationHistory', 'driverId'),
   })
     .identifier(['userId'])
     .authorization(allow => [
@@ -779,21 +778,6 @@ const schema = a.schema({
     ])
     .disableOperations(['delete']),
 
-  driverLocationHistory: a.model({
-    id: a.id().required(),
-    driverId: a.id().required(),
-    latitude: a.float().required(),
-    longitude: a.float().required(),
-    timestamp: a.datetime().required(),
-    ttl: a.integer(),
-    driver: a.belongsTo('professional', 'driverId'),
-  })
-    .authorization(allow => [
-      allow.authenticated().to(['read']),
-      allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ])
-    .disableOperations(['subscriptions', 'delete']),
-
   vehicle: a.model({
     id: a.id().required(),
     driverId: a.id().required(),
@@ -839,6 +823,7 @@ const schema = a.schema({
     pharmacy: a.belongsTo('business', 'pharmacyId'),
     patient: a.belongsTo('patient', 'patientId'),
     address: a.hasOne('address', 'addressOwnerId'),
+    statusHistory: a.hasMany('deliveryStatusHistory', 'deliveryId'),
   })
     .identifier(['orderId'])
     .authorization(allow => [
@@ -855,8 +840,9 @@ const schema = a.schema({
     notes: a.string(),
     actorId: a.id(),
     actorType: a.enum(deliveryStatusHistoryActorType),
-    latitude: a.float(),
-    longitude: a.float(),
+    latitude: a.float().required(),
+    longitude: a.float().required(),
+    delivery: a.belongsTo('delivery', 'deliveryId'),
   })
     .secondaryIndexes((index) => [
       index('deliveryId')
