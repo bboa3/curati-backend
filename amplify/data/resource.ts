@@ -808,7 +808,6 @@ const schema = a.schema({
     type: a.enum(deliveryType),
     totalDeliveryFee: a.float().required(),
     specialHandlingFee: a.float().required(),
-    driverCommission: a.float(),
     notes: a.string(),
     preferredDeliveryTimeStartAt: a.datetime().required(),
     preferredDeliveryTimeEndAt: a.datetime().required(),
