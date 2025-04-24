@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import dayjs from "dayjs";
-import { Business, Delivery, DeliveryStatus, MedicineOrder, Patient, Professional, Vehicle } from "../../helpers/types/schema";
+import { Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional, Vehicle } from "../../helpers/types/schema";
 import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryPickedUpByDriverPatientEmailNotifier } from "../helpers/delivery-picked-up-by-driver-patient-email-notifier";
 import { deliveryPickedUpByDriverPatientSMSNotifier } from "../helpers/delivery-picked-up-by-driver-patient-sms-notifier";
@@ -52,13 +52,21 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: 
   }
   const vehicle = vehicleData as unknown as Vehicle;
 
+  const { data: driverCurrentLocationData, errors: driverCurrentLocationErrors } = await dbClient.models.driverCurrentLocation.get({ driverId: driverId });
+
+  if (driverCurrentLocationErrors || !driverCurrentLocationData) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(driverCurrentLocationErrors)}`);
+  }
+
+  const driverCurrentLocation = driverCurrentLocationData as unknown as DriverCurrentLocation;
+
   await createDeliveryStatusHistory({
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.PICKED_UP_BY_DRIVER,
-    latitude: pharmacy.businessLatitude,
-    longitude: pharmacy.businessLongitude
+    status: DeliveryStatus.DELIVERED,
+    latitude: driverCurrentLocation.latitude,
+    longitude: driverCurrentLocation.longitude
   })
 
   const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
