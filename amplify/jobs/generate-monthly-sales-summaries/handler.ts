@@ -27,7 +27,7 @@ Amplify.configure(resourceConfig, libraryOptions);
 
 const logger = new Logger({
   logLevel: "INFO",
-  serviceName: "dynamodb-stream-handler",
+  serviceName: "job-handler",
 });
 
 const client = generateClient<any>();

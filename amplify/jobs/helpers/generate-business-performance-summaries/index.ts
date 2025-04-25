@@ -30,6 +30,8 @@ export const generateBusinessPerformanceSummaries = async ({
     logger
   });
 
+  logger.info(`Creating business performance summary for ${businessId}`, summary);
+
   const { errors } = await dbClient.models.businessPerformanceSummary.create({
     id: generateUUIDv4(),
     businessId,
