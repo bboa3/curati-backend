@@ -18,6 +18,7 @@ interface IServiceTotalOrder {
 
 class ServicePriceCalculator {
   private taxPercentage: number;
+
   private readonly baseConditions = [
     PricingCondition.STANDARD,
     PricingCondition.MONTHLY_SUBSCRIPTION,

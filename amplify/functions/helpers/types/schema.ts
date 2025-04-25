@@ -469,12 +469,6 @@ export enum UserRole {
   PATIENT = 'PATIENT'
 }
 
-export enum SalesSummaryItemType {
-  MEDICINE = 'MEDICINE',
-  BUSINESSSERVICE = 'BUSINESSSERVICE',
-  DRIVER = 'DRIVER'
-}
-
 export enum SalesSummaryTimeGranularity {
   DAILY = 'DAILY',
   WEEKLY = 'WEEKLY',
@@ -604,6 +598,9 @@ export interface Contract extends ContractSchema {
   status: ContractStatus
   contractTerminatedBy: ContractTerminatedBy
 };
+
+type ContractPaymentSchema = Schema['contractPayment']['type'];
+export interface ContractPayment extends ContractPaymentSchema { };
 
 type ServiceSchema = Schema['service']['type'];
 export interface Service extends ServiceSchema {
@@ -817,9 +814,23 @@ export interface PaymentTransaction extends PaymentTransactionSchema {
   status: PaymentTransactionStatus;
 };
 
-type SalesSummarySchema = Schema['salesSummary']['type'];
-export interface SalesSummary extends SalesSummarySchema {
-  itemType: SalesSummaryItemType;
+type BusinessPerformanceSummarySchema = Schema['businessPerformanceSummary']['type'];
+export interface BusinessPerformanceSummary extends BusinessPerformanceSummarySchema {
+  timeGranularity: SalesSummaryTimeGranularity;
+};
+
+type DriverPerformanceSummarySchema = Schema['driverPerformanceSummary']['type'];
+export interface DriverPerformanceSummary extends DriverPerformanceSummarySchema {
+  timeGranularity: SalesSummaryTimeGranularity;
+};
+
+type MedicineSalesSummarySchema = Schema['medicineSalesSummary']['type'];
+export interface MedicineSalesSummary extends MedicineSalesSummarySchema {
+  timeGranularity: SalesSummaryTimeGranularity;
+};
+
+type ServicePerformanceSummarySchema = Schema['servicePerformanceSummary']['type'];
+export interface ServicePerformanceSummary extends ServicePerformanceSummarySchema {
   timeGranularity: SalesSummaryTimeGranularity;
 };
 

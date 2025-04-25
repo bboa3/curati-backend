@@ -4,5 +4,8 @@ export const generateDailySalesSummaries = defineFunction({
   name: "generate-daily-sales-summaries",
   entry: './handler.ts',
   timeoutSeconds: 60 * 10, // 10 minutes
-  schedule: 'every day'
+  schedule: 'every day',
+  environment: {
+    DRIVER_COMMISSION_PERCENTAGE: '0.8',
+  }
 })

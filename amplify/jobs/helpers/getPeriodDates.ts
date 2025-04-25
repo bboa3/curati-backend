@@ -1,5 +1,5 @@
 import { Dayjs } from "dayjs";
-import { SalesSummaryTimeGranularity } from "../../../functions/helpers/types/schema";
+import { SalesSummaryTimeGranularity } from "../../functions/helpers/types/schema";
 
 export const getPeriodDates = (granularity: SalesSummaryTimeGranularity, date: Dayjs) => {
   switch (granularity) {

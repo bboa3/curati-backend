@@ -121,7 +121,6 @@ const insuranceItemType = ['PATIENT', 'PROFESSIONAL', 'BUSINESS'] as const;
 const professionalType = ['DOCTOR', 'NURSE', 'PHARMACIST', 'DRIVER'] as const;
 const professionalRole = ['MANAGER', 'ASSISTANT', 'STAFF', 'INTERN', 'OWNER'] as const;
 const userRole = ['ADMIN', 'PROFESSIONAL', 'PATIENT'] as const;
-const salesSummaryItemType = ['MEDICINE', 'BUSINESSSERVICE', 'DRIVER'] as const;
 const salesSummaryTimeGranularity = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as const;
 
 const schema = a.schema({
@@ -200,12 +199,12 @@ const schema = a.schema({
     profilePicture: a.string(),
     expoPushTokens: a.string().array().required(),
     isDeleted: a.boolean().required().default(false),
-    notifications: a.hasMany('notification', 'userId'),
-    view: a.hasMany('view', 'userId'),
-    likes: a.hasMany('like', 'userId'),
+    //  notifications: a.hasMany('notification', 'userId'),
+    // view: a.hasMany('view', 'userId'),
+    // likes: a.hasMany('like', 'userId'),
     articles: a.hasMany('article', 'authorId'),
     ratings: a.hasMany('rating', 'userId'),
-    reminders: a.hasMany('reminder', 'userId'),
+    // reminders: a.hasMany('reminder', 'userId'),
     professional: a.hasOne('professional', 'userId'),
     patient: a.hasOne('patient', 'userId'),
     validatedPrescriptions: a.hasMany('prescription', 'validatedById')
@@ -452,31 +451,46 @@ const schema = a.schema({
     paymentMethodId: a.id().required(),
     type: a.enum(contractType),
     status: a.enum(contractStatus),
-    startDate: a.datetime().required(),
-    endDate: a.datetime(),
-    isRenewable: a.boolean().default(false),
-    renewalDate: a.datetime(),
+    autoRenew: a.boolean().required().default(false),
+    nextRenewalDate: a.datetime().required(),
+    renewalNoticeDays: a.integer().required().default(7),
     appointmentsAllowed: a.integer().required(),
     appointmentsUsed: a.integer().required().default(0),
     appliedPricingConditions: a.string().required().array().required(),
     purpose: a.string().required(),
     notes: a.string(),
-    patientSignature: a.string(),
-    businessSignature: a.string(),
+    signatureImage: a.string(),
     terminationReason: a.string(),
     terminatedBy: a.enum(contractTerminatedBy),
+    terminatedAt: a.datetime(),
     patient: a.belongsTo('patient', 'patientId'),
     business: a.belongsTo('business', 'businessId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
     appointments: a.hasMany('appointment', 'contractId'),
-    invoices: a.hasMany('invoice', 'invoiceSourceId'),
     paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
     consultationRecords: a.hasMany('consultationRecord', 'contractId'),
+    contractPayments: a.hasMany('contractPayment', 'contractId')
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update']),
     ]).disableOperations(['delete']),
+
+  contractPayment: a.model({
+    id: a.id().required(),
+    contractId: a.id().required(),
+    periodStart: a.datetime().required(),
+    periodEnd: a.datetime().required(),
+    paymentDate: a.datetime().required(),
+    amount: a.float().required(),
+    refundableAmount: a.float().required(),
+    invoiceId: a.id().required(),
+    contract: a.belongsTo('contract', 'contractId'),
+    invoice: a.belongsTo('invoice', 'invoiceId')
+  })
+    .authorization(allow => [
+      allow.authenticated().to(['read']),
+    ]).disableOperations(['delete', 'subscriptions', 'update']),
 
   service: a.model({
     id: a.id().required(),
@@ -946,7 +960,7 @@ const schema = a.schema({
     relatedItemType: a.enum(notificationRelatedItemType),
     expiresAt: a.datetime().required(),
     isRead: a.boolean().required().default(false),
-    user: a.belongsTo('user', 'userId'),
+    //  user: a.belongsTo('user', 'userId'),
   }).authorization(allow => [
     allow.authenticated().to(['read']),
     allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
@@ -958,7 +972,7 @@ const schema = a.schema({
     viewedItemId: a.id().required(),
     viewedItemType: a.enum(viewedItemType),
     timestamp: a.datetime().required(),
-    user: a.belongsTo('user', 'userId'),
+    //  user: a.belongsTo('user', 'userId'),
     // article: a.belongsTo('article', 'viewedItemId'),
     // medicine: a.belongsTo('medicine', 'viewedItemId'),
   }).identifier(['viewedItemId'])
@@ -971,7 +985,7 @@ const schema = a.schema({
     userId: a.id().required(),
     likedItemId: a.id().required(),
     likedItemType: a.enum(likedItemType),
-    user: a.belongsTo('user', 'userId'),
+    // user: a.belongsTo('user', 'userId'),
     // article: a.belongsTo('article', 'likedItemId'),
     // medicine: a.belongsTo('medicine', 'likedItemId'),
   }).identifier(['likedItemId', 'userId'])
@@ -1136,7 +1150,7 @@ const schema = a.schema({
     dateTime: a.datetime().required(),
     status: a.enum(reminderStatus),
     repeat: a.enum(repeatType),
-    user: a.belongsTo('user', 'userId'),
+    // user: a.belongsTo('user', 'userId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update', 'delete']),
@@ -1164,7 +1178,7 @@ const schema = a.schema({
     documentHistory: a.json().array(),
     patient: a.belongsTo('patient', 'patientId'),
     medicineOrder: a.belongsTo('medicineOrder', 'invoiceSourceId'),
-    contract: a.belongsTo('contract', 'invoiceSourceId'),
+    contractPayments: a.hasMany('contractPayment', 'invoiceId'),
     business: a.belongsTo('business', 'businessId'),
     transactions: a.hasMany('paymentTransaction', 'invoiceId'),
     paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
@@ -1218,22 +1232,96 @@ const schema = a.schema({
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['subscriptions', 'delete']),
 
-  salesSummary: a.model({
+  businessPerformanceSummary: a.model({
     id: a.id().required(),
     businessId: a.id().required(),
-    itemId: a.id().required(),
-    itemType: a.enum(salesSummaryItemType),
     timeGranularity: a.enum(salesSummaryTimeGranularity),
-    periodStart: a.date().required(),
-    periodEnd: a.date().required(),
+    periodStart: a.datetime().required(),
+    periodEnd: a.datetime().required(),
+    // --- Overall Financial Metrics --
     totalRevenue: a.float().required().default(0),
-    totalUnitsSold: a.integer().required().default(0),
-    numberOfSales: a.integer().required().default(0),
-    averageUnitPrice: a.float().required().default(0),
-    previousPeriodGrowth: a.float().required().default(0),
+    medicineRevenue: a.float().default(0),
+    serviceRevenue: a.float().default(0),
+    deliveryRevenue: a.float().default(0),
+    previousPeriodRevenueGrowthPercent: a.float().default(0),
+    // --- Medicine Sales Metrics --
+    totalMedicineUnitsSold: a.integer().default(0),
+    totalMedicineOrdersCount: a.integer().default(0),
+    totalMedicineUnitsRefunded: a.integer().default(0),
+    // --- Service Metrics --
+    totalAppointmentsCompleted: a.integer().default(0),
+    totalContractsSold: a.integer().default(0),
+    totalContractsValue: a.float().default(0),
+    averageServiceCancellationRate: a.float().default(0),
+    totalAppointmentsRescheduled: a.integer().default(0),
+    // --- Delivery Metrics --
+    totalDeliveriesCompleted: a.integer().default(0),
+    // --- Business Reputation --
+    averageBusinessRating: a.float().default(0),
+    totalBusinessRatings: a.integer().default(0)
   })
+    .authorization(allow => [
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
+    ]).disableOperations(['create', 'update', 'delete', 'subscriptions']),
 
+  driverPerformanceSummary: a.model({
+    id: a.id().required(),
+    businessId: a.id().required(),
+    driverId: a.id().required(),
+    timeGranularity: a.enum(salesSummaryTimeGranularity),
+    periodStart: a.datetime().required(),
+    periodEnd: a.datetime().required(),
+    previousPeriodGrowth: a.float().required().default(0),
+    completedDeliveries: a.integer().default(0),
+    totalDeliveryFeesGenerated: a.float().default(0),
+    totalCommissionEarned: a.float().default(0),
+    averageCommissionPerDelivery: a.float().default(0),
+    averageDeliveryTimeMinutes: a.float().default(0),
+    onTimeRatePercent: a.float().default(0),
+    averageRating: a.float().default(0),
+    reviewsCount: a.integer().default(0),
+    totalDistanceKm: a.float().default(0),
+  })
+    .authorization(allow => [
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
+    ]).disableOperations(['create', 'update', 'delete', 'subscriptions']),
 
+  medicineSalesSummary: a.model({
+    id: a.id().required(),
+    businessId: a.id().required(),
+    pharmacyInventoryId: a.id().required(),
+    timeGranularity: a.enum(salesSummaryTimeGranularity),
+    periodStart: a.datetime().required(),
+    periodEnd: a.datetime().required(),
+    previousPeriodGrowth: a.float().required().default(0),
+    totalRevenue: a.float().required().default(0),
+    unitsSold: a.integer().default(0),
+    ordersCount: a.integer().default(0),
+    averageSellingPrice: a.float().default(0),
+    unitsRefunded: a.integer().default(0),
+  })
+    .authorization(allow => [
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
+    ]).disableOperations(['create', 'update', 'delete', 'subscriptions']),
+
+  servicePerformanceSummary: a.model({
+    id: a.id().required(),
+    businessId: a.id().required(),
+    businessServiceId: a.id().required(),
+    timeGranularity: a.enum(salesSummaryTimeGranularity),
+    periodStart: a.datetime().required(),
+    periodEnd: a.datetime().required(),
+    previousPeriodGrowth: a.float().required().default(0),
+    totalRevenue: a.float().required().default(0),
+    contractsSold: a.integer().default(0),
+    appointmentsCompleted: a.integer().default(0),
+    averageSessionDuration: a.float().default(0),
+    averageRevenuePerContract: a.float().default(0),
+    averageRevenuePerAppointment: a.float().default(0),
+    cancellationRate: a.float().default(0),
+    rescheduledAppointments: a.integer().default(0),
+    totalContractsValue: a.float().default(0)
+  })
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['create', 'update', 'delete', 'subscriptions'])

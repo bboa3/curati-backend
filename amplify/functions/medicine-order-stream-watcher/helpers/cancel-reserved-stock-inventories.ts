@@ -25,7 +25,7 @@ export const cancelReservedStockInventories = async ({ client, orderId }: Update
   const inventoryFilters = inventoryIds.map(id => ({ id: { eq: id } }));
 
   const { data: pharmacyInventoriesData, errors: inventoriesErrors } = await client.models.pharmacyInventory.list({
-    filter: { and: [{ or: inventoryFilters }] }
+    filter: { or: inventoryFilters }
   });
 
   if (inventoriesErrors || !pharmacyInventoriesData) {
