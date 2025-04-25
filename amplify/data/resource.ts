@@ -1262,7 +1262,7 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['create', 'update', 'delete', 'subscriptions']),
+    ]).disableOperations(['update', 'delete', 'subscriptions']),
 
   driverPerformanceSummary: a.model({
     id: a.id().required(),
@@ -1284,7 +1284,7 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['create', 'update', 'delete', 'subscriptions']),
+    ]).disableOperations(['update', 'delete', 'subscriptions']),
 
   medicineSalesSummary: a.model({
     id: a.id().required(),
@@ -1302,7 +1302,7 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['create', 'update', 'delete', 'subscriptions']),
+    ]).disableOperations(['update', 'delete', 'subscriptions']),
 
   servicePerformanceSummary: a.model({
     id: a.id().required(),
@@ -1324,7 +1324,7 @@ const schema = a.schema({
   })
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
-    ]).disableOperations(['create', 'update', 'delete', 'subscriptions'])
+    ]).disableOperations(['update', 'delete', 'subscriptions'])
 })
   .authorization((allow) => [
     allow.resource(postConfirmation),
