@@ -3,7 +3,7 @@ import { defineFunction } from "@aws-amplify/backend"
 export const generateDailySalesSummaries = defineFunction({
   name: "generate-daily-sales-summaries",
   entry: './handler.ts',
-  timeoutSeconds: 90, // 10 minutes
+  timeoutSeconds: 60 * 10, // 10 minutes
   schedule: 'every 2m',
   environment: {
     DRIVER_COMMISSION_PERCENTAGE: '0.8',
