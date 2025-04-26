@@ -55,7 +55,6 @@ export const aggregateServicePerformance = async ({
       });
 
       const appointments = await fetchCompletedAppointments({
-        businessId,
         businessServiceId: service.id,
         periodStart,
         periodEnd,

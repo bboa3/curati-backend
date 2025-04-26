@@ -4,7 +4,6 @@ import { Appointment, AppointmentStatus } from '../../../functions/helpers/types
 
 interface TriggerInput {
   businessServiceId: string;
-  businessId: string;
   periodStart: Dayjs;
   periodEnd: Dayjs;
   dbClient: any;
@@ -13,7 +12,6 @@ interface TriggerInput {
 
 export const fetchCompletedAppointments = async ({
   businessServiceId,
-  businessId,
   periodStart,
   periodEnd,
   dbClient,
@@ -22,7 +20,6 @@ export const fetchCompletedAppointments = async ({
   const { data, errors } = await dbClient.models.appointment.list({
     filter: {
       businessServiceId: { eq: businessServiceId },
-      businessId: { eq: businessId },
       status: { eq: AppointmentStatus.COMPLETED },
       appointmentDateTime: { between: [periodStart.toISOString(), periodEnd.toISOString()] }
     }
