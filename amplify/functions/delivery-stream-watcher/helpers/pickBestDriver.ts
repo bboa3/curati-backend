@@ -23,7 +23,7 @@ const INITIAL_RETRY_DELAY_MS = 30000; // 30 seconds
 const RETRY_BACKOFF_FACTOR = 2;
 const MAX_RETRY_DELAY_MS = 300000; // 5 minutes
 const LOCATION_BATCH_SIZE = 50;
-const LOCATION_CUTOFF_TIME = dayjs().utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString();
+const LOCATION_CUTOFF_TIME = dayjs.utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString();
 
 export const pickBestDriver = async ({ client, logger, pharmacyLocation }: PickBestDriverInput): Promise<PickBestDriverOutput> => {
   let lastError: Error = new Error("All retry attempts failed");
