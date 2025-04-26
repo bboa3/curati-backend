@@ -3,12 +3,12 @@ import { paginatedQuery } from "../paginatedQuery";
 
 export const collectReputationMetrics = async (params: {
   dbClient: any;
-  businessId: string;
+  driverId: string;
 }) => {
   const ratings: Rating[] = await paginatedQuery(params.dbClient.models.rating, {
     filter: {
-      ratedItemType: { eq: RatedItemType.BUSINESS },
-      ratedItemId: { eq: params.businessId }
+      ratedItemType: { eq: RatedItemType.PROFESSIONAL },
+      ratedItemId: { eq: params.driverId }
     }
   });
 

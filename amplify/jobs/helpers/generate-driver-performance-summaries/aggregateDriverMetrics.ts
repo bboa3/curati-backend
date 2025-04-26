@@ -8,13 +8,8 @@ interface AggregatorInput {
   commissionPercentage: number;
 }
 
-export const aggregateDriverMetrics = ({ deliveries, commissionPercentage }: AggregatorInput): Map<string, DriverMetrics> => {
-  return deliveries.reduce((acc, delivery) => {
-    if (!delivery.driverId) return acc;
-
-    const driverId = delivery.driverId;
-    const existing = acc.get(driverId) || initializeDriverMetrics();
-
+export const aggregateDriverMetrics = ({ deliveries, commissionPercentage }: AggregatorInput): DriverMetrics => {
+  return deliveries.reduce((metrics, delivery) => {
     const duration = calculateDeliveryDuration(
       delivery.pickedUpAt || undefined,
       delivery.deliveredAt || undefined
@@ -26,13 +21,13 @@ export const aggregateDriverMetrics = ({ deliveries, commissionPercentage }: Agg
       deliveredAt: delivery.deliveredAt || undefined
     });
 
-    return acc.set(driverId, {
-      completedDeliveries: existing.completedDeliveries + 1,
-      totalDistance: existing.totalDistance + (delivery.distanceInKm || 0),
-      totalFees: existing.totalFees + (delivery.totalDeliveryFee || 0),
-      totalCommission: existing.totalCommission + calculateCommission(delivery, commissionPercentage),
-      deliveryTimes: [...existing.deliveryTimes, duration],
-      onTimeCount: isOnTime ? existing.onTimeCount + 1 : existing.onTimeCount,
-    });
-  }, new Map<string, DriverMetrics>());
+    return {
+      completedDeliveries: metrics.completedDeliveries + 1,
+      totalDistance: metrics.totalDistance + (delivery.distanceInKm || 0),
+      totalFees: metrics.totalFees + (delivery.totalDeliveryFee || 0),
+      totalCommission: metrics.totalCommission + calculateCommission(delivery, commissionPercentage),
+      deliveryTimes: [...metrics.deliveryTimes, duration],
+      onTimeCount: isOnTime ? metrics.onTimeCount + 1 : metrics.onTimeCount,
+    }
+  }, initializeDriverMetrics());
 };

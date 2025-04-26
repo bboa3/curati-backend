@@ -16,9 +16,9 @@ export type BusinessMetrics = {
   totalDeliveriesCompleted: number;
   averageDeliveryTimeMinutes: number;
   onTimeRatePercent: number;
-  averageBusinessRating: number;
-  totalBusinessRatings: number;
-  previousPeriodRevenueGrowthPercent: number;
+  averageRating: number;
+  reviewsCount: number;
+  previousPeriodGrowth: number;
 };
 
 export type BusinessPerformanceMetrics = Omit<BusinessPerformanceSummary, 'id' | 'createdAt' | 'updatedAt'>;

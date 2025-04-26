@@ -5,8 +5,10 @@ import { getPreviousPeriodDates } from "../getPreviousPeriodDates";
 import { aggregateSalesMetrics } from "./aggregateSalesMetrics";
 import { fetchCompletedOrders } from "./fetchCompletedOrders";
 import { fetchOrderItems } from "./fetchOrderItems";
+import { fetchPharmacyInventories } from "./fetchPharmacyInventories";
 import { fetchPreviousSummaries } from "./fetchPreviousSummaries";
 import { generateSalesSummaries } from "./generateSalesSummaries";
+import { MedicineSalesSummaryMetrics } from "./initializeMetrics";
 
 interface AggregatorInput {
   businessId: string;
@@ -24,13 +26,25 @@ export const aggregateMedicineSales = async ({
   timeGranularity,
   dbClient,
   logger
-}: AggregatorInput) => {
-  const orders = await fetchCompletedOrders({ businessId, periodStart, periodEnd, dbClient, logger });
-  if (orders.length === 0) return [];
+}: AggregatorInput): Promise<MedicineSalesSummaryMetrics[]> => {
+  const inventories = await fetchPharmacyInventories({ businessId, dbClient, logger });
+
+  const orders = await fetchCompletedOrders({
+    businessId,
+    periodStart,
+    periodEnd,
+    dbClient,
+    logger
+  });
 
   const items = await fetchOrderItems({ orders });
-  const salesAggregation = aggregateSalesMetrics(items);
-  if (salesAggregation.size === 0) return [];
+
+  const salesAggregation = aggregateSalesMetrics({
+    inventories,
+    items,
+    logger
+  });
+
 
   const { previousPeriodStart, previousPeriodEnd } = getPreviousPeriodDates({
     periodStart,
@@ -48,6 +62,7 @@ export const aggregateMedicineSales = async ({
   });
 
   return generateSalesSummaries({
+    inventories,
     aggregation: salesAggregation,
     previousSummaries,
     businessId,

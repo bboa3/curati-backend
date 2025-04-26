@@ -8,21 +8,22 @@ interface TriggerInput {
   periodStart: Dayjs;
   periodEnd: Dayjs;
   dbClient: any;
-  logger: Logger;
+  logger: Logger
 }
 
-export const fetchCompletedDeliveries = async ({ driverId, businessId, periodStart, periodEnd, dbClient, logger }: TriggerInput): Promise<Delivery[]> => {
+
+export const fetchDriverDeliveries = async ({ driverId, businessId, periodStart, periodEnd, dbClient, logger }: TriggerInput) => {
   const { data, errors } = await dbClient.models.delivery.list({
     filter: {
       driverId: { eq: driverId },
       courierId: { eq: businessId },
       status: { eq: DeliveryStatus.DELIVERED },
-      deliveredAt: { between: [periodStart.toISOString(), periodEnd.toISOString()] },
+      deliveredAt: { between: [periodStart.toISOString(), periodEnd.toISOString()] }
     }
   });
 
   if (errors) throw new Error(`Failed to fetch deliveries: ${JSON.stringify(errors)}`);
   logger.info(`Found ${data.length} completed deliveries`);
 
-  return data as Delivery[];
+  return data as Delivery[] || [];
 };

@@ -13,7 +13,7 @@ export type ServiceMetrics = {
   averageRevenuePerAppointment: number;
 };
 
-export type ServiceSummaryData = Omit<ServicePerformanceSummary, 'id' | 'createdAt' | 'updatedAt'>;
+export type ServicePerformanceSummaryMetrics = Omit<ServicePerformanceSummary, 'id' | 'createdAt' | 'updatedAt'>;
 
 export const initializeServiceMetrics = (serviceId: string): ServiceMetrics => ({
   businessServiceId: serviceId,

@@ -1,6 +1,6 @@
 import { Dayjs } from "dayjs";
 import { ServicePerformanceSummary } from "../../../functions/helpers/types/schema";
-import { paginatedQuery } from "./paginatedQuery";
+import { paginatedQuery } from "../paginatedQuery";
 
 export const collectServiceMetrics = async (params: {
   dbClient: any;

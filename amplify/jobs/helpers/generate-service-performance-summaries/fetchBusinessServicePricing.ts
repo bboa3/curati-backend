@@ -2,36 +2,22 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { BusinessServicePricing } from "../../../functions/helpers/types/schema";
 
 interface AggregatorInput {
-  businessServiceIds: string[];
+  businessServiceId: string;
   dbClient: any;
   logger: Logger;
 }
 
 export const fetchBusinessServicePricing = async ({
-  businessServiceIds,
+  businessServiceId,
   dbClient,
   logger
 }: AggregatorInput): Promise<BusinessServicePricing[]> => {
-  const pricing: BusinessServicePricing[] = [];
-  const BATCH_SIZE = 100;
+  const { data, errors } = await dbClient.models.businessServicePricing.list({
+    filter: { businessServiceId: { eq: businessServiceId } },
+  });
 
-  for (let i = 0; i < businessServiceIds.length; i += BATCH_SIZE) {
-    const batch = businessServiceIds.slice(i, i + BATCH_SIZE);
-    let nextToken = null;
+  if (errors) throw new Error(`Pricing fetch failed: ${JSON.stringify(errors)}`);
+  logger.info(`Found ${data.length} pricing records`);
 
-    do {
-      const { data, errors, nextToken: newToken } = await dbClient.models.businessServicePricing.list({
-        filter: { or: batch.map(id => ({ businessServiceId: { eq: id } })) },
-        limit: 1000,
-        nextToken
-      }) as any;
-
-      if (errors) throw new Error(`Pricing fetch failed: ${JSON.stringify(errors)}`);
-      pricing.push(...data);
-      nextToken = newToken;
-    } while (nextToken);
-  }
-
-  logger.info(`Fetched ${pricing.length} pricing records for ${businessServiceIds.length} services`);
-  return pricing;
+  return data as BusinessServicePricing[];
 };

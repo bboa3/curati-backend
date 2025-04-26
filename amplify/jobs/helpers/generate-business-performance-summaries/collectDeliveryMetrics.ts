@@ -1,6 +1,7 @@
 import { Dayjs } from "dayjs";
 import { DriverPerformanceSummary } from "../../../functions/helpers/types/schema";
-import { paginatedQuery } from "./paginatedQuery";
+import { paginatedQuery } from "../paginatedQuery";
+import { calculateWeightedMetric } from "./calculator";
 
 export const collectDeliveryMetrics = async (params: {
   dbClient: any;

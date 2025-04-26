@@ -3,6 +3,7 @@ import { Dayjs } from 'dayjs';
 import { Contract, ContractStatus } from '../../../functions/helpers/types/schema';
 
 interface TriggerInput {
+  businessServiceId: string;
   businessId: string;
   periodStart: Dayjs;
   periodEnd: Dayjs;
@@ -11,6 +12,7 @@ interface TriggerInput {
 }
 
 export const fetchServiceContracts = async ({
+  businessServiceId,
   businessId,
   periodStart,
   periodEnd,
@@ -19,6 +21,7 @@ export const fetchServiceContracts = async ({
 }: TriggerInput): Promise<Contract[]> => {
   const { data, errors } = await dbClient.models.contract.list({
     filter: {
+      businessServiceId: { eq: businessServiceId },
       businessId: { eq: businessId },
       status: { eq: ContractStatus.ACTIVE },
       nextRenewalDate: { between: [periodStart.toISOString(), periodEnd.toISOString()] }

@@ -30,8 +30,6 @@ export const generateBusinessPerformanceSummaries = async ({
     logger
   });
 
-  logger.info(`Creating business performance summary for ${businessId}`, summary);
-
   const { errors } = await dbClient.models.businessPerformanceSummary.create({
     id: generateUUIDv4(),
     businessId,
@@ -42,7 +40,7 @@ export const generateBusinessPerformanceSummaries = async ({
     medicineRevenue: summary.medicineRevenue,
     serviceRevenue: summary.serviceRevenue,
     deliveryRevenue: summary.deliveryRevenue,
-    previousPeriodRevenueGrowthPercent: summary.previousPeriodRevenueGrowthPercent,
+    previousPeriodGrowth: summary.previousPeriodGrowth,
     totalMedicineUnitsSold: summary.totalMedicineUnitsSold,
     totalMedicineOrdersCount: summary.totalMedicineOrdersCount,
     totalMedicineUnitsRefunded: summary.totalMedicineUnitsRefunded,
@@ -52,8 +50,8 @@ export const generateBusinessPerformanceSummaries = async ({
     averageServiceCancellationRate: summary.averageServiceCancellationRate,
     totalAppointmentsRescheduled: summary.totalAppointmentsRescheduled,
     totalDeliveriesCompleted: summary.totalDeliveriesCompleted,
-    averageBusinessRating: summary.averageBusinessRating,
-    totalBusinessRatings: summary.totalBusinessRatings
+    averageRating: summary.averageRating,
+    reviewsCount: summary.reviewsCount
   });
 
   if (errors) {

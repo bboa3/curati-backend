@@ -6,7 +6,7 @@ import { collectDeliveryMetrics } from './collectDeliveryMetrics';
 import { collectFinancialMetrics } from './collectFinancialMetrics';
 import { collectReputationMetrics } from './collectReputationMetrics';
 import { collectServiceMetrics } from './collectServiceMetrics';
-import { BusinessMetrics } from './initializeMetrics';
+import { BusinessPerformanceMetrics } from './initializeMetrics';
 
 export const businessMetricsAggregator = async (params: {
   dbClient: any;
@@ -15,7 +15,7 @@ export const businessMetricsAggregator = async (params: {
   periodStart: Dayjs;
   periodEnd: Dayjs;
   timeGranularity: SalesSummaryTimeGranularity;
-}): Promise<BusinessMetrics> => {
+}): Promise<BusinessPerformanceMetrics> => {
   const [financials, services, deliveries, reputation] = await Promise.all([
     collectFinancialMetrics(params),
     collectServiceMetrics(params),
@@ -29,11 +29,15 @@ export const businessMetricsAggregator = async (params: {
   });
 
   return {
+    businessId: params.businessId,
+    periodStart: params.periodStart.toISOString(),
+    periodEnd: params.periodEnd.toISOString(),
+    timeGranularity: params.timeGranularity,
     ...financials,
     ...services,
     ...deliveries,
     ...reputation,
-    previousPeriodRevenueGrowthPercent: growth.revenueGrowth,
+    previousPeriodGrowth: growth.revenueGrowth,
     averageServiceCancellationRate: calculateWeightedAverage(
       services.totalAppointmentsCompleted,
       services.cancellationRateSum

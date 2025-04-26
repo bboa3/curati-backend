@@ -1,11 +1,12 @@
 import { Dayjs } from "dayjs";
 import { SalesSummaryTimeGranularity, ServicePerformanceSummary } from "../../../functions/helpers/types/schema";
 import { calculateGrowthPercentage } from "../generate-driver-performance-summaries/calculator";
-import { ServiceMetrics, ServiceSummaryData } from "./initializeMetrics";
+import { ServiceMetrics, ServicePerformanceSummaryMetrics } from "./initializeMetrics";
 
 interface TriggerInput {
-  serviceMetrics: Map<string, ServiceMetrics>;
-  previousSummaries: Map<string, ServicePerformanceSummary>;
+  serviceMetrics: ServiceMetrics;
+  previousSummary: ServicePerformanceSummary;
+  businessServiceId: string;
   businessId: string;
   timeGranularity: SalesSummaryTimeGranularity;
   periodStart: Dayjs;
@@ -14,34 +15,32 @@ interface TriggerInput {
 
 export const generateServiceSummaries = ({
   serviceMetrics,
-  previousSummaries,
+  previousSummary,
   businessId,
+  businessServiceId,
   timeGranularity,
   periodStart,
   periodEnd
-}: TriggerInput): ServiceSummaryData[] => {
-  return Array.from(serviceMetrics.entries()).map(([businessServiceId, metrics]) => {
-    const previous = previousSummaries.get(businessServiceId);
+}: TriggerInput): ServicePerformanceSummaryMetrics => {
 
-    return {
-      businessId,
-      businessServiceId,
-      timeGranularity,
-      periodStart: periodStart.toISOString(),
-      periodEnd: periodEnd.toISOString(),
-      previousPeriodGrowth: calculateGrowthPercentage(
-        metrics.totalRevenue,
-        previous?.totalRevenue || 0
-      ),
-      totalRevenue: parseFloat(metrics.totalRevenue.toFixed(2)),
-      contractsSold: metrics.contractsSold,
-      appointmentsCompleted: metrics.appointmentsCompleted,
-      averageSessionDuration: metrics.averageSessionDuration,
-      averageRevenuePerContract: parseFloat(metrics.averageRevenuePerContract.toFixed(2)),
-      averageRevenuePerAppointment: parseFloat(metrics.averageRevenuePerAppointment.toFixed(2)),
-      cancellationRate: metrics.cancellationRate,
-      rescheduledAppointments: metrics.rescheduledAppointments,
-      totalContractsValue: parseFloat(metrics.totalContractsValue.toFixed(2))
-    };
-  });
+  return {
+    businessId,
+    businessServiceId,
+    timeGranularity,
+    periodStart: periodStart.toISOString(),
+    periodEnd: periodEnd.toISOString(),
+    previousPeriodGrowth: calculateGrowthPercentage(
+      serviceMetrics.totalRevenue,
+      previousSummary?.totalRevenue || 0
+    ),
+    totalRevenue: parseFloat(serviceMetrics.totalRevenue.toFixed(2)),
+    contractsSold: serviceMetrics.contractsSold,
+    appointmentsCompleted: serviceMetrics.appointmentsCompleted,
+    averageSessionDuration: serviceMetrics.averageSessionDuration,
+    averageRevenuePerContract: parseFloat(serviceMetrics.averageRevenuePerContract.toFixed(2)),
+    averageRevenuePerAppointment: parseFloat(serviceMetrics.averageRevenuePerAppointment.toFixed(2)),
+    cancellationRate: serviceMetrics.cancellationRate,
+    rescheduledAppointments: serviceMetrics.rescheduledAppointments,
+    totalContractsValue: parseFloat(serviceMetrics.totalContractsValue.toFixed(2))
+  };
 };

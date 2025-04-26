@@ -1243,7 +1243,7 @@ const schema = a.schema({
     medicineRevenue: a.float().default(0),
     serviceRevenue: a.float().default(0),
     deliveryRevenue: a.float().default(0),
-    previousPeriodRevenueGrowthPercent: a.float().default(0),
+    previousPeriodGrowth: a.float().default(0),
     // --- Medicine Sales Metrics --
     totalMedicineUnitsSold: a.integer().default(0),
     totalMedicineOrdersCount: a.integer().default(0),
@@ -1257,8 +1257,8 @@ const schema = a.schema({
     // --- Delivery Metrics --
     totalDeliveriesCompleted: a.integer().default(0),
     // --- Business Reputation --
-    averageBusinessRating: a.float().default(0),
-    totalBusinessRatings: a.integer().default(0)
+    averageRating: a.float().default(0),
+    reviewsCount: a.integer().default(0),
   })
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),

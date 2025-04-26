@@ -3,6 +3,7 @@ import { Dayjs } from 'dayjs';
 import { Appointment, AppointmentStatus } from '../../../functions/helpers/types/schema';
 
 interface TriggerInput {
+  businessServiceId: string;
   businessId: string;
   periodStart: Dayjs;
   periodEnd: Dayjs;
@@ -11,6 +12,7 @@ interface TriggerInput {
 }
 
 export const fetchCompletedAppointments = async ({
+  businessServiceId,
   businessId,
   periodStart,
   periodEnd,
@@ -19,6 +21,7 @@ export const fetchCompletedAppointments = async ({
 }: TriggerInput) => {
   const { data, errors } = await dbClient.models.appointment.list({
     filter: {
+      businessServiceId: { eq: businessServiceId },
       businessId: { eq: businessId },
       status: { eq: AppointmentStatus.COMPLETED },
       appointmentDateTime: { between: [periodStart.toISOString(), periodEnd.toISOString()] }

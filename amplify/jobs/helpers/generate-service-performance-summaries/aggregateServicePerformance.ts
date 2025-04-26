@@ -4,12 +4,13 @@ import { SalesSummaryTimeGranularity } from '../../../functions/helpers/types/sc
 import { getPreviousPeriodDates } from '../getPreviousPeriodDates';
 import { calculateServiceMetrics } from './calculateServiceMetrics';
 import { fetchBusinessServicePricing } from './fetchBusinessServicePricing';
+import { fetchBusinessServices } from './fetchBusinessServices';
 import { fetchCompletedAppointments } from './fetchCompletedAppointments';
 import { fetchContractPayments } from './fetchContractPayments';
 import { fetchPreviousServiceSummaries } from './fetchPreviousServiceSummaries';
 import { fetchServiceContracts } from './fetchServiceContracts';
 import { generateServiceSummaries } from './generateServiceSummaries';
-import { ServiceSummaryData } from './initializeMetrics';
+import { ServicePerformanceSummaryMetrics } from './initializeMetrics';
 
 interface AggregatorInput {
   businessId: string;
@@ -27,22 +28,8 @@ export const aggregateServicePerformance = async ({
   timeGranularity,
   dbClient,
   logger
-}: AggregatorInput): Promise<ServiceSummaryData[]> => {
-  const contracts = await fetchServiceContracts({ businessId, periodStart, periodEnd, dbClient, logger });
-  if (contracts.length === 0) return [];
-
-  const businessServiceIds = [...new Set(contracts.map(c => c.businessServiceId))];
-  const businessServicePricing = await fetchBusinessServicePricing({
-    businessServiceIds,
-    dbClient,
-    logger
-  });
-
-  const appointments = await fetchCompletedAppointments({ businessId, periodStart, periodEnd, dbClient, logger });
-
-  const payments = await fetchContractPayments({ contracts, periodStart, periodEnd, dbClient, logger });
-
-  const serviceMetrics = calculateServiceMetrics({ contracts, appointments, payments, businessServicePricing });
+}: AggregatorInput): Promise<ServicePerformanceSummaryMetrics[]> => {
+  const services = await fetchBusinessServices({ businessId, dbClient, logger });
 
   const { previousPeriodStart, previousPeriodEnd } = getPreviousPeriodDates({
     periodStart,
@@ -50,21 +37,63 @@ export const aggregateServicePerformance = async ({
     timeGranularity
   });
 
-  const previousSummaries = await fetchPreviousServiceSummaries({
-    businessId,
-    timeGranularity,
-    previousPeriodStart,
-    previousPeriodEnd,
-    dbClient,
-    logger
-  });
+  const summaries = await Promise.all(
+    services.map(async (service) => {
+      const contracts = await fetchServiceContracts({
+        businessId,
+        businessServiceId: service.id,
+        periodStart,
+        periodEnd,
+        dbClient,
+        logger
+      });
 
-  return generateServiceSummaries({
-    serviceMetrics,
-    previousSummaries,
-    businessId,
-    timeGranularity,
-    periodStart,
-    periodEnd
-  });
+      const businessServicePricing = await fetchBusinessServicePricing({
+        businessServiceId: service.id,
+        dbClient,
+        logger
+      });
+
+      const appointments = await fetchCompletedAppointments({
+        businessId,
+        businessServiceId: service.id,
+        periodStart,
+        periodEnd,
+        dbClient,
+        logger
+      });
+
+      const payments = await fetchContractPayments({ contracts, periodStart, periodEnd, dbClient, logger });
+
+      const serviceMetrics = calculateServiceMetrics({
+        businessServiceId: service.id,
+        contracts,
+        appointments,
+        payments,
+        businessServicePricing
+      });
+
+      const previousSummary = await fetchPreviousServiceSummaries({
+        businessId,
+        businessServiceId: service.id,
+        timeGranularity,
+        previousPeriodStart,
+        previousPeriodEnd,
+        dbClient,
+        logger
+      });
+
+      return generateServiceSummaries({
+        serviceMetrics,
+        previousSummary,
+        businessId,
+        businessServiceId: service.id,
+        timeGranularity,
+        periodStart,
+        periodEnd
+      });
+    })
+  );
+
+  return summaries.filter(summary => summary !== null);
 };

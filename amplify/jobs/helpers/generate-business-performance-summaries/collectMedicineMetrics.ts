@@ -1,6 +1,6 @@
 import { Dayjs } from "dayjs";
 import { MedicineSalesSummary } from "../../../functions/helpers/types/schema";
-import { paginatedQuery } from "./paginatedQuery";
+import { paginatedQuery } from "../paginatedQuery";
 
 export const collectMedicineMetrics = async (params: {
   dbClient: any;

@@ -1,3 +1,5 @@
+import { DriverPerformanceSummary } from "../../../functions/helpers/types/schema";
+
 export type DriverMetrics = {
   completedDeliveries: number;
   totalDistance: number;
@@ -8,9 +10,11 @@ export type DriverMetrics = {
 };
 
 export type RatingMetrics = {
-  ratingSum: number;
-  ratingCount: number;
+  averageRating: number;
+  reviewsCount: number;
 };
+
+export type DriverPerformanceSummaryMetrics = Omit<DriverPerformanceSummary, 'id' | 'createdAt' | 'updatedAt'>;
 
 export const initializeDriverMetrics = (): DriverMetrics => ({
   completedDeliveries: 0,
@@ -18,5 +22,5 @@ export const initializeDriverMetrics = (): DriverMetrics => ({
   totalFees: 0,
   totalCommission: 0,
   deliveryTimes: [],
-  onTimeCount: 0,
+  onTimeCount: 0
 });

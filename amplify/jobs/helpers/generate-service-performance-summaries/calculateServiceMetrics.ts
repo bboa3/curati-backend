@@ -7,11 +7,10 @@ import {
   ContractPayment,
   PricingCondition
 } from '../../../functions/helpers/types/schema';
-import { calculateAverage, calculateCancellationRate } from './calculator';
-import { groupPricingByService } from './groupPricingByService';
 import { initializeServiceMetrics, ServiceMetrics } from './initializeMetrics';
 
 interface CalculationInput {
+  businessServiceId: string;
   contracts: Contract[];
   appointments: Appointment[];
   payments: ContractPayment[];
@@ -19,83 +18,57 @@ interface CalculationInput {
 }
 
 export const calculateServiceMetrics = ({
+  businessServiceId,
   contracts,
   appointments,
   payments,
   businessServicePricing,
-}: CalculationInput): Map<string, ServiceMetrics> => {
-  const metricsMap = new Map<string, ServiceMetrics>();
-  const pricingByService = groupPricingByService(businessServicePricing);
+}: CalculationInput): ServiceMetrics => {
 
-  contracts.forEach(contract => {
-    const serviceId = contract.businessServiceId;
-    const existing = metricsMap.get(serviceId) || initializeServiceMetrics(serviceId);
-    const servicePricing = pricingByService.get(serviceId) || [];
-
-    try {
-      const calculator = new ServicePriceCalculator();
-      const { totalAmount } = calculator.calculateServiceTotal({
-        businessServicePricing: servicePricing,
-        appliedPricingConditions: contract.appliedPricingConditions as PricingCondition[]
-      });
-
-      metricsMap.set(serviceId, {
-        ...existing,
-        contractsSold: existing.contractsSold + 1,
-        totalContractsValue: existing.totalContractsValue + totalAmount
-      });
-    } catch (error: any) {
-      throw new Error(`Failed to calculate contract value for contract ${contract.id}: ${error.message}`);
-    }
-  });
-
-  appointments.forEach(appointment => {
-    const serviceId = appointment.businessServiceId;
-    const existing = metricsMap.get(serviceId) || initializeServiceMetrics(serviceId);
-
-    const newMetrics = { ...existing };
-    if (appointment.status === AppointmentStatus.COMPLETED) {
-      newMetrics.appointmentsCompleted++;
-      newMetrics.averageSessionDuration += appointment.duration;
-    }
-
-    newMetrics.rescheduledAppointments +=
-      appointment.patientRescheduledCount + appointment.professionalRescheduledCount;
-
-    metricsMap.set(serviceId, newMetrics);
-  });
-
-  payments.forEach(payment => {
-    const serviceId = contracts.find(c => c.id === payment.contractId)?.businessServiceId;
-    if (!serviceId) return;
-
-    const existing = metricsMap.get(serviceId) || initializeServiceMetrics(serviceId);
-    metricsMap.set(serviceId, {
-      ...existing,
-      totalRevenue: existing.totalRevenue + payment.amount
+  const contractMetrics = contracts.reduce((metrics, contract) => {
+    const calculator = new ServicePriceCalculator();
+    const { totalAmount } = calculator.calculateServiceTotal({
+      businessServicePricing: businessServicePricing,
+      appliedPricingConditions: contract.appliedPricingConditions as PricingCondition[]
     });
+
+    return {
+      contractsSold: metrics.contractsSold + 1,
+      totalContractsValue: metrics.totalContractsValue + totalAmount
+    }
+  }, {
+    contractsSold: 0,
+    totalContractsValue: 0
   });
 
-  metricsMap.forEach((metrics, serviceId) => {
-    metrics.averageSessionDuration = calculateAverage(
-      metrics.averageSessionDuration,
-      metrics.appointmentsCompleted
-    );
+  const appointmentMetrics = appointments.reduce((metrics, appointment) => {
+    if (appointment.status === AppointmentStatus.COMPLETED) {
+      return {
+        appointmentsCompleted: metrics.appointmentsCompleted + 1,
+        averageSessionDuration: metrics.averageSessionDuration + appointment.duration,
+        rescheduledAppointments: metrics.rescheduledAppointments + (appointment.patientRescheduledCount + appointment.professionalRescheduledCount)
+      }
+    }
 
-    metrics.cancellationRate = calculateCancellationRate(
-      appointments.filter(a => a.businessServiceId === serviceId)
-    );
+    return metrics;
+  }, {
+    appointmentsCompleted: 0,
+    averageSessionDuration: 0,
+    rescheduledAppointments: 0
+  })
 
-    metrics.averageRevenuePerContract = calculateAverage(
-      metrics.totalContractsValue,
-      metrics.contractsSold
-    );
-
-    metrics.averageRevenuePerAppointment = calculateAverage(
-      metrics.totalRevenue,
-      metrics.appointmentsCompleted
-    );
+  const paymentMetrics = payments.reduce((metrics, payment) => {
+    return {
+      totalRevenue: metrics.totalRevenue + payment.amount
+    }
+  }, {
+    totalRevenue: 0
   });
 
-  return metricsMap;
+  return {
+    ...initializeServiceMetrics(businessServiceId),
+    ...contractMetrics,
+    ...appointmentMetrics,
+    ...paymentMetrics
+  }
 };
