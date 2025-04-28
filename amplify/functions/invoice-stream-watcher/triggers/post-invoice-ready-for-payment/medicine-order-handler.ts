@@ -1,8 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { Invoice, InvoiceStatus } from "../../../helpers/types/schema";
-import { createInvoiceTransaction } from "../../helpers/create-invoice-transaction";
+import { Invoice } from "../../../helpers/types/schema";
+import { processPaymentTransactions } from "../../helpers/process-payment-transactions";
 
 interface TriggerInput {
   invoiceImage: { [key: string]: AttributeValue; };
@@ -14,20 +14,10 @@ export const postInvoiceReadyForPaymentMedicineOrderHandler = async ({ invoiceIm
   const invoice = unmarshall(invoiceImage) as Invoice;
   const { id: invoiceId, totalAmount, paymentMethodId } = invoice;
 
-  await createInvoiceTransaction({
+  await processPaymentTransactions({
     client: dbClient,
     invoiceId: invoiceId,
     paymentMethodId: paymentMethodId,
     amount: totalAmount
   });
-
-  // update Invoice On a Successful Payment
-  const { errors: invoiceUpdateErrors } = await dbClient.models.invoice.update({
-    id: invoiceId,
-    status: InvoiceStatus.PAID
-  });
-
-  if (invoiceUpdateErrors) {
-    throw new Error(`Failed to update invoice: ${JSON.stringify(invoiceUpdateErrors)}`);
-  }
 };

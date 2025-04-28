@@ -471,7 +471,8 @@ const schema = a.schema({
     appointments: a.hasMany('appointment', 'contractId'),
     paymentMethod: a.belongsTo('paymentMethod', 'paymentMethodId'),
     consultationRecords: a.hasMany('consultationRecord', 'contractId'),
-    contractPayments: a.hasMany('contractPayment', 'contractId')
+    contractPayments: a.hasMany('contractPayment', 'contractId'),
+    invoices: a.hasMany('invoice', 'invoiceSourceId'),
   })
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),

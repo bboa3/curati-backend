@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { v4 as generateUUIDv4 } from "uuid";
 import { generateHashedIdentifier } from "../../helpers/generateHashedIdentifier";
-import { PaymentTransactionStatus } from "../../helpers/types/schema";
+import { InvoiceStatus, PaymentTransactionStatus } from "../../helpers/types/schema";
 
 interface UpdateInventoriesInput {
   client: any;
@@ -10,7 +10,7 @@ interface UpdateInventoriesInput {
   amount: number;
 }
 
-export const createInvoiceTransaction = async ({ client, invoiceId, paymentMethodId, amount }: UpdateInventoriesInput) => {
+export const processPaymentTransactions = async ({ client, invoiceId, paymentMethodId, amount }: UpdateInventoriesInput) => {
   const now = dayjs().utc();
   const temporaryTransactionId = await generateHashedIdentifier(invoiceId, 'TEMP');
 
@@ -26,5 +26,14 @@ export const createInvoiceTransaction = async ({ client, invoiceId, paymentMetho
 
   if (errors || !data) {
     throw new Error(`Failed to create payment transaction: ${JSON.stringify(errors)}`);
+  }
+
+  const { errors: invoiceUpdateErrors } = await client.models.invoice.update({
+    id: invoiceId,
+    status: InvoiceStatus.PAID
+  });
+
+  if (invoiceUpdateErrors) {
+    throw new Error(`Failed to update invoice: ${JSON.stringify(invoiceUpdateErrors)}`);
   }
 }
