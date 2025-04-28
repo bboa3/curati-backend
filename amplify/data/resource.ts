@@ -1199,6 +1199,7 @@ const schema = a.schema({
     documentHistory: a.json().array(),
     patient: a.belongsTo('patient', 'patientId'),
     medicineOrder: a.belongsTo('medicineOrder', 'invoiceSourceId'),
+    contract: a.belongsTo('contract', 'invoiceSourceId'),
     contractPayments: a.hasMany('contractPayment', 'invoiceId'),
     business: a.belongsTo('business', 'businessId'),
     transactions: a.hasMany('paymentTransaction', 'invoiceId'),
