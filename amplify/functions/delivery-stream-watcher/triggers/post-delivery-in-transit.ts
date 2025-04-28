@@ -2,8 +2,8 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import dayjs from "dayjs";
+import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
 import { Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
-import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryInTransitPatientEmailNotifier } from "../helpers/delivery-in-transit-patient-email-notifier";
 import { deliveryInTransitPatientSMSNotifier } from "../helpers/delivery-in-transit-patient-sms-notifier";
 

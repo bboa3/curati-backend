@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { v4 as generateUUIDv4 } from "uuid";
-import { DeliveryStatus, DeliveryStatusHistoryActorType } from "../../helpers/types/schema";
+import { DeliveryStatus, DeliveryStatusHistoryActorType } from "./types/schema";
 
 interface CreateDeliveryStatusHistoryInput {
   client: any;

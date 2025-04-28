@@ -2,8 +2,8 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import dayjs from "dayjs";
-import { Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional, Vehicle } from "../../helpers/types/schema";
-import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
+import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
+import { Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional, ProfessionalAvailabilityStatus, Vehicle } from "../../helpers/types/schema";
 import { deliveryPickedUpByDriverPatientEmailNotifier } from "../helpers/delivery-picked-up-by-driver-patient-email-notifier";
 import { deliveryPickedUpByDriverPatientSMSNotifier } from "../helpers/delivery-picked-up-by-driver-patient-sms-notifier";
 
@@ -68,6 +68,15 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: 
     latitude: driverCurrentLocation.latitude,
     longitude: driverCurrentLocation.longitude
   })
+
+  const { errors: availabilityUpdateErrors } = await dbClient.models.professionalAvailability.update({
+    professionalId: driverId,
+    currentAvailabilityStatus: ProfessionalAvailabilityStatus.BUSY
+  });
+
+  if (availabilityUpdateErrors) {
+    throw new Error(`Failed to update driver availability: ${JSON.stringify(availabilityUpdateErrors)}`);
+  }
 
   const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
 

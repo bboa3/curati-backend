@@ -116,6 +116,13 @@ export enum DeliveryStatus {
   FAILED = 'FAILED'
 }
 
+export enum DeliveryAssignmentStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  DECLINED = 'DECLINED',
+  EXPIRED = 'EXPIRED'
+}
+
 export enum DeliveryStatusHistoryActorType {
   SYSTEM = 'SYSTEM',
   PATIENT = 'PATIENT',
@@ -706,6 +713,11 @@ export interface DeliveryStatusHistory extends DeliveryStatusHistorySchema {
   status: DeliveryStatus;
   actorType: DeliveryStatusHistoryActorType;
 };
+
+type DeliveryAssignmentSchema = Schema['deliveryAssignment']['type'];
+export interface DeliveryAssignment extends DeliveryAssignmentSchema {
+  status: DeliveryAssignmentStatus
+}
 
 type MedicineCategorySchema = Schema['medicineCategory']['type'];
 export interface MedicineCategory extends MedicineCategorySchema {

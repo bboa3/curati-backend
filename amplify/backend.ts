@@ -11,6 +11,7 @@ import { appointmentStreamWatcher } from './functions/appointment-stream-watcher
 import { contractStreamWatcher } from './functions/contract-stream-watcher/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
+import { deliveryAssignmentStreamWatcher } from './functions/delivery-assignment-stream-watcher/resource';
 import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resource';
 import { getSecrets } from './functions/get-secrets/resource';
 import { invoiceStreamWatcher } from './functions/invoice-stream-watcher/resource';
@@ -34,10 +35,11 @@ const backend = defineBackend({
   prescriptionStreamWatcher,
   invoiceStreamWatcher,
   contractStreamWatcher,
+  deliveryAssignmentStreamWatcher,
   appointmentStreamWatcher,
   medicineOrderStreamWatcher,
   generateDailySalesSummaries,
-  generateMonthlySalesSummaries
+  generateMonthlySalesSummaries,
 });
 
 const { cfnUserPool } = backend.auth.resources.cfnResources
@@ -58,6 +60,7 @@ const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
 const contractTable = backend.data.resources.tables["contract"];
 const appointmentTable = backend.data.resources.tables["appointment"];
 const invoiceTable = backend.data.resources.tables["invoice"];
+const deliveryAssignmentTable = backend.data.resources.tables["deliveryAssignment"];
 
 const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "DeliveryStreamWatcherPolicy",
   {
@@ -239,12 +242,43 @@ const invoiceStreamWatcherPolicy = new Policy(Stack.of(invoiceTable), "InvoiceSt
   }
 );
 
+const deliveryAssignmentStreamWatcherPolicy = new Policy(Stack.of(deliveryAssignmentTable), "DeliveryAssignmentStreamWatcherPolicy",
+  {
+    statements: [
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "dynamodb:DescribeStream",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:ListStreams"
+        ],
+        resources: [deliveryAssignmentTable.tableStreamArn!],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+        ],
+        resources: ["*"],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["sns:Publish"],
+        resources: ["*"],
+      }),
+    ],
+  }
+);
+
 backend.deliveryStreamWatcher.resources.lambda.role?.attachInlinePolicy(deliveryStreamWatcherPolicy);
 backend.prescriptionStreamWatcher.resources.lambda.role?.attachInlinePolicy(prescriptionStreamWatcherPolicy);
 backend.medicineOrderStreamWatcher.resources.lambda.role?.attachInlinePolicy(medicineOrderStreamWatcherPolicy);
 backend.contractStreamWatcher.resources.lambda.role?.attachInlinePolicy(contractStreamWatcherPolicy);
 backend.appointmentStreamWatcher.resources.lambda.role?.attachInlinePolicy(appointmentStreamWatcherPolicy);
 backend.invoiceStreamWatcher.resources.lambda.role?.attachInlinePolicy(invoiceStreamWatcherPolicy);
+backend.deliveryAssignmentStreamWatcher.resources.lambda.role?.attachInlinePolicy(deliveryAssignmentStreamWatcherPolicy);
 
 const deliveryStreamWatcherMapping = new EventSourceMapping(Stack.of(deliveryTable), "DeliveryStreamWatcherMapping",
   {
@@ -293,9 +327,18 @@ const invoiceStreamWatcherMapping = new EventSourceMapping(Stack.of(invoiceTable
   }
 );
 
+const deliveryAssignmentStreamWatcherMapping = new EventSourceMapping(Stack.of(deliveryAssignmentTable), "DeliveryAssignmentStreamWatcherMapping",
+  {
+    target: backend.deliveryAssignmentStreamWatcher.resources.lambda,
+    eventSourceArn: deliveryAssignmentTable.tableStreamArn,
+    startingPosition: StartingPosition.LATEST,
+  }
+);
+
 deliveryStreamWatcherMapping.node.addDependency(deliveryStreamWatcherPolicy);
 prescriptionStreamWatcherMapping.node.addDependency(prescriptionStreamWatcherPolicy);
 medicineOrderStreamWatcherMapping.node.addDependency(medicineOrderStreamWatcherPolicy);
 contractStreamWatcherMapping.node.addDependency(contractStreamWatcherPolicy);
 appointmentStreamWatcherMapping.node.addDependency(appointmentStreamWatcherPolicy);
 invoiceStreamWatcherMapping.node.addDependency(invoiceStreamWatcherPolicy);
+deliveryAssignmentStreamWatcherMapping.node.addDependency(deliveryAssignmentStreamWatcherPolicy);

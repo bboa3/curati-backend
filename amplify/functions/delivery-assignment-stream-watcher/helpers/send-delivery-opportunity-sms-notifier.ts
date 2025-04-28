@@ -4,11 +4,12 @@ const client = new SNSClient();
 
 interface NotifierInput {
   phoneNumber: string;
-  orderNumber: string;
+  deliveryNumber: string;
+  deliveryOpportunityDeepLink: string;
 }
 
-export async function deliveryDriverAssignedPatientSMSNotifier({ phoneNumber, orderNumber }: NotifierInput) {
-  const message = `Curati: Óptima notícia! Sua encomenda (${orderNumber}) está PRONTA p/ ENTREGA e será despachada em breve. Acompanhe o estado no app Cúrati.`;
+export async function sendDeliveryOpportunitySMSNotifier({ phoneNumber, deliveryNumber, deliveryOpportunityDeepLink }: NotifierInput) {
+  const message = `Curati Go: Oportunidade de entrega #${deliveryNumber}! Urgente: Seja o primeiro a aceitar na app! Vaga expira breve -> ${deliveryOpportunityDeepLink}`;
 
   const params: PublishCommandInput = {
     Message: message,

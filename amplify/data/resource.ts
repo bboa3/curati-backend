@@ -7,6 +7,7 @@ import { appointmentStreamWatcher } from '../functions/appointment-stream-watche
 import { contractStreamWatcher } from '../functions/contract-stream-watcher/resource';
 import { createStreamToken } from '../functions/create-stream-token/resource';
 import { deleteSearchableRecord } from '../functions/delete-searchable-record/resource';
+import { deliveryAssignmentStreamWatcher } from '../functions/delivery-assignment-stream-watcher/resource';
 import { deliveryStreamWatcher } from '../functions/delivery-stream-watcher/resource';
 import { getSecrets } from '../functions/get-secrets/resource';
 import { invoiceStreamWatcher } from '../functions/invoice-stream-watcher/resource';
@@ -41,6 +42,7 @@ const deliveryStatus = [
 ] as const;
 const deliveryStatusHistoryActorType = ['SYSTEM', 'PATIENT', 'DRIVER', 'PHARMACIST', 'ADMIN'] as const;
 const deliveryType = ['PICKUP', 'DELIVERY'] as const;
+const deliveryAssignmentStatus = ['PENDING', 'ACCEPTED', 'DECLINED', 'EXPIRED'] as const;
 const medicineOrderStatus = ['PENDING_PAYMENT', 'PHARMACY_REVIEW', 'PROCESSING', 'READY_FOR_DISPATCH', 'DISPATCHED', 'COMPLETED', 'REJECTED', 'CANCELED',] as const;
 
 const notificationType = ['GENERAL', 'PERSONAL', 'PROMOTIONAL', 'UPDATE'] as const;
@@ -837,6 +839,7 @@ const schema = a.schema({
     patient: a.belongsTo('patient', 'patientId'),
     address: a.hasOne('address', 'addressOwnerId'),
     statusHistory: a.hasMany('deliveryStatusHistory', 'deliveryId'),
+    deliveryAssignments: a.hasMany('deliveryAssignment', 'deliveryId'),
   })
     .identifier(['orderId'])
     .authorization(allow => [
@@ -864,6 +867,23 @@ const schema = a.schema({
     ]).authorization(allow => [
       allow.authenticated().to(['read']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'create']),
+    ]),
+
+  deliveryAssignment: a.model({
+    id: a.id().required(),
+    deliveryId: a.id().required(),
+    driverId: a.id().required(),
+    courierId: a.id().required(),
+    status: a.enum(deliveryAssignmentStatus),
+    expiresAt: a.datetime().required(),
+    estimatedDistance: a.float().required(),
+    estimatedDuration: a.integer().required(),
+    driverLocationLatitude: a.float().required(),
+    driverLocationLongitude: a.float().required(),
+    delivery: a.belongsTo('delivery', 'deliveryId'),
+  })
+    .authorization(allow => [
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update']),
     ]),
 
   medicineCategory: a.model({
@@ -1336,6 +1356,7 @@ const schema = a.schema({
     allow.resource(appointmentStreamWatcher),
     allow.resource(generateDailySalesSummaries),
     allow.resource(generateMonthlySalesSummaries),
+    allow.resource(deliveryAssignmentStreamWatcher),
   ]);
 
 export type Schema = ClientSchema<typeof schema>;

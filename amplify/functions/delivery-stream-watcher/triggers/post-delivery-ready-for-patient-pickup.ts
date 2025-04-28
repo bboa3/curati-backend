@@ -1,8 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
+import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
 import { Address, Business, Delivery, DeliveryStatus, MedicineOrder, Patient } from "../../helpers/types/schema";
-import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { deliveryReadyForPickupPatientEmailNotifier } from "../helpers/delivery-ready-for-pickup-patient-email-notifier";
 import { deliveryReadyForPickupPatientSMSNotifier } from "../helpers/delivery-ready-for-pickup-patient-sms-notifier";
 

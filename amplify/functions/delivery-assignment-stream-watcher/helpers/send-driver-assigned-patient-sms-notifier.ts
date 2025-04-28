@@ -5,11 +5,11 @@ const client = new SNSClient();
 interface NotifierInput {
   phoneNumber: string;
   deliveryNumber: string;
-  deliveryDeepLink: string;
+  deliveryTrackingDeepLink: string;
 }
 
-export async function newDeliveryAssignmentDriverSMSNotifier({ phoneNumber, deliveryNumber, deliveryDeepLink }: NotifierInput) {
-  const message = `Curati Go: Nova entrega #${deliveryNumber} atribuída. Urgente: Abra a app para detalhes e iniciar rota -> ${deliveryDeepLink}`;
+export async function sendDriverAssignedPatientSMSNotifier({ phoneNumber, deliveryNumber, deliveryTrackingDeepLink }: NotifierInput) {
+  const message = `Curati: Sua entrega #${deliveryNumber} já tem motorista! Ele(a) está a ir p/ farmácia. Acompanhe ao vivo aqui: ${deliveryTrackingDeepLink}`;
 
   const params: PublishCommandInput = {
     Message: message,

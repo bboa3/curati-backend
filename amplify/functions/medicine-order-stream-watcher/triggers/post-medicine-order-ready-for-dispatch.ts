@@ -1,8 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
+import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
 import { Address, Delivery, DeliveryStatus, DeliveryType, MedicineOrder } from "../../helpers/types/schema";
-import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 import { updatePrescriptionRefillsRemaining } from "../helpers/update-prescription-refills-remaining";
 import { updateStockInventories } from '../helpers/update-stock-inventories';
 

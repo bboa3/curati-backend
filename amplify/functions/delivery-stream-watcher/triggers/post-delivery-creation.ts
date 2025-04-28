@@ -1,8 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
+import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
 import { Address, Delivery, DeliveryStatus } from "../../helpers/types/schema";
-import { createDeliveryStatusHistory } from "../helpers/create-delivery-status-history";
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
