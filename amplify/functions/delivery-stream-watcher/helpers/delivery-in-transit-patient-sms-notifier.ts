@@ -7,7 +7,7 @@ interface NotifierInput {
   patientPhoneNumber: string;
   orderNumber: string;
   driverName: string;
-  pickedUpAt: string;
+  departedAt: string;
   estimatedDeliveryDuration: number;
   trackingLink: string;
 }
@@ -16,11 +16,11 @@ export async function deliveryInTransitPatientSMSNotifier({
   patientPhoneNumber,
   orderNumber,
   driverName,
-  pickedUpAt,
+  departedAt,
   estimatedDeliveryDuration,
   trackingLink,
 }: NotifierInput) {
-  const formattedETA = formatETA(pickedUpAt, estimatedDeliveryDuration);
+  const formattedETA = formatETA(departedAt, estimatedDeliveryDuration);
   const message = `Curati: Encomenda ${orderNumber} EM TRÂNSITO com ${driverName}. ETA: ${formattedETA}. Acompanhe ao vivo na app: ${trackingLink}`;
 
   const params: PublishCommandInput = {

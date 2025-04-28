@@ -829,6 +829,7 @@ const schema = a.schema({
     preferredDeliveryTimeStartAt: a.datetime().required(),
     preferredDeliveryTimeEndAt: a.datetime().required(),
     pickedUpAt: a.datetime(),
+    departedAt: a.datetime(),
     deliveredAt: a.datetime(),
     signatureImage: a.string(),
     deliveryConfirmationCode: a.string(),

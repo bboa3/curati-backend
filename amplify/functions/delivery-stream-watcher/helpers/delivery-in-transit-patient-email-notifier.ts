@@ -8,7 +8,7 @@ interface NotifierInput {
   orderNumber: string;
   deliveryNumber: string;
   driverName: string;
-  pickedUpAt: string;
+  departedAt: string;
   estimatedDeliveryDuration: number;
   trackingLink: string;
 }
@@ -21,13 +21,13 @@ export async function deliveryInTransitPatientEmailNotifier({
   orderNumber,
   deliveryNumber,
   driverName,
-  pickedUpAt,
+  departedAt,
   estimatedDeliveryDuration,
   trackingLink,
 }: NotifierInput) {
   const currentYear = new Date().getFullYear();
   const subject = `Cúrati: Entrega ${deliveryNumber} Em Trânsito - Encomenda ${orderNumber}`;
-  const formattedETA = formatETA(pickedUpAt, estimatedDeliveryDuration);
+  const formattedETA = formatETA(departedAt, estimatedDeliveryDuration);
 
   const footerHtml = `
       <div class="footer">
