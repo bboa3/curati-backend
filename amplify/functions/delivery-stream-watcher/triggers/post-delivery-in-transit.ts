@@ -49,7 +49,7 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: Trigger
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.DELIVERED,
+    status: DeliveryStatus.IN_TRANSIT,
     latitude: driverCurrentLocation.latitude,
     longitude: driverCurrentLocation.longitude
   })

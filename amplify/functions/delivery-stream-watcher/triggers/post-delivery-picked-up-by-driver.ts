@@ -64,7 +64,7 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: 
     client: dbClient,
     patientId: patientId,
     deliveryId: orderId,
-    status: DeliveryStatus.DELIVERED,
+    status: DeliveryStatus.PICKED_UP_BY_DRIVER,
     latitude: driverCurrentLocation.latitude,
     longitude: driverCurrentLocation.longitude
   })
