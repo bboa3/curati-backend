@@ -21,7 +21,6 @@ export const calculateContractPaymentPeriod = async ({ contractId, contractType,
 
   const { data: payments } = await dbClient.models.contractPayment.list({
     filter: { contractId: { eq: contractId } },
-    limit: 1,
     sortDirection: 'DESC',
   });
 
