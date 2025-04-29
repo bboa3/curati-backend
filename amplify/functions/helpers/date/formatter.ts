@@ -11,7 +11,6 @@ dayjs.extend(timezone);
 dayjs.extend(duration);
 
 const MAPUTO_TZ = 'Africa/Maputo';
-dayjs.tz.setDefault(MAPUTO_TZ);
 
 type DateType = dayjs.Dayjs | number | string | Date | undefined;
 
@@ -50,7 +49,7 @@ export const formatDayOfWeek = (dayIndex: number): string => {
     console.warn(`Invalid day index: ${dayIndex}.  Returning an empty string.`);
     return '';
   }
-  return dayjs().day(dayIndex).locale('pt-br').format('dddd');
+  return dayjs().day(dayIndex).locale('pt-br').tz(MAPUTO_TZ).format('dddd');
 };
 
 export function formatETA(pickedUpAt: DateType, estimatedDurationMinutes: number): string {
