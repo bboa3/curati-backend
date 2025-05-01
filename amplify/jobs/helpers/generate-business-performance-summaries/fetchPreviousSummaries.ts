@@ -1,8 +1,7 @@
 import { Dayjs } from "dayjs";
-import { DriverPerformanceSummary, SalesSummaryTimeGranularity } from "../../../functions/helpers/types/schema";
+import { BusinessPerformanceSummary, SalesSummaryTimeGranularity } from "../../../functions/helpers/types/schema";
 
 interface TriggerInput {
-  driverId: string;
   businessId: string;
   timeGranularity: SalesSummaryTimeGranularity;
   previousPeriodStart: Dayjs;
@@ -10,9 +9,8 @@ interface TriggerInput {
   dbClient: any;
 }
 
-export const fetchPreviousSummaries = async ({ driverId, businessId, timeGranularity, previousPeriodStart, previousPeriodEnd, dbClient }: TriggerInput): Promise<DriverPerformanceSummary | null> => {
-  const { data, errors } = await dbClient.models.driverPerformanceSummary.get({
-    driverId: { eq: driverId },
+export const fetchPreviousSummaries = async ({ businessId, timeGranularity, previousPeriodStart, previousPeriodEnd, dbClient }: TriggerInput): Promise<BusinessPerformanceSummary | null> => {
+  const { data, errors } = await dbClient.models.businessPerformanceSummary.get({
     businessId: { eq: businessId },
     timeGranularity: { eq: timeGranularity },
     periodStart: { eq: previousPeriodStart.toISOString() },
@@ -20,5 +18,5 @@ export const fetchPreviousSummaries = async ({ driverId, businessId, timeGranula
   });
   if (errors) throw new Error(`Previous summary fetch error: ${JSON.stringify(errors)}`);
 
-  return data as DriverPerformanceSummary;
+  return data as BusinessPerformanceSummary;
 };

@@ -1283,6 +1283,7 @@ const schema = a.schema({
     averageRating: a.float().required().default(0),
     reviewsCount: a.integer().required().default(0),
   })
+    .identifier(['businessId', 'timeGranularity', 'periodStart', 'periodEnd'])
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['update', 'delete', 'subscriptions']),
@@ -1305,6 +1306,7 @@ const schema = a.schema({
     reviewsCount: a.integer().required().default(0),
     totalDistanceKm: a.float().required().default(0),
   })
+    .identifier(['businessId', 'driverId', 'timeGranularity', 'periodStart', 'periodEnd'])
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['update', 'delete', 'subscriptions']),
@@ -1323,6 +1325,7 @@ const schema = a.schema({
     averageSellingPrice: a.float().required().default(0),
     unitsRefunded: a.integer().required().default(0),
   })
+    .identifier(['businessId', 'pharmacyInventoryId', 'timeGranularity', 'periodStart', 'periodEnd'])
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['update', 'delete', 'subscriptions']),
@@ -1345,6 +1348,7 @@ const schema = a.schema({
     rescheduledAppointments: a.integer().required().default(0),
     totalContractsValue: a.float().required().default(0)
   })
+    .identifier(['businessId', 'businessServiceId', 'timeGranularity', 'periodStart', 'periodEnd'])
     .authorization(allow => [
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read']),
     ]).disableOperations(['update', 'delete', 'subscriptions'])

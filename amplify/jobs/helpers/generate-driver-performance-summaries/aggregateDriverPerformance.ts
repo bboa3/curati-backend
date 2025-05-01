@@ -61,8 +61,7 @@ export const aggregateDriverPerformance = async ({
         timeGranularity,
         previousPeriodStart,
         previousPeriodEnd,
-        dbClient,
-        logger
+        dbClient
       });
 
       return generateDriverSummary({

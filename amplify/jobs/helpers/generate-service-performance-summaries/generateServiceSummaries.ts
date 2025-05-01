@@ -5,7 +5,7 @@ import { ServiceMetrics, ServicePerformanceSummaryMetrics } from "./initializeMe
 
 interface TriggerInput {
   serviceMetrics: ServiceMetrics;
-  previousSummary: ServicePerformanceSummary;
+  previousSummary?: ServicePerformanceSummary | null;
   businessServiceId: string;
   businessId: string;
   timeGranularity: SalesSummaryTimeGranularity;

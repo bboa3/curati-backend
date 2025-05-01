@@ -6,7 +6,7 @@ import { DriverMetrics, DriverPerformanceSummaryMetrics, RatingMetrics } from ".
 interface TriggerInput {
   driverMetrics: DriverMetrics;
   ratingMetrics: RatingMetrics;
-  previousSummary: DriverPerformanceSummary;
+  previousSummary?: DriverPerformanceSummary | null;
   timeGranularity: SalesSummaryTimeGranularity;
   periodStart: Dayjs;
   periodEnd: Dayjs;

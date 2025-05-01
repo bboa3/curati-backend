@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Dayjs } from "dayjs";
 import { SalesSummaryTimeGranularity } from "../../../functions/helpers/types/schema";
 import { getPreviousPeriodDates } from "../getPreviousPeriodDates";
-import { paginatedQuery } from "../paginatedQuery";
+import { fetchPreviousSummaries } from "./fetchPreviousSummaries";
 
 export const calculateWeightedAverage = (total: number, sum: number): number => {
   return total > 0 ? parseFloat((sum / total).toFixed(2)) : 0;
@@ -29,24 +29,21 @@ export const calculateGrowthMetrics = async (params: {
   timeGranularity: SalesSummaryTimeGranularity;
   currentRevenue: number;
 }) => {
-  const previousPeriod = getPreviousPeriodDates({
+  const { previousPeriodEnd, previousPeriodStart } = getPreviousPeriodDates({
     periodStart: params.periodStart,
     periodEnd: params.periodEnd,
     timeGranularity: params.timeGranularity
   });
 
-  const previousSummaries = await paginatedQuery(
-    params.dbClient.models.businessPerformanceSummary,
-    {
-      filter: {
-        businessId: { eq: params.businessId },
-        timeGranularity: { eq: params.timeGranularity },
-        periodStart: { eq: previousPeriod.previousPeriodStart.toISOString() }
-      }
-    }
-  );
+  const previousSummaries = await fetchPreviousSummaries({
+    dbClient: params.dbClient,
+    businessId: params.businessId,
+    timeGranularity: params.timeGranularity,
+    previousPeriodStart,
+    previousPeriodEnd,
+  })
 
-  const previousRevenue = previousSummaries[0]?.totalRevenue || 0;
+  const previousRevenue = previousSummaries?.totalRevenue || 0;
   return {
     revenueGrowth: calculateGrowthPercentage(params.currentRevenue, previousRevenue)
   };
