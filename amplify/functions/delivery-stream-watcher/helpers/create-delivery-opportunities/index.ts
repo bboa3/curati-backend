@@ -1,6 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Delivery } from "../../../helpers/types/schema";
-import { Coordinate } from "../../../helpers/types/shared";
+import { Address, Delivery } from "../../../helpers/types/schema";
 import { createDeliveryAssignment } from "./createDeliveryAssignments";
 import { findEligibleDrivers } from "./findEligibleDrivers";
 import { getAvailableDrivers } from "./getAvailableDrivers";
@@ -8,15 +7,17 @@ import { getAvailableDrivers } from "./getAvailableDrivers";
 interface CreateDeliveryOpportunitiesInput {
   dbClient: any;
   logger: Logger;
-  pharmacyLocation: Coordinate;
   delivery: Delivery
+  pharmacyAddress: Address;
+  deliveryAddress: Address;
 }
 
 export const createDeliveryOpportunities = async ({
   dbClient,
   logger,
-  pharmacyLocation,
-  delivery
+  delivery,
+  pharmacyAddress,
+  deliveryAddress
 }: CreateDeliveryOpportunitiesInput): Promise<void> => {
   const drivers = await getAvailableDrivers({
     dbClient,
@@ -30,7 +31,10 @@ export const createDeliveryOpportunities = async ({
     availableDrivers: drivers,
     pharmacyToPatientDistanceKm: delivery.distanceInKm,
     pharmacyToPatientDurationMinutes: delivery.estimatedDeliveryDuration,
-    pharmacyLocation
+    pharmacyLocation: {
+      lat: pharmacyAddress.latitude || 0,
+      lng: pharmacyAddress.longitude || 0
+    }
   });
 
   if (eligibleDrivers.length === 0) {
@@ -41,7 +45,9 @@ export const createDeliveryOpportunities = async ({
     try {
       await createDeliveryAssignment({
         dbClient,
-        deliveryId: delivery.orderId,
+        delivery,
+        pharmacyAddress,
+        deliveryAddress,
         driver
       });
     } catch (error: any) {

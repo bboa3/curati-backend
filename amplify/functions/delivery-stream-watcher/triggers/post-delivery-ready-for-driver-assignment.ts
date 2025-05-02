@@ -16,20 +16,23 @@ export const postDeliveryReadyForDriverAssignment = async ({ deliveryImage, dbCl
 
   const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: pharmacyId });
   const pharmacyAddress = pharmacyAddressData as unknown as Address
-  const pharmacyAddressLatitude = pharmacyAddress?.latitude;
-  const pharmacyAddressLongitude = pharmacyAddress?.longitude;
 
-  if (pharmacyAddressErrors || !pharmacyAddress || !pharmacyAddressLongitude || !pharmacyAddressLatitude) {
+  if (pharmacyAddressErrors || !pharmacyAddress) {
     throw new Error(`Failed to fetch pharmacy address: ${JSON.stringify(pharmacyAddressErrors)}`);
+  }
+
+  const { data: deliveryAddressData, errors: deliveryAddressErrors } = await dbClient.models.address.get({ addressOwnerId: delivery.orderId });
+  const deliveryAddress = deliveryAddressData as unknown as Address
+
+  if (deliveryAddressErrors || !deliveryAddress) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(deliveryAddressErrors)}`);
   }
 
   await createDeliveryOpportunities({
     dbClient: dbClient,
     logger: logger,
-    delivery: delivery,
-    pharmacyLocation: {
-      lat: pharmacyAddressLatitude,
-      lng: pharmacyAddressLongitude
-    }
+    delivery,
+    pharmacyAddress,
+    deliveryAddress
   })
 };

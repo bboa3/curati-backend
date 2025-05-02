@@ -1,24 +1,30 @@
 import dayjs from "dayjs";
 import { v4 as generateUUIDv4 } from "uuid";
-import { DeliveryAssignment, DeliveryAssignmentStatus } from "../../../helpers/types/schema";
+import { Address, Delivery, DeliveryAssignment, DeliveryAssignmentStatus } from "../../../helpers/types/schema";
+import { driverCommissionCalculator } from "./driverCommissionCalculator";
 import { DriverEligibility } from "./findEligibleDrivers";
 
 interface CreateDeliveryAssignmentsInput {
   dbClient: any;
-  deliveryId: string;
+  delivery: Delivery;
   driver: DriverEligibility;
+  pharmacyAddress: Address;
+  deliveryAddress: Address;
 }
 
-const DELIVERY_OPPORTUNITY_DURATION = 30;
+const DELIVERY_OPPORTUNITY_DURATION = 60;
 
-export const createDeliveryAssignment = async ({ dbClient, deliveryId, driver }: CreateDeliveryAssignmentsInput) => {
+export const createDeliveryAssignment = async ({ dbClient, pharmacyAddress, deliveryAddress, delivery, driver }: CreateDeliveryAssignmentsInput) => {
 
   const { data, errors } = dbClient.models.deliveryAssignment.create({
     id: generateUUIDv4(),
-    deliveryId,
+    deliveryId: delivery.orderId,
     driverId: driver.driverId,
     status: DeliveryAssignmentStatus.PENDING,
     expiresAt: dayjs.utc().add(DELIVERY_OPPORTUNITY_DURATION, 'minute').toISOString(),
+    estimatedDriverCommission: driverCommissionCalculator(delivery.totalDeliveryFee),
+    pickupSnippet: `${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}`,
+    destinationSnippet: `${deliveryAddress.neighborhoodOrDistrict}, ${deliveryAddress.city}`,
     estimatedDistance: driver.totalDistance,
     estimatedDuration: driver.totalDuration,
     driverLocationLatitude: driver.location.lat,

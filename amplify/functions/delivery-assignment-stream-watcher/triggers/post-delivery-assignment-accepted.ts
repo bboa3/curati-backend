@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
-import { Address, Business, Delivery, DeliveryAssignment, DeliveryStatus, Professional, Vehicle } from "../../helpers/types/schema";
+import { Business, Delivery, DeliveryAssignment, DeliveryStatus, Professional, Vehicle } from "../../helpers/types/schema";
 import { sendDeliveryAssignmentConfirmationEmailNotifier } from "../helpers/send-delivery-assignment-confirmation-email-notifier";
 import { sendDeliveryAssignmentConfirmationSMSNotifier } from "../helpers/send-delivery-assignment-confirmation-sms-notifier";
 import { sendDriverAssignedPatientEmailNotifier } from "../helpers/send-driver-assigned-patient-email-notifier";
@@ -27,7 +27,7 @@ export const postDeliveryAssignmentAccepted = async ({ deliveryAssignmentImage, 
   const assignment = deliveryAssignments.find((assignment) => assignment.id === id);
 
   if (assignment) {
-    const { driverId, deliveryId, courierId } = assignment;
+    const { driverId, deliveryId, pickupSnippet, courierId } = assignment;
     const { data: deliveryData, errors: deliveryErrors } = await dbClient.models.delivery.get({ orderId: deliveryId });
 
     if (deliveryErrors || !deliveryData) {
@@ -56,15 +56,6 @@ export const postDeliveryAssignmentAccepted = async ({ deliveryAssignmentImage, 
     }
     const patient = patientData as unknown as Professional;
 
-    const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: delivery.pharmacyId });
-    const pharmacyAddress = pharmacyAddressData as unknown as Address
-    const pharmacyAddressLatitude = pharmacyAddress?.latitude;
-    const pharmacyAddressLongitude = pharmacyAddress?.longitude;
-
-    if (pharmacyAddressErrors || !pharmacyAddress || !pharmacyAddressLongitude || !pharmacyAddressLatitude) {
-      throw new Error(`Failed to fetch pharmacy address: ${JSON.stringify(pharmacyAddressErrors)}`);
-    }
-
     const { data: driverData, errors: driverErrors } = await dbClient.models.professional.get({ userId: driverId });
 
     if (driverErrors || !driverData) {
@@ -90,8 +81,8 @@ export const postDeliveryAssignmentAccepted = async ({ deliveryAssignmentImage, 
       patientId: delivery.patientId,
       deliveryId: delivery.orderId,
       status: DeliveryStatus.DRIVER_ASSIGNED,
-      latitude: pharmacyAddressLatitude,
-      longitude: pharmacyAddressLongitude
+      latitude: pharmacy.businessLatitude,
+      longitude: pharmacy.businessLongitude
     })
 
 
@@ -111,7 +102,7 @@ export const postDeliveryAssignmentAccepted = async ({ deliveryAssignmentImage, 
       driverName: driver.name,
       deliveryNumber: delivery.deliveryNumber,
       pharmacyName: pharmacy.name,
-      pharmacyAddressSnippet: `${pharmacyAddress.addressLine1}, ${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}`,
+      pharmacyAddressSnippet: pickupSnippet,
       preferredDeliveryTimeStartAt: delivery.preferredDeliveryTimeStartAt,
       preferredDeliveryTimeEndAt: delivery.preferredDeliveryTimeEndAt,
       assignedDeliveryDeepLink: assignedDeliveryDeepLink,
@@ -121,7 +112,7 @@ export const postDeliveryAssignmentAccepted = async ({ deliveryAssignmentImage, 
       phoneNumber: `+258${driver.phone.replace(/\D/g, '')}`,
       deliveryNumber: delivery.deliveryNumber,
       pharmacyName: pharmacy.name,
-      pharmacyAddressSnippet: `${pharmacyAddress.addressLine1}, ${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}`,
+      pharmacyAddressSnippet: pickupSnippet,
       assignedDeliveryDeepLink: assignedDeliveryDeepLink,
     })
 
