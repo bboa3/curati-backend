@@ -16,7 +16,7 @@ const DELIVERY_OPPORTUNITY_DURATION = 60;
 
 export const createDeliveryAssignment = async ({ dbClient, pharmacyAddress, deliveryAddress, delivery, driver }: CreateDeliveryAssignmentsInput) => {
 
-  const { data, errors } = dbClient.models.deliveryAssignment.create({
+  const { data, errors } = await dbClient.models.deliveryAssignment.create({
     id: generateUUIDv4(),
     deliveryId: delivery.orderId,
     driverId: driver.driverId,
