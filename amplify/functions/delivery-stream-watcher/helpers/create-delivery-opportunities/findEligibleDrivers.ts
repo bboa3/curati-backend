@@ -60,7 +60,7 @@ export const findEligibleDrivers = async ({
 
   for (let i = 0; i < availableDrivers.length; i += LOCATION_BATCH_SIZE) {
     const batch = availableDrivers.slice(i, i + LOCATION_BATCH_SIZE);
-    const locationFilters = batch.map(id => ({ driverId: { eq: id } }));
+    const locationFilters = batch.map(({ userId }) => ({ driverId: { eq: userId } }));
 
     const { data, errors } = await dbClient.models.driverCurrentLocation.list({
       filter: {
