@@ -25,7 +25,7 @@ export interface DriverEligibility {
   lastUpdate: string;
 }
 
-const ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES = 30;
+const ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES = 60 * 24;
 const MAX_ELIGIBLE_DRIVERS = 10;
 const LOCATION_BATCH_SIZE = 50;
 const LOCATION_CUTOFF_TIME = dayjs.utc().subtract(ALLOWED_DRIVER_LOCATION_AGE_IN_MINUTES, 'minute').toISOString();
