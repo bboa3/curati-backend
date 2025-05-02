@@ -28,7 +28,7 @@ export const getAvailableDrivers = async ({
   do {
     const { data, errors, nextToken } = await dbClient.models.professional.list({
       filter: {
-        professionalType: { eq: ProfessionalType.DRIVER },
+        type: { eq: ProfessionalType.DRIVER },
         publicationStatus: { eq: PublicationStatus.PUBLISHED }
       },
       limit: BATCH_SIZE,
