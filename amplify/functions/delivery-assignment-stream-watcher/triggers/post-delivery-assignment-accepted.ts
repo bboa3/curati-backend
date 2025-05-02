@@ -18,7 +18,9 @@ export const postDeliveryAssignmentAccepted = async ({ deliveryAssignmentImage, 
   const deliveryAssignment = unmarshall(deliveryAssignmentImage) as DeliveryAssignment;
   const { id, deliveryId } = deliveryAssignment;
 
-  const { data: deliveryAssignmentsData, errors: assignmentsErrors } = await dbClient.models.deliveryAssignment.list({ filter: { deliveryId: { eq: deliveryId } } });
+  const { data: deliveryAssignmentsData, errors: assignmentsErrors } = await dbClient.models.deliveryAssignment.list({
+    filter: { deliveryId: { eq: deliveryId } }
+  });
 
   if (assignmentsErrors) {
     throw new Error(`Failed to fetch pharmacy address: ${JSON.stringify(assignmentsErrors)}`);
@@ -84,7 +86,6 @@ export const postDeliveryAssignmentAccepted = async ({ deliveryAssignmentImage, 
       latitude: pharmacy.businessLatitude,
       longitude: pharmacy.businessLongitude
     })
-
 
     for (const deliveryAssignment of deliveryAssignments) {
       const { errors: deliveryAssignmentDeleteErrors } = await dbClient.models.deliveryAssignment.delete({ id: deliveryAssignment.id });
