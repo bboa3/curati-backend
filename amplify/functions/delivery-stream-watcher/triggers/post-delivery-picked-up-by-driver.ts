@@ -3,7 +3,7 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import dayjs from "dayjs";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
-import { Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional, ProfessionalAvailabilityStatus, Vehicle } from "../../helpers/types/schema";
+import { Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
 import { deliveryPickedUpByDriverPatientEmailNotifier } from "../helpers/delivery-picked-up-by-driver-patient-email-notifier";
 import { deliveryPickedUpByDriverPatientSMSNotifier } from "../helpers/delivery-picked-up-by-driver-patient-sms-notifier";
 
@@ -45,13 +45,6 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: 
   }
   const driver = driverData as unknown as Professional;
 
-  const { data: vehicleData, errors: vehicleErrors } = await dbClient.models.vehicle.get({ id: vehicleId });
-
-  if (vehicleErrors || !vehicleData) {
-    throw new Error(`Failed to fetch vehicle: ${JSON.stringify(vehicleErrors)}`);
-  }
-  const vehicle = vehicleData as unknown as Vehicle;
-
   const { data: driverCurrentLocationData, errors: driverCurrentLocationErrors } = await dbClient.models.driverCurrentLocation.get({ driverId: driverId });
 
   if (driverCurrentLocationErrors || !driverCurrentLocationData) {
@@ -88,9 +81,6 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: 
       deliveryNumber: deliveryNumber,
       pharmacyName: pharmacy.name,
       driverName: driver.name,
-      vehicleModel: vehicle.model,
-      vehicleLicensePlate: vehicle.licensePlate,
-      vehicleType: vehicle.type,
       pickedUpAt: pickedUpAt || dayjs().utc().toISOString(),
       estimatedDeliveryDuration: Number(estimatedDeliveryDuration),
       trackingLink,

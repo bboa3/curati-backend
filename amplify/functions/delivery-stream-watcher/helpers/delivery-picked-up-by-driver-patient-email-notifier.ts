@@ -1,8 +1,6 @@
 import { env } from '$amplify/env/delivery-stream-watcher';
 import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
 import { formatETA } from '../../helpers/date/formatter';
-import { VehicleType } from '../../helpers/types/schema';
-import { convertVehicleType } from './vehicle-type';
 
 interface NotifierInput {
   patientName: string;
@@ -11,9 +9,6 @@ interface NotifierInput {
   deliveryNumber: string;
   pharmacyName: string;
   driverName: string;
-  vehicleType: VehicleType;
-  vehicleModel: string;
-  vehicleLicensePlate: string;
   pickedUpAt: string;
   estimatedDeliveryDuration: number;
   trackingLink: string;
@@ -28,10 +23,7 @@ export async function deliveryPickedUpByDriverPatientEmailNotifier({
   deliveryNumber,
   pharmacyName,
   driverName,
-  vehicleModel,
-  vehicleLicensePlate,
   pickedUpAt,
-  vehicleType,
   estimatedDeliveryDuration,
   trackingLink,
 }: NotifierInput) {
@@ -59,7 +51,6 @@ export async function deliveryPickedUpByDriverPatientEmailNotifier({
 
           <div class="info-box">
             <p><strong>Motorista:</strong> ${driverName}</p>
-            <p><strong>Veículo:</strong> ${convertVehicleType(vehicleType)} ${vehicleModel} - ${vehicleLicensePlate}</p>
             <p><strong>Estimativa de Entrega:</strong> ${formattedETA}</p>
           </div>
 
@@ -78,7 +69,7 @@ export async function deliveryPickedUpByDriverPatientEmailNotifier({
       </html>
     `;
 
-  const textBody = `Encomenda a Caminho!\n\nPrezado(a) ${patientName},\n\nBoas notícias! A sua encomenda de medicamentos (Nº Pedido ${orderNumber} / Entrega Nº ${deliveryNumber}) foi recolhida na Farmácia ${pharmacyName} e está agora a caminho.\n\nMotorista: ${driverName}\n${vehicleModel && vehicleLicensePlate ? `Veículo: ${vehicleModel} - ${vehicleLicensePlate}\n` : ''}Estimativa de Entrega: ${formattedETA}\n\nAcompanhe a entrega em tempo real na app Cúrati:\n${trackingLink}\n\nPor favor, esteja disponível para receber a encomenda.\n\nQuestões? Contacte o suporte.\n\nAtenciosamente,\nEquipa Cúrati Saúde${footerText}`;
+  const textBody = `Encomenda a Caminho!\n\nPrezado(a) ${patientName},\n\nBoas notícias! A sua encomenda de medicamentos (Nº Pedido ${orderNumber} / Entrega Nº ${deliveryNumber}) foi recolhida na Farmácia ${pharmacyName} e está agora a caminho.\n\nMotorista: ${driverName}\nEstimativa de Entrega: ${formattedETA}\n\nAcompanhe a entrega em tempo real na app Cúrati:\n${trackingLink}\n\nPor favor, esteja disponível para receber a encomenda.\n\nQuestões? Contacte o suporte.\n\nAtenciosamente,\nEquipa Cúrati Saúde${footerText}`;
 
   const params: SendEmailCommandInput = {
     FromEmailAddress: env.VERIFIED_SES_SENDER_EMAIL,
