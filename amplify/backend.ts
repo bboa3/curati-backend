@@ -10,6 +10,7 @@ import { adminCreateUser } from './functions/admin-create-user/resource';
 import { appointmentStreamWatcher } from './functions/appointment-stream-watcher/resource';
 import { contractStreamWatcher } from './functions/contract-stream-watcher/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
+import { customSmsSender } from './functions/custom-sms-sender/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
 import { deliveryAssignmentStreamWatcher } from './functions/delivery-assignment-stream-watcher/resource';
 import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resource';
@@ -25,6 +26,7 @@ const backend = defineBackend({
   auth,
   data,
   storage,
+  customSmsSender,
   addUserToGroup,
   adminCreateUser,
   addOrUpdateSearchableRecord,
