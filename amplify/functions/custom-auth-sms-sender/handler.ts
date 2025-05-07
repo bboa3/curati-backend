@@ -38,8 +38,11 @@ export const handler = async (event: CustomSMSSenderEvent) => {
     throw new Error('Phone number or encrypted code not found.');
   }
 
+  console.log('Phone number:', phoneNumber);
+  console.log('Encrypted code:', encryptedCode);
+
   const ciphertext = Uint8Array.from(
-    Buffer.from(event.request.code, 'base64')
+    Buffer.from(encryptedCode, 'base64')
   );
 
   const decryptCommand = new DecryptCommand({
