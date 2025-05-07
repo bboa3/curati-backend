@@ -32,6 +32,7 @@ interface CustomSMSSenderEvent {
 }
 
 
+const EXISTING_COGNITO_KMS_KEY_ARN = 'arn:aws:kms:us-east-1:050752623432:key/7e1bda99-c598-43ba-b82c-925a39cb1eb0';
 
 export const handler = async (event: CustomSMSSenderEvent) => {
   const phoneNumber = event.request.userAttributes.phone_number;
@@ -45,7 +46,11 @@ export const handler = async (event: CustomSMSSenderEvent) => {
   console.log('Encrypted code:', encryptedCode);
 
   const decryptCommand = new DecryptCommand({
-    CiphertextBlob: Buffer.from(encryptedCode, 'base64')
+    CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
+    KeyId: EXISTING_COGNITO_KMS_KEY_ARN,
+    // EncryptionContext: {
+    //   'UserPoolId': event.userPoolId
+    // }
   });
 
   const { Plaintext } = await kmsClient.send(decryptCommand);
