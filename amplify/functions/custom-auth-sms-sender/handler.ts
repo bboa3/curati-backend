@@ -43,23 +43,11 @@ export const handler = async (event: CustomSMSSenderEvent) => {
   );
 
   const decryptCommand = new DecryptCommand({
-    CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
-    EncryptionContext: {
-      'UserPoolId': event.userPoolId
-    }
-  });
-
-  const decryptCommandTest = new DecryptCommand({
     CiphertextBlob: ciphertext,
     EncryptionContext: {
       'UserPoolId': event.userPoolId
     }
   });
-
-  const { Plaintext: TestText } = await kmsClient.send(decryptCommandTest);
-
-  console.log('Plaintext TestText: ', TestText);
-
 
   const { Plaintext } = await kmsClient.send(decryptCommand);
   if (!Plaintext) {
