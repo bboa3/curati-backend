@@ -1,5 +1,8 @@
 import { env } from '$amplify/env/custom-auth-sms-sender';
+import { DecryptCommand, KMSClient } from "@aws-sdk/client-kms";
 import { SendSMSService } from '../helpers/sendSms';
+
+const kmsClient = new KMSClient({ region: process.env.AWS_REGION });
 
 const smsService = new SendSMSService({
   apiToken: env.SMS_API_KEY,
@@ -29,19 +32,24 @@ interface CustomSMSSenderEvent {
 
 export const handler = async (event: CustomSMSSenderEvent) => {
   const phoneNumber = event.request.userAttributes.phone_number;
-  const code = event.request.code;
+  const encryptedCode = event.request.code;
 
-  if (!phoneNumber) {
-    console.error('Phone number not found in event.userName');
-    throw new Error('Phone number not available in event.userName.');
+  if (!phoneNumber || !encryptedCode) {
+    throw new Error('Phone number or encrypted code not found.');
   }
 
-  if (!code) {
-    console.error('Code not found in event.request.code');
-    throw new Error('Verification code not available in event.request.code.');
+  const decryptCommand = new DecryptCommand({
+    CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
+  });
+
+  const { Plaintext } = await kmsClient.send(decryptCommand);
+  if (!Plaintext) {
+    throw new Error('Failed to decrypt verification code.');
   }
 
-  const message = `Your verification code is: ${JSON.stringify(event.request)}`;
+  const code = Buffer.from(Plaintext).toString('utf-8');
+
+  const message = `Your verification code is: ${code} __ ${encryptedCode}`;
 
   try {
     await smsService.sendSms({
