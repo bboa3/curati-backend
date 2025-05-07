@@ -35,6 +35,8 @@ interface CustomSMSSenderEvent {
 const EXISTING_COGNITO_KMS_KEY_ARN = 'arn:aws:kms:us-east-1:050752623432:key/7e1bda99-c598-43ba-b82c-925a39cb1eb0';
 
 export const handler = async (event: CustomSMSSenderEvent) => {
+  console.log('Received event:', event);
+
   const phoneNumber = event.request.userAttributes.phone_number;
   const encryptedCode = event.request.code;
 
