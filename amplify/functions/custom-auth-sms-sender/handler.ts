@@ -1,8 +1,9 @@
 import { env } from '$amplify/env/custom-auth-sms-sender';
 import { DecryptCommand, KMSClient } from "@aws-sdk/client-kms";
+import { Buffer } from 'buffer';
 import { SendSMSService } from '../helpers/sendSms';
 
-const kmsClient = new KMSClient({ region: process.env.AWS_REGION });
+const kmsClient = new KMSClient({ region: env.AWS_REGION });
 
 const smsService = new SendSMSService({
   apiToken: env.SMS_API_KEY,
@@ -30,6 +31,8 @@ interface CustomSMSSenderEvent {
   response: Record<string, unknown>;
 }
 
+
+
 export const handler = async (event: CustomSMSSenderEvent) => {
   const phoneNumber = event.request.userAttributes.phone_number;
   const encryptedCode = event.request.code;
@@ -41,12 +44,8 @@ export const handler = async (event: CustomSMSSenderEvent) => {
   console.log('Phone number:', phoneNumber);
   console.log('Encrypted code:', encryptedCode);
 
-  const ciphertext = Uint8Array.from(
-    Buffer.from(encryptedCode, 'base64')
-  );
-
   const decryptCommand = new DecryptCommand({
-    CiphertextBlob: ciphertext,
+    CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
     EncryptionContext: {
       'UserPoolId': event.userPoolId
     }
