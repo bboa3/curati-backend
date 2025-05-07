@@ -45,10 +45,7 @@ export const handler = async (event: CustomSMSSenderEvent) => {
   console.log('Encrypted code:', encryptedCode);
 
   const decryptCommand = new DecryptCommand({
-    CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
-    EncryptionContext: {
-      'UserPoolId': event.userPoolId
-    }
+    CiphertextBlob: Buffer.from(encryptedCode, 'base64')
   });
 
   const { Plaintext } = await kmsClient.send(decryptCommand);

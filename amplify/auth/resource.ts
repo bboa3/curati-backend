@@ -20,7 +20,8 @@ export const auth = defineAuth({
   ],
   senders: {
     sms: {
-      handler: customAuthSmsSender
+      handler: customAuthSmsSender,
+      //   kmsKeyArn: EXISTING_COGNITO_KMS_KEY_ARN
     },
   }
 });
