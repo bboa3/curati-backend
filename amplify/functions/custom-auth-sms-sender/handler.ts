@@ -1,4 +1,4 @@
-import { env } from '$amplify/env/custom-sms-sender';
+import { env } from '$amplify/env/custom-auth-sms-sender';
 import { SendSMSService } from '../helpers/sendSms';
 
 const smsService = new SendSMSService({
@@ -28,9 +28,7 @@ interface CustomSMSSenderEvent {
 }
 
 export const handler = async (event: CustomSMSSenderEvent) => {
-  console.log('CustomSMSSender event received:', JSON.stringify(event, null, 2));
-
-  const phoneNumber = event.userName;
+  const phoneNumber = event.request.userAttributes.phone_number;
   const code = event.request.code;
 
   if (!phoneNumber) {
@@ -43,7 +41,7 @@ export const handler = async (event: CustomSMSSenderEvent) => {
     throw new Error('Verification code not available in event.request.code.');
   }
 
-  const message = `Your verification code is: ${code}`;
+  const message = `Your verification code is: ${JSON.stringify(event.request)}`;
 
   try {
     await smsService.sendSms({
