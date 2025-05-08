@@ -1,5 +1,6 @@
 import { env } from '$amplify/env/custom-auth-sms-sender';
 import { DecryptCommand, KMSClient } from "@aws-sdk/client-kms";
+import { Handler } from 'aws-lambda';
 import { Buffer } from 'buffer';
 import { SendSMSService } from '../helpers/sendSms';
 
@@ -31,28 +32,29 @@ interface CustomSMSSenderEvent {
   response: Record<string, unknown>;
 }
 
+const KMS_KEY_ARN_USED_BY_COGNITO = 'arn:aws:kms:us-east-1:050752623432:key/7e1bda99-c598-43ba-b82c-925a39cb1eb0';
 
-const EXISTING_COGNITO_KMS_KEY_ARN = 'arn:aws:kms:us-east-1:050752623432:key/7e1bda99-c598-43ba-b82c-925a39cb1eb0';
-
-export const handler = async (event: CustomSMSSenderEvent) => {
-  console.log('Received event:', event);
+export const handler: Handler<CustomSMSSenderEvent> = async (event) => {
+  console.log('Received event:', JSON.stringify(event));
 
   const phoneNumber = event.request.userAttributes.phone_number;
   const encryptedCode = event.request.code;
+  const userPoolId = event.userPoolId;
 
-  if (!phoneNumber || !encryptedCode) {
-    throw new Error('Phone number or encrypted code not found.');
+  if (!phoneNumber || !encryptedCode || !userPoolId) {
+    throw new Error('Phone number or encrypted code or userPoolId not found.');
   }
 
   console.log('Phone number:', phoneNumber);
   console.log('Encrypted code:', encryptedCode);
+  console.log('userPoolId:', userPoolId);
 
   const decryptCommand = new DecryptCommand({
     CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
-    KeyId: EXISTING_COGNITO_KMS_KEY_ARN,
-    // EncryptionContext: {
-    //   'UserPoolId': event.userPoolId
-    // }
+    KeyId: KMS_KEY_ARN_USED_BY_COGNITO,
+    EncryptionContext: {
+      'UserPoolId': userPoolId
+    }
   });
 
   const { Plaintext } = await kmsClient.send(decryptCommand);
