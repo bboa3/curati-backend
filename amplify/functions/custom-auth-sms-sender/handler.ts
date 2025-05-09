@@ -32,8 +32,6 @@ interface CustomSMSSenderEvent {
   response: Record<string, unknown>;
 }
 
-const KMS_KEY_ARN_USED_BY_COGNITO = 'arn:aws:kms:us-east-1:050752623432:key/7e1bda99-c598-43ba-b82c-925a39cb1eb0';
-
 export const handler: Handler<CustomSMSSenderEvent> = async (event) => {
   console.log('Received event:', JSON.stringify(event));
 
@@ -51,10 +49,7 @@ export const handler: Handler<CustomSMSSenderEvent> = async (event) => {
 
   const decryptCommand = new DecryptCommand({
     CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
-    KeyId: KMS_KEY_ARN_USED_BY_COGNITO,
-    EncryptionContext: {
-      'UserPoolId': userPoolId
-    }
+    EncryptionContext: { UserPoolId: userPoolId }
   });
 
   const { Plaintext } = await kmsClient.send(decryptCommand);
