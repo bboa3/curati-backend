@@ -29,7 +29,9 @@ export const handler: CustomSMSSenderTriggerHandler = async (event) => {
   try {
     const decryptCommand = new DecryptCommand({
       CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
-      KeyId: `alias/aws/cognito-idp-${userPoolId}`,
+      EncryptionContext: {
+        UserPoolId: userPoolId
+      },
     });
 
     const { Plaintext } = await kmsClient.send(decryptCommand);
