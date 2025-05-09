@@ -10,6 +10,7 @@ import { adminCreateUser } from './functions/admin-create-user/resource';
 import { appointmentStreamWatcher } from './functions/appointment-stream-watcher/resource';
 import { contractStreamWatcher } from './functions/contract-stream-watcher/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
+import { customAuthSmsSender } from './functions/custom-auth-sms-sender/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
 import { deliveryAssignmentStreamWatcher } from './functions/delivery-assignment-stream-watcher/resource';
 import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resource';
@@ -27,7 +28,7 @@ const backend = defineBackend({
   storage,
   addUserToGroup,
   adminCreateUser,
-  //customAuthSmsSender,
+  customAuthSmsSender,
   addOrUpdateSearchableRecord,
   deleteSearchableRecord,
   createStreamToken,
@@ -55,18 +56,18 @@ cfnUserPool.policies = {
   }
 };
 
-// const customAuthSmsSenderKmsPolicy = new Policy(Stack.of(backend.customAuthSmsSender.resources.lambda), "CustomAuthSmsSenderKmsPolicy", {
-//   statements: [
-//     new PolicyStatement({
-//       effect: Effect.ALLOW,
-//       actions: [
-//         "kms:Decrypt",
-//       ],
-//       resources: ["*"],
-//     }),
-//   ],
-// });
-// backend.customAuthSmsSender.resources.lambda.role?.attachInlinePolicy(customAuthSmsSenderKmsPolicy);
+const customAuthSmsSenderKmsPolicy = new Policy(Stack.of(backend.customAuthSmsSender.resources.lambda), "CustomAuthSmsSenderKmsPolicy", {
+  statements: [
+    new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: [
+        "kms:Decrypt",
+      ],
+      resources: ["*"],
+    }),
+  ],
+});
+backend.customAuthSmsSender.resources.lambda.role?.attachInlinePolicy(customAuthSmsSenderKmsPolicy);
 
 const deliveryTable = backend.data.resources.tables["delivery"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
