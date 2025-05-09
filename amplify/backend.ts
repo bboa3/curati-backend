@@ -1,6 +1,7 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { Stack } from "aws-cdk-lib";
-import { Effect, Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { AccountRootPrincipal, Effect, Policy, PolicyDocument, PolicyStatement, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Key } from 'aws-cdk-lib/aws-kms';
 import { EventSourceMapping, StartingPosition } from "aws-cdk-lib/aws-lambda";
 import { auth } from './auth/resource';
 import { data } from './data/resource';
@@ -10,6 +11,7 @@ import { adminCreateUser } from './functions/admin-create-user/resource';
 import { appointmentStreamWatcher } from './functions/appointment-stream-watcher/resource';
 import { contractStreamWatcher } from './functions/contract-stream-watcher/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
+import { customAuthSmsSender } from './functions/custom-auth-sms-sender/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
 import { deliveryAssignmentStreamWatcher } from './functions/delivery-assignment-stream-watcher/resource';
 import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resource';
@@ -27,6 +29,7 @@ const backend = defineBackend({
   storage,
   addUserToGroup,
   adminCreateUser,
+  customAuthSmsSender,
   addOrUpdateSearchableRecord,
   deleteSearchableRecord,
   createStreamToken,
@@ -54,6 +57,7 @@ cfnUserPool.policies = {
   },
 };
 
+
 const deliveryTable = backend.data.resources.tables["delivery"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
 const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
@@ -61,6 +65,42 @@ const contractTable = backend.data.resources.tables["contract"];
 const appointmentTable = backend.data.resources.tables["appointment"];
 const invoiceTable = backend.data.resources.tables["invoice"];
 const deliveryAssignmentTable = backend.data.resources.tables["deliveryAssignment"];
+
+
+const cognitoKey = new Key(backend.auth.stack, 'CognitoSmsKey', {
+  enableKeyRotation: true,
+  policy: new PolicyDocument({
+    statements: [
+      new PolicyStatement({
+        actions: ['kms:*'],
+        principals: [new AccountRootPrincipal()],
+        resources: ['*']
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['kms:GenerateDataKey', 'kms:Encrypt'],
+        principals: [new ServicePrincipal('cognito-idp.amazonaws.com')],
+        resources: ['*']
+      })
+    ]
+  })
+});
+
+cognitoKey.grantDecrypt(backend.customAuthSmsSender.resources.lambda.role!);
+
+backend.customAuthSmsSender.resources.lambda.addPermission('CognitoInvoke', {
+  principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
+  sourceArn: backend.auth.resources.userPool.userPoolArn
+});
+
+backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
+  'LambdaConfig.CustomSMSSender',
+  {
+    LambdaArn: backend.customAuthSmsSender.resources.lambda.functionArn,
+    LambdaVersion: 'V1_0',
+    KmsKeyId: cognitoKey.keyArn
+  }
+);
 
 const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "DeliveryStreamWatcherPolicy",
   {

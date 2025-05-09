@@ -1,7 +1,7 @@
 import { defineAuth } from '@aws-amplify/backend';
 import { addUserToGroup } from '../functions/add-user-to-group/resource';
 import { adminCreateUser } from '../functions/admin-create-user/resource';
-import { customAuthSmsSender } from './custom-auth-sms-sender/resource';
+import { customAuthSmsSender } from '../functions/custom-auth-sms-sender/resource';
 import { postConfirmation } from './post-confirmation/resource';
 
 const GROUP = ['ADMIN', 'PROFESSIONAL', 'PATIENT'];
@@ -20,7 +20,7 @@ export const auth = defineAuth({
   ],
   senders: {
     sms: {
-      handler: customAuthSmsSender
+      handler: customAuthSmsSender,
     },
   }
 });
