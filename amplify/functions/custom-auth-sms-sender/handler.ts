@@ -10,6 +10,8 @@ const smsService = new SendSMSService({
   senderId: env.SMS_SENDER_ID,
 });
 
+const kmsKeyArn = 'arn:aws:kms:us-east-1:050752623432:key/b9c0f900-db03-4925-8428-14f1fd0f5f48';
+
 export const handler: CustomSMSSenderTriggerHandler = async (event) => {
   console.log('Received event:', JSON.stringify(event));
 
@@ -27,7 +29,7 @@ export const handler: CustomSMSSenderTriggerHandler = async (event) => {
 
   const decryptCommand = new DecryptCommand({
     CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
-    EncryptionContext: { UserPoolId: userPoolId }
+    KeyId: kmsKeyArn
   });
 
   const { Plaintext } = await kmsClient.send(decryptCommand);

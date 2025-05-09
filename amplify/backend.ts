@@ -52,10 +52,9 @@ cfnUserPool.policies = {
     requireLowercase: false,
     requireNumbers: true,
     requireSymbols: false,
-    requireUppercase: false,
-  },
+    requireUppercase: false
+  }
 };
-
 
 const deliveryTable = backend.data.resources.tables["delivery"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
