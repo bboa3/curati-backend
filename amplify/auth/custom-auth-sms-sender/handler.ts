@@ -1,8 +1,8 @@
 import { env } from '$amplify/env/custom-auth-sms-sender';
 import { DecryptCommand, KMSClient } from "@aws-sdk/client-kms";
-import { Handler } from 'aws-lambda';
+import { CustomSMSSenderTriggerHandler } from 'aws-lambda';
 import { Buffer } from 'buffer';
-import { SendSMSService } from '../helpers/sendSms';
+import { SendSMSService } from '../../functions/helpers/sendSms';
 
 const kmsClient = new KMSClient({ region: env.AWS_REGION });
 
@@ -32,7 +32,7 @@ interface CustomSMSSenderEvent {
   response: Record<string, unknown>;
 }
 
-export const handler: Handler<CustomSMSSenderEvent> = async (event) => {
+export const handler: CustomSMSSenderTriggerHandler = async (event) => {
   console.log('Received event:', JSON.stringify(event));
 
   const phoneNumber = event.request.userAttributes.phone_number;
@@ -49,6 +49,7 @@ export const handler: Handler<CustomSMSSenderEvent> = async (event) => {
 
   const decryptCommand = new DecryptCommand({
     CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
+    EncryptionAlgorithm: 'SYMMETRIC_DEFAULT',
     EncryptionContext: { UserPoolId: userPoolId }
   });
 
@@ -73,3 +74,11 @@ export const handler: Handler<CustomSMSSenderEvent> = async (event) => {
 
   return event;
 }
+
+
+
+
+
+
+
+

@@ -2,6 +2,7 @@ import { defineFunction, secret } from "@aws-amplify/backend"
 
 export const customAuthSmsSender = defineFunction({
   name: "custom-auth-sms-sender",
+  resourceGroupName: 'auth',
   entry: './handler.ts',
   environment: {
     SMS_API_KEY: secret('SMS_API_KEY'),

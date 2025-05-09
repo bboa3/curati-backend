@@ -10,7 +10,6 @@ import { adminCreateUser } from './functions/admin-create-user/resource';
 import { appointmentStreamWatcher } from './functions/appointment-stream-watcher/resource';
 import { contractStreamWatcher } from './functions/contract-stream-watcher/resource';
 import { createStreamToken } from './functions/create-stream-token/resource';
-import { customAuthSmsSender } from './functions/custom-auth-sms-sender/resource';
 import { deleteSearchableRecord } from './functions/delete-searchable-record/resource';
 import { deliveryAssignmentStreamWatcher } from './functions/delivery-assignment-stream-watcher/resource';
 import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resource';
@@ -26,7 +25,6 @@ const backend = defineBackend({
   auth,
   data,
   storage,
-  customAuthSmsSender,
   addUserToGroup,
   adminCreateUser,
   addOrUpdateSearchableRecord,
@@ -63,31 +61,6 @@ const contractTable = backend.data.resources.tables["contract"];
 const appointmentTable = backend.data.resources.tables["appointment"];
 const invoiceTable = backend.data.resources.tables["invoice"];
 const deliveryAssignmentTable = backend.data.resources.tables["deliveryAssignment"];
-
-///////////////////////////
-const COGNITO_KMS_KEY_ARN = 'arn:aws:kms:us-east-1:050752623432:key/7e1bda99-c598-43ba-b82c-925a39cb1eb0';
-
-let policyScope = Stack.of(backend.auth.resources.cfnResources.cfnUserPool); // Or Stack.of(backend.customAuthSmsSender.resources.lambda) if preferred
-if (backend.customAuthSmsSender.resources.lambda?.stack) {
-  policyScope = backend.customAuthSmsSender.resources.lambda.stack;
-}
-
-const kmsDecryptPolicy = new Policy(policyScope, "CustomAuthSmsSenderKmsDecryptPolicy", {
-  statements: [
-    new PolicyStatement({
-      effect: Effect.ALLOW,
-      actions: ['kms:*'],
-      resources: [COGNITO_KMS_KEY_ARN],
-    }),
-  ],
-});
-
-if (backend.customAuthSmsSender.resources.lambda?.role) {
-  backend.customAuthSmsSender.resources.lambda.role.attachInlinePolicy(kmsDecryptPolicy);
-} else {
-  console.error("ERROR: Could not attach KMS policy to customAuthSmsSender role.");
-}
-///////////////////////
 
 const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "DeliveryStreamWatcherPolicy",
   {
