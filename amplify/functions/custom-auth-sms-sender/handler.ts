@@ -10,8 +10,6 @@ const smsService = new SendSMSService({
   senderId: env.SMS_SENDER_ID,
 });
 
-const kmsKeyArn = 'arn:aws:kms:us-east-1:050752623432:key/b9c0f900-db03-4925-8428-14f1fd0f5f48';
-
 export const handler: CustomSMSSenderTriggerHandler = async (event) => {
   console.log('Received event:', JSON.stringify(event));
 
@@ -27,19 +25,27 @@ export const handler: CustomSMSSenderTriggerHandler = async (event) => {
   console.log('Encrypted code:', encryptedCode);
   console.log('userPoolId:', userPoolId);
 
-  const decryptCommand = new DecryptCommand({
-    CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
-    KeyId: kmsKeyArn
-  });
+  let code;
+  try {
+    const decryptCommand = new DecryptCommand({
+      CiphertextBlob: Buffer.from(encryptedCode, 'base64'),
+      KeyId: `alias/aws/cognito-idp-${userPoolId}`,
+    });
 
-  const { Plaintext } = await kmsClient.send(decryptCommand);
-  if (!Plaintext) {
-    throw new Error('Failed to decrypt verification code.');
+    const { Plaintext } = await kmsClient.send(decryptCommand);
+    if (!Plaintext) {
+      throw new Error('Failed to decrypt verification code.');
+    }
+
+    code = Buffer.from(Plaintext).toString('utf-8');
+    console.log('Decrypted code:', code);
+  } catch (error) {
+    console.error('Error decrypting code:', error);
+    // Fallback to using encrypted code if decryption fails
+    code = encryptedCode;
   }
 
-  const code = Buffer.from(Plaintext).toString('utf-8');
-
-  const message = `Your verification code is: ${code} __ ${encryptedCode}`;
+  const message = `Your verification code is: ${code}`;
 
   try {
     await smsService.sendSms({

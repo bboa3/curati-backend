@@ -20,8 +20,7 @@ export const auth = defineAuth({
   ],
   senders: {
     sms: {
-      handler: customAuthSmsSender,
-      kmsKeyArn: 'arn:aws:kms:us-east-1:050752623432:key/b9c0f900-db03-4925-8428-14f1fd0f5f48'
+      handler: customAuthSmsSender
     },
   }
 });

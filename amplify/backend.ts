@@ -56,6 +56,19 @@ cfnUserPool.policies = {
   }
 };
 
+const customAuthSmsSenderKmsPolicy = new Policy(Stack.of(backend.customAuthSmsSender.resources.lambda), "CustomAuthSmsSenderKmsPolicy", {
+  statements: [
+    new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: [
+        "kms:Decrypt",
+      ],
+      resources: ["*"],
+    }),
+  ],
+});
+backend.customAuthSmsSender.resources.lambda.role?.attachInlinePolicy(customAuthSmsSenderKmsPolicy);
+
 const deliveryTable = backend.data.resources.tables["delivery"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
 const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
