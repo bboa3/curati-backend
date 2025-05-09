@@ -94,11 +94,13 @@ backend.customAuthSmsSender.resources.lambda.addPermission('CognitoInvoke', {
 });
 
 backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
-  'LambdaConfig.CustomSMSSender',
+  'LambdaConfig',
   {
-    LambdaArn: backend.customAuthSmsSender.resources.lambda.functionArn,
-    LambdaVersion: 'V1_0',
-    KmsKeyId: cognitoKey.keyArn
+    CustomSMSSender: {
+      LambdaArn: backend.customAuthSmsSender.resources.lambda.functionArn,
+      LambdaVersion: 'V1_0' // Must be exact string
+    },
+    KmsKeyID: cognitoKey.keyArn // <-- Move KMS key to root level
   }
 );
 
