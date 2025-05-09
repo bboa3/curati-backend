@@ -1,7 +1,6 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { Stack } from "aws-cdk-lib";
-import { AccountRootPrincipal, Effect, Policy, PolicyDocument, PolicyStatement, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-import { Key } from 'aws-cdk-lib/aws-kms';
+import { Effect, Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { EventSourceMapping, StartingPosition } from "aws-cdk-lib/aws-lambda";
 import { auth } from './auth/resource';
 import { data } from './data/resource';
@@ -65,44 +64,6 @@ const contractTable = backend.data.resources.tables["contract"];
 const appointmentTable = backend.data.resources.tables["appointment"];
 const invoiceTable = backend.data.resources.tables["invoice"];
 const deliveryAssignmentTable = backend.data.resources.tables["deliveryAssignment"];
-
-
-const cognitoKey = new Key(backend.auth.stack, 'CognitoSmsKey', {
-  enableKeyRotation: true,
-  policy: new PolicyDocument({
-    statements: [
-      new PolicyStatement({
-        actions: ['kms:*'],
-        principals: [new AccountRootPrincipal()],
-        resources: ['*']
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ['kms:GenerateDataKey', 'kms:Encrypt'],
-        principals: [new ServicePrincipal('cognito-idp.amazonaws.com')],
-        resources: ['*']
-      })
-    ]
-  })
-});
-
-cognitoKey.grantDecrypt(backend.customAuthSmsSender.resources.lambda.role!);
-
-backend.customAuthSmsSender.resources.lambda.addPermission('CognitoInvoke', {
-  principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
-  sourceArn: backend.auth.resources.userPool.userPoolArn
-});
-
-backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
-  'LambdaConfig',
-  {
-    CustomSMSSender: {
-      LambdaArn: backend.customAuthSmsSender.resources.lambda.functionArn,
-      LambdaVersion: 'V1_0' // Must be exact string
-    },
-    KmsKeyID: cognitoKey.keyArn // <-- Move KMS key to root level
-  }
-);
 
 const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "DeliveryStreamWatcherPolicy",
   {
