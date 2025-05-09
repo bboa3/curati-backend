@@ -59,11 +59,3 @@ export const handler: CustomSMSSenderTriggerHandler = async (event) => {
 
   return event;
 }
-
-
-
-
-
-
-
-
