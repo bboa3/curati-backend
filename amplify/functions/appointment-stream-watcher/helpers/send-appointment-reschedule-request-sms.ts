@@ -1,8 +1,13 @@
-import { PublishCommand, PublishCommandInput, SNSClient } from "@aws-sdk/client-sns";
+import { env } from '$amplify/env/appointment-stream-watcher';
 import { formatDateTimeNumeric } from "../../helpers/date/formatter";
+import { SendSMSService } from "../../helpers/sendSms";
 import { AppointmentParticipantType } from "../../helpers/types/schema";
 
-const client = new SNSClient();
+const smsService = new SendSMSService({
+  apiToken: env.SMS_API_KEY,
+  senderId: env.SMS_SENDER_ID,
+});
+
 
 interface SendInput {
   recipientPhoneNumber: string;
@@ -26,21 +31,8 @@ export async function sendAppointmentRescheduleRequestSMS({
 
   const message = `Curati: ${requesterTypeText} ${requesterName} agendou consulta (${appointmentNumber}) p/ ${formattedDateTime}. Confirmação necessária. Confirme na app: ${appointmentDeepLink}`;
 
-  const params: PublishCommandInput = {
-    Message: message,
-    PhoneNumber: recipientPhoneNumber,
-    MessageAttributes: {
-      'AWS.SNS.SMS.SenderID': {
-        DataType: 'String',
-        StringValue: 'Curati'
-      },
-      'AWS.SNS.SMS.SMSType': {
-        DataType: 'String',
-        StringValue: 'Transactional'
-      }
-    }
-  };
-
-  const command = new PublishCommand(params);
-  return await client.send(command);
+  return await smsService.sendSms({
+    to: recipientPhoneNumber,
+    message: message,
+  });
 }

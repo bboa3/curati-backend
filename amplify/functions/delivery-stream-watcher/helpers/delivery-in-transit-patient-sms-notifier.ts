@@ -1,8 +1,11 @@
-import { PublishCommand, PublishCommandInput, SNSClient } from "@aws-sdk/client-sns";
+import { env } from '$amplify/env/delivery-stream-watcher';
 import { formatETA } from "../../helpers/date/formatter";
+import { SendSMSService } from "../../helpers/sendSms";
 
-const client = new SNSClient();
-
+const smsService = new SendSMSService({
+  apiToken: env.SMS_API_KEY,
+  senderId: env.SMS_SENDER_ID,
+});
 interface NotifierInput {
   patientPhoneNumber: string;
   orderNumber: string;
@@ -23,22 +26,9 @@ export async function deliveryInTransitPatientSMSNotifier({
   const formattedETA = formatETA(departedAt, estimatedDeliveryDuration);
   const message = `Curati: Encomenda ${orderNumber} EM TRÂNSITO com ${driverName}. ETA: ${formattedETA}. Acompanhe ao vivo na app: ${trackingLink}`;
 
-  const params: PublishCommandInput = {
-    Message: message,
-    PhoneNumber: patientPhoneNumber,
-    MessageAttributes: {
-      'AWS.SNS.SMS.SenderID': {
-        DataType: 'String',
-        StringValue: 'Curati'
-      },
-      'AWS.SNS.SMS.SMSType': {
-        DataType: 'String',
-        StringValue: 'Transactional'
-      }
-    }
-  };
-
-  const command = new PublishCommand(params);
-  return await client.send(command);
+  return await smsService.sendSms({
+    to: patientPhoneNumber,
+    message: message,
+  });
 }
 

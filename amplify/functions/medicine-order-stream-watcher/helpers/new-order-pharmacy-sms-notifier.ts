@@ -1,24 +1,18 @@
-import { PublishCommand, PublishCommandInput, SNSClient } from "@aws-sdk/client-sns";
+import { env } from '$amplify/env/medicine-order-stream-watcher';
+import { SendSMSService } from "../../helpers/sendSms";
 
-const client = new SNSClient();
+const smsService = new SendSMSService({
+  apiToken: env.SMS_API_KEY,
+  senderId: env.SMS_SENDER_ID,
+});
+
 
 export async function newOrderPharmacySMSNotifier(phoneNumber: string, orderNumber: string) {
-  const params: PublishCommandInput = {
-    Message: `Óptima notícia! Novo Pedido de Medicamentos - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.`,
-    PhoneNumber: phoneNumber,
-    MessageAttributes: {
-      'AWS.SNS.SMS.SenderID': {
-        DataType: 'String',
-        StringValue: 'Curati'
-      },
-      'AWS.SNS.SMS.SMSType': {
-        DataType: 'String',
-        StringValue: 'Transactional'
-      }
-    }
-  };
+  const message = `Óptima notícia! Novo Pedido de Medicamentos - Ação Necessária\n\nPrezado(a) farmacêutico(a),\n\nUm novo pedido de medicamentos (Código do Pedido: ${orderNumber}) foi recebido na farmácia e precisa ser processado para entrega. \n\nPor favor, acesse o sistema para processar este pedido o mais breve possível.`;
 
-  const command = new PublishCommand(params);
-  return await client.send(command);
+  return await smsService.sendSms({
+    to: phoneNumber,
+    message: message,
+  });
 }
 

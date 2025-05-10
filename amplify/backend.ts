@@ -98,11 +98,6 @@ const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "Deliver
         ],
         resources: ["*"],
       }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
-        resources: ["*"],
-      }),
     ],
   }
 );
@@ -126,11 +121,6 @@ const prescriptionStreamWatcherPolicy = new Policy(Stack.of(prescriptionTable), 
           "ses:SendEmail",
           "ses:SendRawEmail",
         ],
-        resources: ["*"],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
         resources: ["*"],
       }),
     ],
@@ -158,11 +148,6 @@ const medicineOrderStreamWatcherPolicy = new Policy(Stack.of(medicineOrderTable)
         ],
         resources: ["*"],
       }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
-        resources: ["*"],
-      }),
     ],
   }
 );
@@ -186,11 +171,6 @@ const contractStreamWatcherPolicy = new Policy(Stack.of(contractTable), "Contrac
           "ses:SendEmail",
           "ses:SendRawEmail",
         ],
-        resources: ["*"],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
         resources: ["*"],
       }),
     ],
@@ -218,11 +198,6 @@ const appointmentStreamWatcherPolicy = new Policy(Stack.of(appointmentTable), "A
         ],
         resources: ["*"],
       }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
-        resources: ["*"],
-      }),
     ],
   }
 );
@@ -248,11 +223,6 @@ const invoiceStreamWatcherPolicy = new Policy(Stack.of(invoiceTable), "InvoiceSt
         ],
         resources: ["*"],
       }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
-        resources: ["*"],
-      }),
     ],
   }
 );
@@ -276,11 +246,6 @@ const deliveryAssignmentStreamWatcherPolicy = new Policy(Stack.of(deliveryAssign
           "ses:SendEmail",
           "ses:SendRawEmail",
         ],
-        resources: ["*"],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["sns:Publish"],
         resources: ["*"],
       }),
     ],

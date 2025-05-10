@@ -1,8 +1,13 @@
-import { PublishCommand, PublishCommandInput, SNSClient } from "@aws-sdk/client-sns";
+import { env } from '$amplify/env/contract-stream-watcher';
+import { SendSMSService } from "../../helpers/sendSms";
 import { ContractStatus } from "../../helpers/types/schema";
 import { convertContractStatus } from "./contract-status";
 
-const client = new SNSClient();
+const smsService = new SendSMSService({
+  apiToken: env.SMS_API_KEY,
+  senderId: env.SMS_SENDER_ID,
+});
+
 
 interface SendInput {
   phoneNumber: string;
@@ -38,22 +43,9 @@ export async function confirmedContractPatientSMSNotifier({
     message = `Curati: Atualização Contrato ${contractNumber}. Estado: ${formattedContractStatus}. Contacte o nosso suporte para mais detalhes.`;
   }
 
-  const params: PublishCommandInput = {
-    Message: message,
-    PhoneNumber: phoneNumber,
-    MessageAttributes: {
-      'AWS.SNS.SMS.SenderID': {
-        DataType: 'String',
-        StringValue: 'Curati'
-      },
-      'AWS.SNS.SMS.SMSType': {
-        DataType: 'String',
-        StringValue: 'Transactional'
-      }
-    }
-  };
-
-  const command = new PublishCommand(params);
-  return await client.send(command);
+  return await smsService.sendSms({
+    to: phoneNumber,
+    message: message,
+  });
 }
 

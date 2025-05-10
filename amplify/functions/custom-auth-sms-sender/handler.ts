@@ -4,12 +4,13 @@ import { CustomSMSSenderTriggerHandler } from 'aws-lambda';
 import { SendSMSService } from '../../functions/helpers/sendSms';
 import { createAuthEventMessage } from './helpers/createAuthMessage';
 
-const { decrypt } = buildClient(CommitmentPolicy.FORBID_ENCRYPT_ALLOW_DECRYPT);
-
 const smsService = new SendSMSService({
   apiToken: env.SMS_API_KEY,
   senderId: env.SMS_SENDER_ID,
 });
+
+const { decrypt } = buildClient(CommitmentPolicy.FORBID_ENCRYPT_ALLOW_DECRYPT);
+
 
 export const handler: CustomSMSSenderTriggerHandler = async (event) => {
   console.log('Processing authentication event:', event.triggerSource);

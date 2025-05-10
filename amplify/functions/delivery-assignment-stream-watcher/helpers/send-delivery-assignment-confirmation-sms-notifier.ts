@@ -1,6 +1,10 @@
-import { PublishCommand, PublishCommandInput, SNSClient } from "@aws-sdk/client-sns";
+import { env } from '$amplify/env/delivery-assignment-stream-watcher';
+import { SendSMSService } from "../../helpers/sendSms";
 
-const client = new SNSClient();
+const smsService = new SendSMSService({
+  apiToken: env.SMS_API_KEY,
+  senderId: env.SMS_SENDER_ID,
+});
 
 interface NotifierInput {
   phoneNumber: string;
@@ -14,22 +18,9 @@ interface NotifierInput {
 export async function sendDeliveryAssignmentConfirmationSMSNotifier({ phoneNumber, deliveryNumber, pharmacyName, pharmacyAddressSnippet, assignedDeliveryDeepLink }: NotifierInput) {
   const message = `Curati Go: Você conseguiu! Entrega #${deliveryNumber}. Inicie agora: vá à farmácia ${pharmacyName} (${pharmacyAddressSnippet}). App p/ rota: ${assignedDeliveryDeepLink}`;
 
-  const params: PublishCommandInput = {
-    Message: message,
-    PhoneNumber: phoneNumber,
-    MessageAttributes: {
-      'AWS.SNS.SMS.SenderID': {
-        DataType: 'String',
-        StringValue: 'Curati'
-      },
-      'AWS.SNS.SMS.SMSType': {
-        DataType: 'String',
-        StringValue: 'Transactional'
-      }
-    }
-  };
-
-  const command = new PublishCommand(params);
-  return await client.send(command);
+  return await smsService.sendSms({
+    to: phoneNumber,
+    message: message,
+  });
 }
 
