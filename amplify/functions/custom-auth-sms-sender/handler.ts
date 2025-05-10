@@ -3,8 +3,8 @@ import { buildClient, CommitmentPolicy, KmsKeyringNode } from '@aws-crypto/clien
 import { CustomSMSSenderTriggerHandler } from 'aws-lambda';
 import { SendSMSService } from '../../functions/helpers/sendSms';
 
-// Initialize the AWS Encryption SDK client
-const { decrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_REQUIRE_DECRYPT);
+// Initialize the AWS Encryption SDK client with a more permissive commitment policy
+const { decrypt } = buildClient(CommitmentPolicy.FORBID_ENCRYPT_ALLOW_DECRYPT);
 
 const smsService = new SendSMSService({
   apiToken: env.SMS_API_KEY,
