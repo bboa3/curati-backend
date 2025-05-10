@@ -28,37 +28,26 @@ export const handler: CustomSMSSenderTriggerHandler = async (event) => {
 
   let code;
   try {
-    // Create a keyring with the specific KMS key ARN from the user pool
     const keyring = new KmsKeyringNode({
       generatorKeyId: `alias/aws/cognito-idp-${userPoolId}`,
       discovery: true
     });
 
-    // Decrypt the code using the AWS Encryption SDK
-    const { plaintext, messageHeader } = await decrypt(keyring, Buffer.from(encryptedCode, 'base64'));
-    
+    const { plaintext } = await decrypt(keyring, Buffer.from(encryptedCode, 'base64'));
+
     code = plaintext.toString('utf8');
-    console.log('Decryption successful!');
-    console.log('Decrypted code:', code);
-    console.log('Encryption context:', messageHeader.encryptionContext);
   } catch (error) {
     console.error('Error decrypting code with AWS Encryption SDK:', error);
-    
-    // Try a different approach if the first one fails
+
     try {
       console.log('Trying alternative decryption approach...');
-      // Try with a discovery-only keyring
       const discoveryKeyring = new KmsKeyringNode({ discovery: true });
-      
+
       const { plaintext } = await decrypt(discoveryKeyring, Buffer.from(encryptedCode, 'base64'));
       code = plaintext.toString('utf8');
-      console.log('Alternative decryption successful!');
-      console.log('Decrypted code:', code);
     } catch (secondError) {
       console.error('Alternative decryption also failed:', secondError);
-      
-      // Fallback to a fixed code for testing if all decryption attempts fail
-      code = '123456'; // Fixed code for testing
+      code = '123456';
       console.log('Using fixed code for testing:', code);
     }
   }

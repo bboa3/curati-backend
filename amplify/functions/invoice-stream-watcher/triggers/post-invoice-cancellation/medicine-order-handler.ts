@@ -11,7 +11,7 @@ interface TriggerInput {
 }
 
 export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoice = unmarshall(invoiceImage) as Invoice;
+  const invoice = unmarshall(invoiceImage as any) as Invoice;
   const { id: invoiceId, invoiceNumber, invoiceSourceId, patientId, dueDate, totalAmount } = invoice
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({

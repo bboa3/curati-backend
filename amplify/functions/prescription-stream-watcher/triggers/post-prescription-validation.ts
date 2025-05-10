@@ -12,7 +12,7 @@ interface TriggerInput {
 }
 
 export const postPrescriptionValidation = async ({ prescriptionImage, dbClient }: TriggerInput) => {
-  const prescription = unmarshall(prescriptionImage) as Prescription;
+  const prescription = unmarshall(prescriptionImage as any) as Prescription;
   const { id: prescriptionId, prescriptionNumber, status: prescriptionStatus, patientId } = prescription;
 
   const { data: patient, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });

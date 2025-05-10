@@ -15,7 +15,7 @@ interface TriggerInput {
 }
 
 export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: TriggerInput) => {
-  const delivery = unmarshall(deliveryImage) as Delivery;
+  const delivery = unmarshall(deliveryImage as any) as Delivery;
   const { orderId, patientId, driverId, pharmacyId, deliveryNumber, deliveredAt } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });

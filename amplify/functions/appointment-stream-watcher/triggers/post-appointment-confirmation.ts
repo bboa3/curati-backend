@@ -15,7 +15,7 @@ interface TriggerInput {
 }
 
 export const postAppointmentConfirmation = async ({ appointmentImage, oldImageStatus, dbClient }: TriggerInput) => {
-  const appointment = unmarshall(appointmentImage) as Appointment;
+  const appointment = unmarshall(appointmentImage as any) as Appointment;
   const { id: appointmentId, appointmentNumber, appointmentDateTime, duration, type: appointmentType, purpose, patientId, professionalId } = appointment;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });

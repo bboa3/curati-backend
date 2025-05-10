@@ -13,7 +13,7 @@ interface TriggerInput {
 }
 
 export const postInvoiceReadyForPaymentContractHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
-  const invoice = unmarshall(invoiceImage) as Invoice;
+  const invoice = unmarshall(invoiceImage as any) as Invoice;
   const { id: invoiceId, invoiceSourceId, totalAmount: invoiceTotalAmount, paymentMethodId } = invoice;
 
   const { data: contractData, errors: contractErrors } = await dbClient.models.contract.get({ id: invoiceSourceId });

@@ -12,7 +12,7 @@ interface TriggerInput {
 }
 
 export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
-  const order = unmarshall(medicineOrderImage) as MedicineOrder;
+  const order = unmarshall(medicineOrderImage as any) as MedicineOrder;
   const { id: orderId, orderNumber, businessId: pharmacyId } = order;
 
   const { data: pharmacistsData, errors: pharmacistErrors } = await dbClient.models.professional.list({

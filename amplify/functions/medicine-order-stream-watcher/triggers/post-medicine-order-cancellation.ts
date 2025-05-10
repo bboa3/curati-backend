@@ -11,7 +11,7 @@ interface TriggerInput {
 }
 
 export const postMedicineOrderCancellation = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
-  const order = unmarshall(medicineOrderImage) as MedicineOrder;
+  const order = unmarshall(medicineOrderImage as any) as MedicineOrder;
   const { id: orderId } = order;
 
   await cancelReservedStockInventories({

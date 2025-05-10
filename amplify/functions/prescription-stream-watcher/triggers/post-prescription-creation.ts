@@ -12,7 +12,7 @@ interface TriggerInput {
 }
 
 export const postPrescriptionCreation = async ({ prescriptionImage, dbClient }: TriggerInput) => {
-  const prescription = unmarshall(prescriptionImage) as Prescription;
+  const prescription = unmarshall(prescriptionImage as any) as Prescription;
   const { prescriptionNumber } = prescription;
 
   const { data: admins, errors: adminErrors } = await dbClient.models.user.list({

@@ -10,7 +10,7 @@ interface TriggerInput {
 }
 
 export const postAppointmentCreation = async ({ appointmentImage, dbClient }: TriggerInput) => {
-  const appointment = unmarshall(appointmentImage) as Appointment;
+  const appointment = unmarshall(appointmentImage as any) as Appointment;
   const { contractId } = appointment;
 
   const { data: contractData, errors: contractErrors } = await dbClient.models.contract.get({ id: contractId });
