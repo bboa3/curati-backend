@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@algolia/client-search": "^5.23.4",
+    "@aws-crypto/client-node": "^4.2.1",
     "@aws-sdk/client-cognito-identity-provider": "^3.787.0",
     "@aws-sdk/client-sesv2": "^3.787.0",
     "@aws-sdk/client-sns": "^3.787.0",
