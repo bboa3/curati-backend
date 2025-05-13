@@ -18,6 +18,7 @@ import { getSecrets } from './functions/get-secrets/resource';
 import { invoiceStreamWatcher } from './functions/invoice-stream-watcher/resource';
 import { medicineOrderStreamWatcher } from './functions/medicine-order-stream-watcher/resource';
 import { prescriptionStreamWatcher } from './functions/prescription-stream-watcher/resource';
+import { supportContactEmail } from './functions/support-contact-email/resource';
 import { generateDailySalesSummaries } from './jobs/generate-daily-sales-summaries/resource';
 import { generateMonthlySalesSummaries } from './jobs/generate-monthly-sales-summaries/resource';
 import { storage } from './storage/resource';
@@ -28,6 +29,7 @@ const backend = defineBackend({
   storage,
   addUserToGroup,
   adminCreateUser,
+  supportContactEmail,
   customAuthSmsSender,
   addOrUpdateSearchableRecord,
   deleteSearchableRecord,

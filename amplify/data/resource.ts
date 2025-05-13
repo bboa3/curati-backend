@@ -13,6 +13,7 @@ import { getSecrets } from '../functions/get-secrets/resource';
 import { invoiceStreamWatcher } from '../functions/invoice-stream-watcher/resource';
 import { medicineOrderStreamWatcher } from '../functions/medicine-order-stream-watcher/resource';
 import { prescriptionStreamWatcher } from '../functions/prescription-stream-watcher/resource';
+import { supportContactEmail } from '../functions/support-contact-email/resource';
 import { generateDailySalesSummaries } from '../jobs/generate-daily-sales-summaries/resource';
 import { generateMonthlySalesSummaries } from '../jobs/generate-monthly-sales-summaries/resource';
 
@@ -184,10 +185,28 @@ const schema = a.schema({
     .returns(a.customType({
       content: a.string()
     })),
+
   getSecrets: a
     .mutation()
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(getSecrets))
+    .returns(a.customType({
+      content: a.string()
+    })),
+
+  supportContactEmail: a
+    .mutation()
+    .arguments({
+      name: a.string().required(),
+      email: a.string().required(),
+      phone: a.string(),
+      userType: a.string().required(),
+      reason: a.string().required(),
+      subject: a.string(),
+      message: a.string().required(),
+    })
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(supportContactEmail))
     .returns(a.customType({
       content: a.string()
     })),
