@@ -71,6 +71,20 @@ const customAuthSmsSenderKmsPolicy = new Policy(Stack.of(backend.customAuthSmsSe
 });
 backend.customAuthSmsSender.resources.lambda.role?.attachInlinePolicy(customAuthSmsSenderKmsPolicy);
 
+const supportContactEmailPolicy = new Policy(Stack.of(backend.supportContactEmail.resources.lambda), "SupportContactEmailPolicy", {
+  statements: [
+    new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: [
+        "ses:SendEmail",
+        "ses:SendRawEmail",
+      ],
+      resources: ["*"],
+    }),
+  ],
+});
+backend.supportContactEmail.resources.lambda.role?.attachInlinePolicy(supportContactEmailPolicy);
+
 const deliveryTable = backend.data.resources.tables["delivery"];
 const prescriptionTable = backend.data.resources.tables["prescription"];
 const medicineOrderTable = backend.data.resources.tables["medicineOrder"];
