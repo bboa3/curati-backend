@@ -1,6 +1,7 @@
 import { Schema } from "../../../data/resource";
 
 
+
 type ComparisonOperator =
   | 'eq'           // Equal
   | 'ne'           // Not Equal
@@ -776,13 +777,15 @@ export interface Reminder extends ReminderSchema {
   repeat: RepeatType
 };
 
+export interface NotificationPayload {
+  href?: string
+}
+
 type NotificationSchema = Schema['notification']['type'];
 export interface Notification extends NotificationSchema {
   type: NotificationType
   priority: Priority
-  payload: {
-    href?: string
-  },
+  payload: NotificationPayload,
   relatedItemType: NotificationRelatedItemType
 };
 
