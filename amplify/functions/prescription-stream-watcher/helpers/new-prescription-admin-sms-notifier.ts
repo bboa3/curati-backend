@@ -8,7 +8,7 @@ const smsService = new SendSMSService({
 
 
 export async function newPrescriptionAdminSMSNotifier(phoneNumber: string, prescriptionNumber: string) {
-  const message = `Validação de Nova Receita Necessária\n\nUma nova prescrição foi submetida e aguarda a sua validação no sistema Cúrati.\n\nNúmero da Receita: ${prescriptionNumber}\n\nAção Necessária: Por favor, acesse a plataforma para revisar e validar a prescrição o mais breve possível.`;
+  const message = `Validação de Nova Receita Necessária. Uma nova prescrição foi submetida e aguarda a sua validação no sistema Cúrati. Número da Receita: ${prescriptionNumber} Ação Necessária: Por favor, acesse a plataforma para revisar e validar a prescrição o mais breve possível.`;
 
   return await smsService.sendSms({
     to: phoneNumber,

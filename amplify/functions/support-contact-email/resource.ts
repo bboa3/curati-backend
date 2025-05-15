@@ -5,6 +5,6 @@ export const supportContactEmail = defineFunction({
   entry: "./handler.ts",
   environment: {
     VERIFIED_SES_SUPPORT_EMAIL: "support@curati.life",
-    VERIFIED_SES_SENDER_EMAIL: "sales@curati.life"
+    VERIFIED_SES_SENDER_EMAIL: "noreply@curati.life"
   }
 });

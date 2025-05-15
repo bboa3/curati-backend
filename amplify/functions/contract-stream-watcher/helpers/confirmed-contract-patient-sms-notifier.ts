@@ -37,7 +37,7 @@ export async function confirmedContractPatientSMSNotifier({
       throw new Error(`Invoice details missing for ACTIVE contract ${contractNumber}`);
     }
 
-    message = `Curati: Excelente notícia ${patientName}!\n\n O seu contrato de serviço (Nº ${contractNumber}) para "${serviceName}" com ${professionalName} foi confirmado com sucesso. Uma fatura (Nº ${invoiceNumber}) foi gerada, faça o pagamento no app p/ agendar a consulta: ${paymentDeepLink}`;
+    message = `Curati: Excelente notícia ${patientName}! O seu contrato de serviço (Nº ${contractNumber}) para "${serviceName}" com ${professionalName} foi confirmado com sucesso. Uma fatura (Nº ${invoiceNumber}) foi gerada, faça o pagamento no app p/ agendar a consulta: ${paymentDeepLink}`;
   } else {
     const formattedContractStatus = convertContractStatus(contractStatus);
     message = `Curati: Atualização Contrato ${contractNumber}. Estado: ${formattedContractStatus}. Contacte o nosso suporte para mais detalhes.`;

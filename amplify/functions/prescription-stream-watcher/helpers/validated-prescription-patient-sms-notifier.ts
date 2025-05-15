@@ -26,9 +26,9 @@ export async function validatedPrescriptionPatientSMSNotifier({
   let message: string;
 
   if (prescriptionStatus === PrescriptionStatus.ACTIVE) {
-    message = `Sua Receita Foi Validada com Sucesso!\n\nPrezado(a) ${patientName},\n\nTemos boas notícias! Sua receita (${prescriptionNumber}) foi APROVADA.\n\nPróximo Passo: Já pode adicionar os medicamentos prescritos ao seu carrinho e prosseguir com a compra através do aplicativo Cúrati.`;
+    message = `Sua Receita Foi Validada com Sucesso! Prezado(a) ${patientName}, temos boas notícias! Sua receita (${prescriptionNumber}) foi APROVADA. Próximo Passo: Já pode adicionar os medicamentos prescritos ao seu carrinho e prosseguir com a compra através do aplicativo Cúrati.`;
   } else {
-    message = `Atualização Sobre a Sua Receita\n\nPrezado(a) ${patientName},\n\nGostaríamos de informar sobre o estado da sua receita médica (Número: ${prescriptionNumber}).\n\nValidação não concluída (Estado: ${convertPrescriptionStatus(prescriptionStatus)}). Por favor contacte seu médico ou nosso suporte.`;
+    message = `Atualização Sobre a Sua Receita. Prezado(a) ${patientName}, gostaríamos de informar sobre o estado da sua receita médica (Número: ${prescriptionNumber}). Validação não concluída (Estado: ${convertPrescriptionStatus(prescriptionStatus)}). Por favor contacte seu médico ou nosso suporte.`;
   }
 
   return await smsService.sendSms({
