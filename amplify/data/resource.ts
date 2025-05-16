@@ -49,6 +49,65 @@ const medicineOrderStatus = ['PENDING_PAYMENT', 'PHARMACY_REVIEW', 'PROCESSING',
 const notificationType = ['GENERAL', 'PERSONAL', 'PROMOTIONAL', 'UPDATE'] as const;
 const notificationRelatedItemType = ['ORDER', 'PRESCRIPTION', 'APPOINTMENT', 'ARTICLE', 'MEDICINE', 'CONTRACT', 'OTHER'] as const;
 const priority = ['LOW', 'MEDIUM', 'HIGH'] as const;
+const notificationChannel = ['EMAIL', 'SMS', 'PUSH', 'IN_APP'] as const;
+const notificationStatus = ['PENDING', 'SENT', 'DELIVERED', 'FAILED', 'READ'] as const;
+const notificationTemplateKey = [
+  // ========== Appointments ==========
+  'APPOINTMENT_CONFIRMATION_REQUIRED',
+  'APPOINTMENT_CONFIRMED',
+  'APPOINTMENT_CANCELLED',
+  'APPOINTMENT_RESCHEDULED',
+  'APPOINTMENT_REMINDER',
+  'APPOINTMENT_VIDEO_JOIN_READY',
+
+  // ========== Prescriptions ==========
+  'PRESCRIPTION_VALIDATION_REQUIRED',
+  'PRESCRIPTION_STATUS_UPDATED',
+  'PRESCRIPTION_EXPIRY_WARNING',
+
+  // ========== Medications ==========
+  'MEDICATION_DOSE_REMINDER',
+  'MEDICATION_STOCK_WARNING',
+
+  // ========== Deliveries ==========
+  'DELIVERY_ASSIGNMENT_AVAILABLE',
+  'DELIVERY_DRIVER_ASSIGNED',
+  'DELIVERY_STATUS_UPDATED',
+  'DELIVERY_FAILED',
+
+  // ========== Medicine Orders ==========
+  'MEDICINE_ORDER_CREATED',
+  'MEDICINE_ORDER_INVOICE_GENERATED',
+  'MEDICINE_ORDER_INVOICE_PAID',
+  'MEDICINE_ORDER_INVOICE_FAILED',
+
+  // ========== Contracts ==========
+  'CONTRACT_CONFIRMATION_REQUIRED',
+  'CONFIRMATION_CONFIRMATION_EXPIRED',
+  'CONTRACT_CANCELLED',
+  'CONTRACT_EXPIRY_WARNING',
+
+  // ========== Health Monitoring ==========
+  'HEALTH_CHECKIN_REMINDER',
+  'HEALTH_METRIC_ALERT',
+  'PREVENTIVE_CARE_ALERT',
+
+  // ========== User Account ==========
+  'USER_WELCOME',
+  'USER_ACCOUNT_SECURITY_ALERT',
+
+  // ========== Payments ==========
+  'PAYMENT_RECEIVED_PHARMACY',
+  'PAYMENT_RECEIVED_PROFESSIONAL',
+  'PAYMENT_FAILED',
+
+  // ========== Content & Promotions ==========
+  'CONTENT_ARTICLE_PUBLISHED',
+  'PROMOTION_SERVICE_LAUNCH',
+  'PROMOTION_VACCINATION_CAMPAIGN',
+  'PROMOTION_COMMUNITY_EVENT',
+  'WELLNESS_TIP'
+] as const;
 const remindedItemType = ['APPOINTMENT', 'MEDICATION', 'DELIVERY', 'MEDICINE_ORDER'] as const;
 const reminderStatus = ['PENDING', 'COMPLETED', 'SKIPPED'] as const;
 const repeatType = ['NONE', 'DAILY', 'WEEKLY', 'CUSTOM'] as const;
@@ -993,18 +1052,24 @@ const schema = a.schema({
   notification: a.model({
     id: a.id().required(),
     userId: a.id().required(),
-    relatedItemId: a.id(),
-    title: a.string().required(),
-    message: a.string().required(),
+    templateKey: a.enum(notificationTemplateKey),
+    templateData: a.json().required(),
     type: a.enum(notificationType),
     priority: a.enum(priority),
-    payload: a.customType({
-      href: a.string()
-    }),
+    bypassPreferences: a.boolean().default(false),
+    relatedItemId: a.id(),
     relatedItemType: a.enum(notificationRelatedItemType),
-    expiresAt: a.datetime().required(),
-    isRead: a.boolean().required().default(false),
-    //  user: a.belongsTo('user', 'userId'),
+    payload: a.customType({
+      href: a.string(),
+      actionData: a.json()
+    }),
+    channels: a.string().array().required(),
+    status: a.enum(notificationStatus),
+    sentAt: a.datetime(),
+    deliveredAt: a.datetime(),
+    deliveryAttempts: a.integer().default(0),
+    lastAttemptError: a.string(),
+    createdBy: a.id().required(),
   }).authorization(allow => [
     allow.authenticated().to(['read']),
     allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
