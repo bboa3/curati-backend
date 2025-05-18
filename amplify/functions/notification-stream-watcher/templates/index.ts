@@ -5,6 +5,8 @@ import { generateAppointmentConfirmedMessages } from './APPOINTMENT_CONFIRMED';
 import { generateAppointmentJoinReadyMessages } from './APPOINTMENT_JOIN_READY';
 import { generateAppointmentReminderMessages } from './APPOINTMENT_REMINDER';
 import { generateAppointmentRescheduleRequiredMessages } from './APPOINTMENT_RESCHEDULE_REQUIRED';
+import { generateDeliveryAssignmentAvailableMessages } from './DELIVERY_ASSIGNMENT_AVAILABLE';
+import { generateDeliveryDriverAssignedMessages } from './DELIVERY_DRIVER_ASSIGNED';
 import { generatePrescriptionStatusUpdatedMessages } from './PRESCRIPTION_STATUS_UPDATED';
 import { generatePrescriptionValidationRequiredMessages } from './PRESCRIPTION_VALIDATION_REQUIRED';
 
@@ -43,5 +45,13 @@ export const generateMessages = ({ notification }: TemplateInput) => {
 
   if (notification.templateKey === NotificationTemplateKey.PRESCRIPTION_STATUS_UPDATED) {
     return generatePrescriptionStatusUpdatedMessages({ notification });
+  }
+
+  if (notification.templateKey === NotificationTemplateKey.DELIVERY_ASSIGNMENT_AVAILABLE) {
+    return generateDeliveryAssignmentAvailableMessages({ notification });
+  }
+
+  if (notification.templateKey === NotificationTemplateKey.DELIVERY_DRIVER_ASSIGNED) {
+    return generateDeliveryDriverAssignedMessages({ notification });
   }
 };

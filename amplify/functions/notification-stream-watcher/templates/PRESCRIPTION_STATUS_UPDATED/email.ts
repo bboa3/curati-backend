@@ -26,7 +26,7 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
   const isApproved = prescriptionStatus === PrescriptionStatus.ACTIVE;
   const friendlyStatus = convertPrescriptionStatus(prescriptionStatus);
   const currentYear = new Date().getFullYear();
-  const prescriptionDeepLink = payload.href || brandConfig.universalLink;
+  const deepLink = payload.href || brandConfig.universalLink;
 
   const subject = isApproved
     ? `${brandConfig.appName}: Receita #${prescriptionNumber} Aprovada!`
@@ -54,7 +54,7 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
       </mj-text>
       ${generateEmailButton({
       text: "Ver Receita e Encomendar",
-      url: prescriptionDeepLink,
+      url: deepLink,
       brandConfig,
       customBackgroundColor: brandConfig.colors.PRIMARY,
     })}
@@ -77,7 +77,7 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
       </mj-text>
       ${generateEmailButton({
       text: "Ver Detalhes da Receita",
-      url: prescriptionDeepLink,
+      url: deepLink,
       brandConfig,
       customBackgroundColor: brandConfig.colors.BLACK3,
       customTextColor: brandConfig.colors.BLACK,
@@ -106,7 +106,7 @@ Temos boas notícias! A sua receita médica (Nº ${prescriptionNumber}) foi vali
 Próximo Passo: Já pode adicionar os medicamentos à sua encomenda através da aplicação Cúrati.
 
 Ver Receita e Encomendar:
-${prescriptionDeepLink}
+${deepLink}
 
 Atenciosamente,
 Equipa ${brandConfig.appName}
@@ -123,7 +123,7 @@ O que fazer:
 ${statusReason && statusReason.toLowerCase().includes('médico') ? 'Recomendamos que entre em contacto com o seu médico prescritor para discutir os próximos passos.' : 'Por favor, verifique os detalhes na aplicação ou contacte o nosso suporte para mais informações e assistência.'}
 
 Ver Detalhes da Receita:
-${prescriptionDeepLink}
+${deepLink}
 
 Suporte: ${brandConfig.supportEmail}
 
