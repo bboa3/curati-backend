@@ -1,10 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import dayjs from "dayjs";
-import { Appointment, AppointmentParticipantType, Outcome, Patient, Professional } from '../../helpers/types/schema';
-import { startedAppointmentEmailNotifier } from "../helpers/started-appointment-email-notifier";
-import { startedAppointmentSMSNotifier } from "../helpers/started-appointment-sms-notifier";
+import { Appointment, Patient, Professional } from '../../helpers/types/schema';
+import { createAppointmentStartedNotification } from "../helpers/create -appointment-started-notification";
 
 interface TriggerInput {
   appointmentImage: { [key: string]: AttributeValue; };
@@ -14,7 +12,7 @@ interface TriggerInput {
 
 export const postAppointmentStarted = async ({ appointmentImage, dbClient }: TriggerInput) => {
   const appointment = unmarshall(appointmentImage as any) as Appointment;
-  const { id: appointmentId, appointmentNumber, contractId, patientId, professionalId, businessServiceId, type: appointmentType, purpose, starterType } = appointment;
+  const { patientId, professionalId } = appointment;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -30,47 +28,10 @@ export const postAppointmentStarted = async ({ appointmentImage, dbClient }: Tri
   }
   const professional = professionalData as unknown as Professional;
 
-  const appointmentJoinLink = `curati://life.curati.www/(app)/profile/appointments/${appointmentId}`;
-
-  const starter = starterType === AppointmentParticipantType.PATIENT ? patient : professional;
-  const recipient = starterType === AppointmentParticipantType.PATIENT ? professional : patient;
-
-  if (recipient.email) {
-    await startedAppointmentEmailNotifier({
-      recipientName: recipient.name,
-      recipientEmail: recipient.email,
-      starterName: starter.name,
-      starterType: starterType,
-      appointmentNumber,
-      appointmentType,
-      purpose,
-      appointmentJoinLink,
-    });
-  }
-
-  await startedAppointmentSMSNotifier({
-    recipientPhoneNumber: recipient.phone,
-    starterName: starter.name,
-    appointmentNumber,
-    appointmentType,
-    appointmentJoinLink,
+  await createAppointmentStartedNotification({
+    dbClient,
+    professional,
+    patient,
+    appointment,
   });
-
-  const { errors: consultationRecordErrors } = await dbClient.models.consultationRecord.create({
-    appointmentId,
-    contractId,
-    patientId,
-    businessId: professional.businessId,
-    professionalId,
-    businessServiceId,
-    type: appointmentType,
-    purpose,
-    notes: '',
-    outcome: Outcome.NOT_COMPLETED,
-    startedAt: dayjs().utc().toISOString(),
-  })
-
-  if (consultationRecordErrors) {
-    throw new Error(`Failed to create consultation record: ${JSON.stringify(consultationRecordErrors)}`);
-  }
 };

@@ -17,6 +17,7 @@ import { deliveryStreamWatcher } from './functions/delivery-stream-watcher/resou
 import { getSecrets } from './functions/get-secrets/resource';
 import { invoiceStreamWatcher } from './functions/invoice-stream-watcher/resource';
 import { medicineOrderStreamWatcher } from './functions/medicine-order-stream-watcher/resource';
+import { notificationStreamWatcher } from './functions/notification-stream-watcher/resource';
 import { prescriptionStreamWatcher } from './functions/prescription-stream-watcher/resource';
 import { supportContactEmail } from './functions/support-contact-email/resource';
 import { generateDailySalesSummaries } from './jobs/generate-daily-sales-summaries/resource';
@@ -40,6 +41,7 @@ const backend = defineBackend({
   invoiceStreamWatcher,
   contractStreamWatcher,
   deliveryAssignmentStreamWatcher,
+  notificationStreamWatcher,
   appointmentStreamWatcher,
   medicineOrderStreamWatcher,
   generateDailySalesSummaries,
@@ -92,6 +94,32 @@ const contractTable = backend.data.resources.tables["contract"];
 const appointmentTable = backend.data.resources.tables["appointment"];
 const invoiceTable = backend.data.resources.tables["invoice"];
 const deliveryAssignmentTable = backend.data.resources.tables["deliveryAssignment"];
+const notificationTable = backend.data.resources.tables["notification"];
+
+const notificationStreamWatcherPolicy = new Policy(Stack.of(notificationTable), "NotificationStreamWatcherPolicy",
+  {
+    statements: [
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "dynamodb:DescribeStream",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:ListStreams",
+        ],
+        resources: [notificationTable.tableStreamArn!],
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+        ],
+        resources: ["*"],
+      }),
+    ],
+  }
+);
 
 const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "DeliveryStreamWatcherPolicy",
   {
@@ -105,15 +133,7 @@ const deliveryStreamWatcherPolicy = new Policy(Stack.of(deliveryTable), "Deliver
           "dynamodb:ListStreams",
         ],
         resources: [deliveryTable.tableStreamArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
+      })
     ],
   }
 );
@@ -130,15 +150,7 @@ const prescriptionStreamWatcherPolicy = new Policy(Stack.of(prescriptionTable), 
           "dynamodb:ListStreams",
         ],
         resources: [prescriptionTable.tableStreamArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
+      })
     ],
   }
 );
@@ -155,15 +167,7 @@ const medicineOrderStreamWatcherPolicy = new Policy(Stack.of(medicineOrderTable)
           "dynamodb:ListStreams"
         ],
         resources: [medicineOrderTable.tableStreamArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
+      })
     ],
   }
 );
@@ -180,15 +184,7 @@ const contractStreamWatcherPolicy = new Policy(Stack.of(contractTable), "Contrac
           "dynamodb:ListStreams"
         ],
         resources: [contractTable.tableStreamArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
+      })
     ],
   }
 );
@@ -205,15 +201,7 @@ const appointmentStreamWatcherPolicy = new Policy(Stack.of(appointmentTable), "A
           "dynamodb:ListStreams"
         ],
         resources: [appointmentTable.tableStreamArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
+      })
     ],
   }
 );
@@ -230,15 +218,7 @@ const invoiceStreamWatcherPolicy = new Policy(Stack.of(invoiceTable), "InvoiceSt
           "dynamodb:ListStreams"
         ],
         resources: [invoiceTable.tableStreamArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
+      })
     ],
   }
 );
@@ -255,19 +235,12 @@ const deliveryAssignmentStreamWatcherPolicy = new Policy(Stack.of(deliveryAssign
           "dynamodb:ListStreams"
         ],
         resources: [deliveryAssignmentTable.tableStreamArn!],
-      }),
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ],
-        resources: ["*"],
-      }),
+      })
     ],
   }
 );
 
+backend.notificationStreamWatcher.resources.lambda.role?.attachInlinePolicy(notificationStreamWatcherPolicy);
 backend.deliveryStreamWatcher.resources.lambda.role?.attachInlinePolicy(deliveryStreamWatcherPolicy);
 backend.prescriptionStreamWatcher.resources.lambda.role?.attachInlinePolicy(prescriptionStreamWatcherPolicy);
 backend.medicineOrderStreamWatcher.resources.lambda.role?.attachInlinePolicy(medicineOrderStreamWatcherPolicy);
@@ -276,6 +249,13 @@ backend.appointmentStreamWatcher.resources.lambda.role?.attachInlinePolicy(appoi
 backend.invoiceStreamWatcher.resources.lambda.role?.attachInlinePolicy(invoiceStreamWatcherPolicy);
 backend.deliveryAssignmentStreamWatcher.resources.lambda.role?.attachInlinePolicy(deliveryAssignmentStreamWatcherPolicy);
 
+const notificationStreamWatcherMapping = new EventSourceMapping(Stack.of(notificationTable), "NotificationStreamWatcherMapping",
+  {
+    target: backend.notificationStreamWatcher.resources.lambda,
+    eventSourceArn: notificationTable.tableStreamArn,
+    startingPosition: StartingPosition.LATEST,
+  }
+);
 const deliveryStreamWatcherMapping = new EventSourceMapping(Stack.of(deliveryTable), "DeliveryStreamWatcherMapping",
   {
     target: backend.deliveryStreamWatcher.resources.lambda,
@@ -331,6 +311,7 @@ const deliveryAssignmentStreamWatcherMapping = new EventSourceMapping(Stack.of(d
   }
 );
 
+notificationStreamWatcherMapping.node.addDependency(notificationStreamWatcherPolicy);
 deliveryStreamWatcherMapping.node.addDependency(deliveryStreamWatcherPolicy);
 prescriptionStreamWatcherMapping.node.addDependency(prescriptionStreamWatcherPolicy);
 medicineOrderStreamWatcherMapping.node.addDependency(medicineOrderStreamWatcherPolicy);

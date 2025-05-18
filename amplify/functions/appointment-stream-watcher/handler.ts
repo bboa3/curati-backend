@@ -59,6 +59,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       } else if (record.eventName === "MODIFY") {
         const oldStatus = oldImage?.status?.S as AppointmentStatus | undefined;
         const newStatus = newImage?.status?.S as AppointmentStatus | undefined;
+        const originalAppointmentDateTime = oldImage?.appointmentDateTime?.S as string | undefined;
 
         if (oldStatus === newStatus) {
           logger.info(`Skipping record ${record.eventID}: Status did not change ('${newStatus}').`);
@@ -69,7 +70,8 @@ export const handler: DynamoDBStreamHandler = async (event) => {
           await postAppointmentReadyForConfirmation({
             appointmentImage: newImage,
             dbClient: client,
-            logger
+            logger,
+            originalAppointmentDateTime
           });
         }
 

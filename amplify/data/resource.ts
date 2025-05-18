@@ -12,6 +12,7 @@ import { deliveryStreamWatcher } from '../functions/delivery-stream-watcher/reso
 import { getSecrets } from '../functions/get-secrets/resource';
 import { invoiceStreamWatcher } from '../functions/invoice-stream-watcher/resource';
 import { medicineOrderStreamWatcher } from '../functions/medicine-order-stream-watcher/resource';
+import { notificationStreamWatcher } from '../functions/notification-stream-watcher/resource';
 import { prescriptionStreamWatcher } from '../functions/prescription-stream-watcher/resource';
 import { supportContactEmail } from '../functions/support-contact-email/resource';
 import { generateDailySalesSummaries } from '../jobs/generate-daily-sales-summaries/resource';
@@ -49,16 +50,18 @@ const medicineOrderStatus = ['PENDING_PAYMENT', 'PHARMACY_REVIEW', 'PROCESSING',
 const notificationType = ['GENERAL', 'PERSONAL', 'PROMOTIONAL', 'UPDATE'] as const;
 const notificationRelatedItemType = ['ORDER', 'PRESCRIPTION', 'APPOINTMENT', 'ARTICLE', 'MEDICINE', 'CONTRACT', 'OTHER'] as const;
 const priority = ['LOW', 'MEDIUM', 'HIGH'] as const;
-const notificationChannel = ['EMAIL', 'SMS', 'PUSH', 'IN_APP'] as const;
+const notificationChannelType = ['EMAIL', 'SMS', 'PUSH', 'IN_APP'] as const;
 const notificationStatus = ['PENDING', 'SENT', 'DELIVERED', 'FAILED', 'READ'] as const;
 const notificationTemplateKey = [
+  // === naming convention: [DOMAIN]_[ACTION]_[MODIFIER] ===
+
   // ========== Appointments ==========
   'APPOINTMENT_CONFIRMATION_REQUIRED',
   'APPOINTMENT_CONFIRMED',
   'APPOINTMENT_CANCELLED',
-  'APPOINTMENT_RESCHEDULED',
+  'APPOINTMENT_RESCHEDULE_REQUIRED',
   'APPOINTMENT_REMINDER',
-  'APPOINTMENT_VIDEO_JOIN_READY',
+  'APPOINTMENT_JOIN_READY',
 
   // ========== Prescriptions ==========
   'PRESCRIPTION_VALIDATION_REQUIRED',
@@ -277,7 +280,7 @@ const schema = a.schema({
     phone: a.string(),
     name: a.string(),
     profilePicture: a.string(),
-    expoPushTokens: a.string().array().required(),
+    pushTokens: a.string().array().required(),
     isDeleted: a.boolean().required().default(false),
     //  notifications: a.hasMany('notification', 'userId'),
     // view: a.hasMany('view', 'userId'),
@@ -1052,6 +1055,9 @@ const schema = a.schema({
   notification: a.model({
     id: a.id().required(),
     userId: a.id().required(),
+    title: a.string(),
+    shortMessage: a.string(),
+    message: a.string(),
     templateKey: a.enum(notificationTemplateKey),
     templateData: a.json().required(),
     type: a.enum(notificationType),
@@ -1063,13 +1069,14 @@ const schema = a.schema({
       href: a.string(),
       actionData: a.json()
     }),
-    channels: a.string().array().required(),
+    channels: a.json().array().required(), // [{type: string, targets: string[]}]
     status: a.enum(notificationStatus),
+    isInAppEnabled: a.boolean().default(false),
     sentAt: a.datetime(),
     deliveredAt: a.datetime(),
     deliveryAttempts: a.integer().default(0),
     lastAttemptError: a.string(),
-    createdBy: a.id().required(),
+    createdBy: a.string(),
   }).authorization(allow => [
     allow.authenticated().to(['read']),
     allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
@@ -1451,6 +1458,7 @@ const schema = a.schema({
     allow.resource(generateDailySalesSummaries),
     allow.resource(generateMonthlySalesSummaries),
     allow.resource(deliveryAssignmentStreamWatcher),
+    allow.resource(notificationStreamWatcher),
   ]);
 
 export type Schema = ClientSchema<typeof schema>;

@@ -1,10 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import { Appointment, AppointmentParticipantType, Contract, Patient, Professional } from '../../helpers/types/schema';
-import { canceledAppointmentEmailNotifier } from "../helpers/canceled-appointment-email-notifier";
-import { canceledAppointmentSMSNotifier } from "../helpers/canceled-appointment-sms-notifier";
-import { deleteReminders } from "../helpers/delete-reminders";
+import { Appointment, Contract, Patient, Professional } from '../../helpers/types/schema';
+import { createAppointmentCancellationNotification } from "../helpers/create -appointment-cancellation-notification";
 
 interface TriggerInput {
   appointmentImage: { [key: string]: AttributeValue; };
@@ -14,7 +12,7 @@ interface TriggerInput {
 
 export const postAppointmentCancellation = async ({ appointmentImage, dbClient }: TriggerInput) => {
   const appointment = unmarshall(appointmentImage as any) as Appointment;
-  const { id: appointmentId, contractId, appointmentNumber, appointmentDateTime, purpose, status: appointmentStatus, cancellationReason, patientId, professionalId } = appointment;
+  const { contractId, patientId, professionalId } = appointment;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -37,60 +35,11 @@ export const postAppointmentCancellation = async ({ appointmentImage, dbClient }
   }
   const contract = contractData as unknown as Contract;
 
-  const appointmentDeepLink = `curati://life.curati.www/(app)/profile/appointments/${appointmentId}`;
-
-  const recipients = [
-    {
-      userId: patient.userId,
-      name: patient.name,
-      email: patient.email,
-      phone: patient.phone,
-      type: AppointmentParticipantType.PATIENT,
-      otherPartyName: professional.name
-    },
-    {
-      userId: professional.userId,
-      name: professional.name,
-      email: professional.email,
-      phone: professional.phone,
-      type: AppointmentParticipantType.PROFESSIONAL,
-      otherPartyName: patient.name
-    }
-  ]
-
-  await Promise.all(recipients.map(async recipient => {
-    if (recipient.email) {
-      await canceledAppointmentEmailNotifier({
-        recipientName: recipient.name,
-        recipientEmail: recipient.email,
-        recipientType: recipient.type,
-        otherPartyName: recipient.otherPartyName,
-        appointmentNumber,
-        appointmentDateTime,
-        purpose,
-        finalStatus: appointmentStatus,
-        cancellationReason: cancellationReason || undefined,
-        appointmentDeepLink,
-      })
-    }
-  }))
-
-  await Promise.all(recipients.map(async recipient => {
-    await canceledAppointmentSMSNotifier({
-      recipientPhoneNumber: `+258${recipient.phone.replace(/\D/g, '')}`,
-      otherPartyName: recipient.otherPartyName,
-      recipientType: recipient.type,
-      appointmentNumber,
-      appointmentDateTime,
-      appointmentDeepLink,
-      finalStatus: appointmentStatus
-    })
-  }))
-
-  await deleteReminders({
+  await createAppointmentCancellationNotification({
     dbClient,
-    appointmentId,
-    recipients: recipients.map(({ userId }) => ({ userId }))
+    professional,
+    patient,
+    appointment
   })
 
   const { errors: contractUpdateErrors } = await dbClient.models.contract.update({

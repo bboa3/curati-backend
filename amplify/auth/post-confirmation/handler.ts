@@ -26,7 +26,7 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
       name: event.userName,
       email: event.request.userAttributes.email,
       phone: event.request.userAttributes.phone_number,
-      expoPushTokens: [],
+      pushTokens: [],
       role: 'PATIENT',
       isDeleted: false
     });

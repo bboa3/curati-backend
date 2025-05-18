@@ -1,19 +1,20 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
-import { Appointment, AppointmentParticipantType, Patient, Professional } from '../../helpers/types/schema';
-import { sendAppointmentConfirmationRequestEmail } from "../helpers/send-appointment-confirmation-request-email";
-import { sendAppointmentConfirmationRequestSMS } from "../helpers/send-appointment-confirmation-request-sms";
+import { Appointment, AppointmentStatus, Patient, Professional } from '../../helpers/types/schema';
+import { createAppointmentConfirmationRequestNotification } from "../helpers/create -appointment-confirmation-request-notification";
+import { createAppointmentRescheduleConfirmationRequestNotification } from "../helpers/create -appointment-reschedule-confirmation-request-notification";
 
 interface TriggerInput {
   appointmentImage: { [key: string]: AttributeValue; };
+  originalAppointmentDateTime?: string
   dbClient: any;
   logger: Logger;
 }
 
-export const postAppointmentReadyForConfirmation = async ({ appointmentImage, dbClient }: TriggerInput) => {
+export const postAppointmentReadyForConfirmation = async ({ appointmentImage, originalAppointmentDateTime, dbClient }: TriggerInput) => {
   const appointment = unmarshall(appointmentImage as any) as Appointment;
-  const { id: appointmentId, appointmentNumber, appointmentDateTime, duration, type: appointmentType, purpose, patientId, professionalId, requesterType } = appointment;
+  const { patientId, professionalId, status } = appointment;
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -29,32 +30,20 @@ export const postAppointmentReadyForConfirmation = async ({ appointmentImage, db
   }
   const professional = professionalData as unknown as Professional;
 
-  const appointmentDeepLink = `curati://life.curati.www/(app)/profile/appointments/${appointmentId}`;
-
-  const requester = requesterType === AppointmentParticipantType.PATIENT ? patient : professional;
-  const recipient = requesterType === AppointmentParticipantType.PATIENT ? professional : patient;
-
-  if (recipient.email) {
-    await sendAppointmentConfirmationRequestEmail({
-      recipientName: recipient.name,
-      recipientEmail: recipient.email,
-      requesterName: requester.name,
-      requesterType,
-      appointmentNumber,
-      appointmentDateTime,
-      duration: Number(duration),
-      appointmentType,
-      purpose,
-      appointmentDeepLink,
-    })
+  if (originalAppointmentDateTime && status === AppointmentStatus.RESCHEDULED) {
+    await createAppointmentRescheduleConfirmationRequestNotification({
+      dbClient,
+      professional,
+      patient,
+      appointment,
+      originalAppointmentDateTime
+    });
+  } else {
+    await createAppointmentConfirmationRequestNotification({
+      dbClient,
+      professional,
+      patient,
+      appointment
+    });
   }
-
-  await sendAppointmentConfirmationRequestSMS({
-    recipientPhoneNumber: `+258${recipient.phone.replace(/\D/g, '')}`,
-    requesterName: recipient.name,
-    requesterType,
-    appointmentNumber,
-    appointmentDateTime,
-    appointmentDeepLink,
-  })
 };

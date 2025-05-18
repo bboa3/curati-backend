@@ -1,7 +1,5 @@
 import { Schema } from "../../../data/resource";
 
-
-
 type ComparisonOperator =
   | 'eq'           // Equal
   | 'ne'           // Not Equal
@@ -161,6 +159,78 @@ export enum NotificationType {
   PERSONAL = 'PERSONAL',
   PROMOTIONAL = 'PROMOTIONAL',
   UPDATE = 'UPDATE'
+}
+
+export enum NotificationStatus {
+  PENDING = 'PENDING',
+  DELIVERED = 'DELIVERED',
+  FAILED = 'FAILED',
+  READ = 'READ'
+}
+
+export enum NotificationChannelType {
+  EMAIL = 'EMAIL',
+  SMS = 'SMS',
+  PUSH = 'PUSH',
+  IN_APP = 'IN_APP'
+}
+
+export enum NotificationTemplateKey {
+  // ========== Appointments ==========
+  APPOINTMENT_CONFIRMATION_REQUIRED = 'APPOINTMENT_CONFIRMATION_REQUIRED',
+  APPOINTMENT_CONFIRMED = 'APPOINTMENT_CONFIRMED',
+  APPOINTMENT_RESCHEDULE_REQUIRED = 'APPOINTMENT_RESCHEDULE_REQUIRED',
+  APPOINTMENT_CANCELLED = 'APPOINTMENT_CANCELLED',
+  APPOINTMENT_REMINDER = 'APPOINTMENT_REMINDER',
+  APPOINTMENT_JOIN_READY = 'APPOINTMENT_JOIN_READY',
+
+  // ========== Prescriptions ==========
+  PRESCRIPTION_VALIDATION_REQUIRED = 'PRESCRIPTION_VALIDATION_REQUIRED',
+  PRESCRIPTION_STATUS_UPDATED = 'PRESCRIPTION_STATUS_UPDATED',
+  PRESCRIPTION_EXPIRY_WARNING = 'PRESCRIPTION_EXPIRY_WARNING',
+
+  // ========== Medications ==========
+  MEDICATION_DOSE_REMINDER = 'MEDICATION_DOSE_REMINDER',
+  MEDICATION_STOCK_WARNING = 'MEDICATION_STOCK_WARNING',
+
+  // ========== Deliveries ==========
+  DELIVERY_ASSIGNMENT_AVAILABLE = 'DELIVERY_ASSIGNMENT_AVAILABLE',
+  DELIVERY_DRIVER_ASSIGNED = 'DELIVERY_DRIVER_ASSIGNED',
+  DELIVERY_STATUS_UPDATED = 'DELIVERY_STATUS_UPDATED',
+  DELIVERY_FAILED = 'DELIVERY_FAILED',
+
+  // ========== Medicine Orders ==========
+  MEDICINE_ORDER_CREATED = 'MEDICINE_ORDER_CREATED',
+  MEDICINE_ORDER_INVOICE_GENERATED = 'MEDICINE_ORDER_INVOICE_GENERATED',
+  MEDICINE_ORDER_INVOICE_PAID = 'MEDICINE_ORDER_INVOICE_PAID',
+  MEDICINE_ORDER_INVOICE_FAILED = 'MEDICINE_ORDER_INVOICE_FAILED',
+
+  // ========== Contracts ==========
+  CONTRACT_CONFIRMATION_REQUIRED = 'CONTRACT_CONFIRMATION_REQUIRED',
+  CONFIRMATION_CONFIRMATION_EXPIRED = 'CONFIRMATION_CONFIRMATION_EXPIRED',
+  CONTRACT_CANCELLED = 'CONTRACT_CANCELLED',
+  CONTRACT_EXPIRY_WARNING = 'CONTRACT_EXPIRY_WARNING',
+
+  // ========== Health Monitoring ==========
+  HEALTH_CHECKIN_REMINDER = 'HEALTH_CHECKIN_REMINDER',
+  HEALTH_METRIC_ALERT = 'HEALTH_METRIC_ALERT',
+  PREVENTIVE_CARE_ALERT = 'PREVENTIVE_CARE_ALERT',
+
+  // ========== User Account ==========
+  USER_WELCOME = 'USER_WELCOME',
+  USER_ACCOUNT_SECURITY_ALERT = 'USER_ACCOUNT_SECURITY_ALERT',
+
+  // ========== Payments ==========
+  PAYMENT_RECEIVED_PHARMACY = 'PAYMENT_RECEIVED_PHARMACY',
+  PAYMENT_RECEIVED_PROFESSIONAL = 'PAYMENT_RECEIVED_PROFESSIONAL',
+  PAYMENT_FAILED = 'PAYMENT_FAILED',
+
+  // ========== Content & Promotions ==========
+  CONTENT_ARTICLE_PUBLISHED = 'CONTENT_ARTICLE_PUBLISHED',
+  PROMOTION_SERVICE_LAUNCH = 'PROMOTION_SERVICE_LAUNCH',
+  PROMOTION_VACCINATION_CAMPAIGN = 'PROMOTION_VACCINATION_CAMPAIGN',
+  PROMOTION_COMMUNITY_EVENT = 'PROMOTION_COMMUNITY_EVENT',
+  WELLNESS_TIP = 'WELLNESS_TIP'
 }
 
 export enum NotificationRelatedItemType {
@@ -778,15 +848,23 @@ export interface Reminder extends ReminderSchema {
 };
 
 export interface NotificationPayload {
-  href?: string
+  href?: string;
+  actionData?: any
+}
+
+export interface NotificationChannel {
+  type: NotificationChannelType;
+  targets: string[]
 }
 
 type NotificationSchema = Schema['notification']['type'];
 export interface Notification extends NotificationSchema {
-  type: NotificationType
-  priority: Priority
-  payload: NotificationPayload,
-  relatedItemType: NotificationRelatedItemType
+  status: NotificationStatus;
+  type: NotificationType;
+  channels: NotificationChannel[];
+  priority: Priority;
+  payload: NotificationPayload;
+  relatedItemType: NotificationRelatedItemType;
 };
 
 type AddressSchema = Schema['address']['type'];
