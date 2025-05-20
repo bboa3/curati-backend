@@ -847,6 +847,8 @@ export interface Reminder extends ReminderSchema {
   remindedItemType: RemindedItemType
   status: ReminderStatus
   repeat: RepeatType
+  templateKey: NotificationTemplateKey
+  payload: NotificationPayload
 };
 
 export interface NotificationPayload {
