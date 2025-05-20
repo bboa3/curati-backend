@@ -1,97 +1,38 @@
 import { Notification, NotificationTemplateKey } from '../../helpers/types/schema';
-import { generateAppointmentCancelledMessages } from './APPOINTMENT_CANCELLED';
-import { generateAppointmentConfirmationRequiredMessages } from "./APPOINTMENT_CONFIRMATION_REQUIRED";
-import { generateAppointmentConfirmedMessages } from './APPOINTMENT_CONFIRMED';
-import { generateAppointmentJoinReadyMessages } from './APPOINTMENT_JOIN_READY';
-import { generateAppointmentReminderMessages } from './APPOINTMENT_REMINDER';
-import { generateAppointmentRescheduleRequiredMessages } from './APPOINTMENT_RESCHEDULE_REQUIRED';
-import { generateContractStatusPatientUpdateMessages } from './CONTRACT_STATUS_PATIENT_UPDATE';
-import { generateContractStatusProfessionalUpdateMessages } from './CONTRACT_STATUS_PROFESSIONAL_UPDATE';
-import { generateDeliveryAssignmentAvailableMessages } from './DELIVERY_ASSIGNMENT_AVAILABLE';
-import { generateDeliveryDriverAssignedMessages } from './DELIVERY_DRIVER_ASSIGNED';
-import { generateDeliveryEventAdminAlertMessages } from './DELIVERY_EVENT_ADMIN_ALERT';
-import { generateDeliveryStatusPatientUpdateMessages } from './DELIVERY_STATUS_PATIENT_UPDATE';
-import { generateDeliveryTaskDriverUpdateMessages } from './DELIVERY_TASK_DRIVER_UPDATE';
-import { generateInvoiceCreatedMessages } from './INVOICE_CREATED';
-import { generateInvoiceStatusUpdatedMessages } from './INVOICE_STATUS_UPDATED';
-import { generateMedicineOrderCreatedMessages } from './MEDICINE_ORDER_CREATED';
-import { generatePrescriptionStatusUpdatedMessages } from './PRESCRIPTION_STATUS_UPDATED';
-import { generatePrescriptionValidationRequiredMessages } from './PRESCRIPTION_VALIDATION_REQUIRED';
+import { Message } from '../helpers/types';
+import * as generator from './generator';
 
 interface TemplateInput {
   notification: Notification
 }
 
+const templateMap: Record<NotificationTemplateKey, (input: TemplateInput) => Promise<Message>> = {
+  [NotificationTemplateKey.APPOINTMENT_CONFIRMATION_REQUIRED]: generator.generateAppointmentConfirmationRequiredMessages,
+  [NotificationTemplateKey.APPOINTMENT_CONFIRMED]: generator.generateAppointmentConfirmedMessages,
+  [NotificationTemplateKey.APPOINTMENT_RESCHEDULE_REQUIRED]: generator.generateAppointmentRescheduleRequiredMessages,
+  [NotificationTemplateKey.APPOINTMENT_CANCELLED]: generator.generateAppointmentCancelledMessages,
+  [NotificationTemplateKey.APPOINTMENT_REMINDER]: generator.generateAppointmentReminderMessages,
+  [NotificationTemplateKey.APPOINTMENT_JOIN_READY]: generator.generateAppointmentJoinReadyMessages,
+  [NotificationTemplateKey.PRESCRIPTION_VALIDATION_REQUIRED]: generator.generatePrescriptionValidationRequiredMessages,
+  [NotificationTemplateKey.PRESCRIPTION_STATUS_UPDATED]: generator.generatePrescriptionStatusUpdatedMessages,
+  [NotificationTemplateKey.DELIVERY_ASSIGNMENT_AVAILABLE]: generator.generateDeliveryAssignmentAvailableMessages,
+  [NotificationTemplateKey.DELIVERY_DRIVER_ASSIGNED]: generator.generateDeliveryDriverAssignedMessages,
+  [NotificationTemplateKey.DELIVERY_STATUS_PATIENT_UPDATE]: generator.generateDeliveryStatusPatientUpdateMessages,
+  [NotificationTemplateKey.DELIVERY_TASK_DRIVER_UPDATE]: generator.generateDeliveryTaskDriverUpdateMessages,
+  [NotificationTemplateKey.DELIVERY_EVENT_ADMIN_ALERT]: generator.generateDeliveryEventAdminAlertMessages,
+  [NotificationTemplateKey.MEDICINE_ORDER_CREATED]: generator.generateMedicineOrderCreatedMessages,
+  [NotificationTemplateKey.INVOICE_CREATED]: generator.generateInvoiceCreatedMessages,
+  [NotificationTemplateKey.INVOICE_STATUS_UPDATED]: generator.generateInvoiceStatusUpdatedMessages,
+  [NotificationTemplateKey.CONTRACT_STATUS_PATIENT_UPDATE]: generator.generateContractStatusPatientUpdateMessages,
+  [NotificationTemplateKey.CONTRACT_STATUS_PROFESSIONAL_UPDATE]: generator.generateContractStatusProfessionalUpdateMessages,
+};
+
 export const generateMessages = ({ notification }: TemplateInput) => {
-  if (notification.templateKey === NotificationTemplateKey.APPOINTMENT_CONFIRMATION_REQUIRED) {
-    return generateAppointmentConfirmationRequiredMessages({ notification });
+  const generator = templateMap[notification.templateKey as NotificationTemplateKey];
+
+  if (!generator) {
+    throw new Error(`No template generator found for key: ${notification.templateKey}`);
   }
 
-  if (notification.templateKey === NotificationTemplateKey.APPOINTMENT_CONFIRMED) {
-    return generateAppointmentConfirmedMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.APPOINTMENT_RESCHEDULE_REQUIRED) {
-    return generateAppointmentRescheduleRequiredMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.APPOINTMENT_CANCELLED) {
-    return generateAppointmentCancelledMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.APPOINTMENT_REMINDER) {
-    return generateAppointmentReminderMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.APPOINTMENT_JOIN_READY) {
-    return generateAppointmentJoinReadyMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.PRESCRIPTION_VALIDATION_REQUIRED) {
-    return generatePrescriptionValidationRequiredMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.PRESCRIPTION_STATUS_UPDATED) {
-    return generatePrescriptionStatusUpdatedMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.DELIVERY_ASSIGNMENT_AVAILABLE) {
-    return generateDeliveryAssignmentAvailableMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.DELIVERY_DRIVER_ASSIGNED) {
-    return generateDeliveryDriverAssignedMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.DELIVERY_STATUS_PATIENT_UPDATE) {
-    return generateDeliveryStatusPatientUpdateMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.DELIVERY_TASK_DRIVER_UPDATE) {
-    return generateDeliveryTaskDriverUpdateMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.DELIVERY_EVENT_ADMIN_ALERT) {
-    return generateDeliveryEventAdminAlertMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.MEDICINE_ORDER_CREATED) {
-    return generateMedicineOrderCreatedMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.INVOICE_CREATED) {
-    return generateInvoiceCreatedMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.INVOICE_STATUS_UPDATED) {
-    return generateInvoiceStatusUpdatedMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.CONTRACT_STATUS_PATIENT_UPDATE) {
-    return generateContractStatusPatientUpdateMessages({ notification });
-  }
-
-  if (notification.templateKey === NotificationTemplateKey.CONTRACT_STATUS_PROFESSIONAL_UPDATE) {
-    return generateContractStatusProfessionalUpdateMessages({ notification });
-  }
+  return generator({ notification });
 };
