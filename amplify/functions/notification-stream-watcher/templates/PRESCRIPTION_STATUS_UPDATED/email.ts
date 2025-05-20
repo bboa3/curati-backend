@@ -1,3 +1,4 @@
+import mjml2html from 'mjml';
 import { NotificationChannel, NotificationPayload, PrescriptionStatus } from "../../../helpers/types/schema";
 import { convertPrescriptionStatus } from '../../helpers/enum/prescriptionStatus';
 import { EmailMessage } from "../../helpers/types";
@@ -138,7 +139,7 @@ Copyright © ${brandConfig.copyrightYearStart}-${currentYear} ${brandConfig.appN
   return {
     emailAddresses: channel.targets,
     subject,
-    htmlBody: mjmlBody,
+    htmlBody: mjml2html(mjmlBody).html,
     textBody,
   };
 };

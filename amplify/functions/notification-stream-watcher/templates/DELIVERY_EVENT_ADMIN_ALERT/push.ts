@@ -2,7 +2,7 @@ import { NotificationChannel, NotificationPayload, Priority } from "../../../hel
 import { PushMessage } from "../../helpers/types";
 import { getDefaultBrandConfig } from "../shared/brand.config";
 import { TemplateData } from './schema';
-import { getAdminDeliveryAlertTextParts } from "./status-text-helper";
+import { getAdminDeliveryAlertTextParts } from "./text-helper";
 
 interface TemplateInput {
   channel: NotificationChannel;

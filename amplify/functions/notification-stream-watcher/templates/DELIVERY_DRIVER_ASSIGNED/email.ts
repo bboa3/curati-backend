@@ -1,3 +1,4 @@
+import mjml2html from 'mjml';
 import { formatTimeWithHourSuffix } from '../../../helpers/date/formatter';
 import { NotificationChannel, NotificationPayload, UserRole } from "../../../helpers/types/schema";
 import { EmailMessage } from "../../helpers/types";
@@ -162,7 +163,7 @@ Copyright © ${brandConfig.copyrightYearStart}-${currentYear} ${brandConfig.appN
   return {
     emailAddresses: channel.targets,
     subject,
-    htmlBody: mjmlBody,
+    htmlBody: mjml2html(mjmlBody).html,
     textBody,
   };
 };

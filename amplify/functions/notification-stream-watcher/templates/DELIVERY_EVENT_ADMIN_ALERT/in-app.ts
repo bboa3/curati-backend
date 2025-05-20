@@ -1,7 +1,7 @@
 import { NotificationChannel } from "../../../helpers/types/schema";
 import { InAppMessage } from "../../helpers/types";
 import { TemplateData } from './schema';
-import { getAdminDeliveryAlertTextParts } from "./status-text-helper";
+import { getAdminDeliveryAlertTextParts } from "./text-helper";
 
 interface TemplateInput {
   channel: NotificationChannel,

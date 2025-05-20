@@ -1,3 +1,4 @@
+import mjml2html from 'mjml';
 import { formatToMZN } from '../../../helpers/number-formatter';
 import { InvoiceSourceType, InvoiceStatus, NotificationChannel, NotificationPayload } from "../../../helpers/types/schema";
 import { EmailMessage } from "../../helpers/types";
@@ -130,7 +131,7 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
   return {
     emailAddresses: channel.targets,
     subject: textParts.subject,
-    htmlBody: mjmlBody,
+    htmlBody: mjml2html(mjmlBody).html,
     textBody,
   };
 };

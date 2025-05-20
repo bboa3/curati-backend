@@ -3,7 +3,7 @@ import { SmsMessage } from "../../helpers/types";
 import { getDefaultBrandConfig } from "../shared/brand.config";
 import { generateSmsHeaderPrefix } from "../shared/header";
 import { TemplateData } from './schema';
-import { getAdminDeliveryAlertTextParts } from "./status-text-helper";
+import { getAdminDeliveryAlertTextParts } from "./text-helper";
 
 interface TemplateInput {
   channel: NotificationChannel,

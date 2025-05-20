@@ -1,3 +1,4 @@
+import mjml2html from 'mjml';
 import { NotificationChannel, NotificationPayload, UserRole } from "../../../helpers/types/schema";
 import { EmailMessage } from "../../helpers/types";
 import { getDefaultBrandConfig } from "../shared/brand.config";
@@ -63,7 +64,7 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
   return {
     emailAddresses: channel.targets,
     subject: textParts.subject,
-    htmlBody: mjmlBody,
+    htmlBody: mjml2html(mjmlBody).html,
     textBody,
   };
 };
