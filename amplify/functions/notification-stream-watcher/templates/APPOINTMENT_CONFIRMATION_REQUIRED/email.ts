@@ -1,4 +1,3 @@
-import mjml2html from 'mjml';
 import { formatDateTimeNumeric } from "../../../helpers/date/formatter";
 import { AppointmentParticipantType, NotificationChannel, NotificationPayload } from "../../../helpers/types/schema";
 import { convertAppointmentType } from "../../helpers/enum/appointmentType";
@@ -139,7 +138,7 @@ Termos: ${brandConfig.termsUrl} | Privacidade: ${brandConfig.privacyPolicyUrl}
   return {
     emailAddresses: channel.targets,
     subject,
-    htmlBody: mjml2html(mjmlBody).html,
+    htmlBody: mjmlBody,
     textBody,
   };
 };

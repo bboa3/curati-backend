@@ -1,4 +1,3 @@
-import mjml2html from 'mjml';
 import { formatDateTimeNumeric } from '../../../helpers/date/formatter';
 import { formatToMZN } from '../../../helpers/number-formatter';
 import { InvoiceSourceType, InvoiceStatus, NotificationChannel, NotificationPayload } from "../../../helpers/types/schema";
@@ -114,7 +113,7 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
   return {
     emailAddresses: channel.targets,
     subject: textParts.subject,
-    htmlBody: mjml2html(mjmlBody).html,
+    htmlBody: mjmlBody,
     textBody,
   };
 };

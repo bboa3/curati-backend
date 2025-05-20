@@ -1,4 +1,3 @@
-import mjml2html from 'mjml';
 import { NotificationChannel, NotificationPayload } from "../../../helpers/types/schema";
 import { EmailMessage } from "../../helpers/types";
 import { getDefaultBrandConfig } from "../shared/brand.config";
@@ -96,7 +95,7 @@ Copyright © ${brandConfig.copyrightYearStart}-${currentYear} ${brandConfig.appN
   return {
     emailAddresses: channel.targets,
     subject,
-    htmlBody: mjml2html(mjmlBody).html,
+    htmlBody: mjmlBody,
     textBody,
   };
 };

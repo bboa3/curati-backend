@@ -1,4 +1,3 @@
-import mjml2html from 'mjml';
 import { formatTimeWithHourSuffix } from "../../../helpers/date/formatter";
 import { NotificationChannel, NotificationPayload } from "../../../helpers/types/schema";
 import { convertAppointmentType } from "../../helpers/enum/appointmentType";
@@ -86,7 +85,7 @@ ${brandConfig.companyAddress}
   return {
     emailAddresses: channel.targets,
     subject,
-    htmlBody: mjml2html(mjmlBody).html,
+    htmlBody: mjmlBody,
     textBody,
   };
 };
