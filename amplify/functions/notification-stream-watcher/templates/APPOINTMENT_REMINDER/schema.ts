@@ -9,9 +9,9 @@ export const TemplateValidatorSchema = Yup.object().shape({
   appointmentDateTime: Yup.date().required(),
   appointmentType: Yup.string().oneOf(Object.values(AppointmentType)).required(),
   purpose: Yup.string().required(),
-  reminderTimingText: Yup.string().optional(),
+  reminderTimingText: Yup.string().required(), // e.g., "Amanhã", "Hoje", "Em 1 hora", "Em 30 minutos"
+  specificActionInstruction: Yup.string().optional(), // e.g., "Dirija-se ao local.", "Prepare-se para a ligação." - derived from old logic
   locationName: Yup.string().optional(),
-  additionalInstructions: Yup.string().optional(),
 });
 
 export interface TemplateData {
@@ -22,7 +22,7 @@ export interface TemplateData {
   appointmentDateTime: string;
   appointmentType: AppointmentType;
   purpose: string;
-  reminderTimingText?: string;
-  locationName?: string;
-  additionalInstructions?: string;
+  reminderTimingText: string;
+  specificActionInstruction: string;
+  locationName: string;
 }
