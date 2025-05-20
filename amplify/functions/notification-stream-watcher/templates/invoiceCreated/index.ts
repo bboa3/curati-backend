@@ -1,24 +1,16 @@
-import { Logger } from '@aws-lambda-powertools/logger';
 import { Notification, NotificationChannel, NotificationChannelType } from '../../../helpers/types/schema';
 import { EmailMessage, InAppMessage, Message, PushMessage, SmsMessage } from '../../helpers/types';
-import { TemplateData } from './schema';
+import { TemplateData, TemplateValidatorSchema } from './schema';
 
 interface TemplateInput {
   notification: Notification
 }
 
-const logger = new Logger({
-  logLevel: "INFO",
-  serviceName: "dynamodb-stream-handler",
-});
-
 export const generateInvoiceCreatedMessages = async ({ notification }: TemplateInput): Promise<Message> => {
-  logger.info('Generating invoice created messages', notification.channels as unknown as string);
-
   const channels = JSON.parse(notification.channels as unknown as string) as NotificationChannel[];
   const templateData = JSON.parse(notification.templateData as string) as TemplateData;
 
-  // await TemplateValidatorSchema.validate(templateData);
+  await TemplateValidatorSchema.validate(templateData);
 
   let emailMessage: EmailMessage | null = null;
   let smsMessage: SmsMessage | null = null;
