@@ -22,7 +22,7 @@ export const createDeliveryAssignment = async ({ dbClient, pharmacyAddress, deli
     driverId: driver.driverId,
     courierId: driver.courierId,
     status: DeliveryAssignmentStatus.PENDING,
-    expiresAt: dayjs.utc().add(DELIVERY_OPPORTUNITY_DURATION, 'minute').toISOString(),
+    expiresAt: dayjs().utc().add(DELIVERY_OPPORTUNITY_DURATION, 'minute').toISOString(),
     estimatedDriverCommission: driverCommissionCalculator(delivery.totalDeliveryFee),
     pickupSnippet: `${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}`,
     destinationSnippet: `${deliveryAddress.neighborhoodOrDistrict}, ${deliveryAddress.city}`,
