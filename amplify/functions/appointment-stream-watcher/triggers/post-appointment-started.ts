@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
 import { Appointment, Patient, Professional } from '../../helpers/types/schema';
-import { createAppointmentStartedNotification } from "../helpers/create -appointment-started-notification";
+import { createAppointmentStartedNotification } from "../helpers/create-appointment-started-notification";
 
 interface TriggerInput {
   appointmentImage: { [key: string]: AttributeValue; };

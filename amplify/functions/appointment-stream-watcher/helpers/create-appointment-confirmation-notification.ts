@@ -118,14 +118,11 @@ export const createAppointmentConfirmationNotification = async ({ appointment, p
 
   await createReminders({
     dbClient,
-    appointmentDateTime,
-    purpose,
-    professionalType: professional.type,
-    appointmentType,
-    appointmentId,
+    appointment,
     recipients: recipients.map(recipient => ({
       userId: recipient.userId,
       type: recipient.type,
+      name: recipient.name,
       otherPartyName: recipient.otherPartyName
     }))
   })
