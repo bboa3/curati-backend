@@ -1,5 +1,4 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { Notification } from '../../helpers/types/schema';
 import { sendMessage } from "../channels";
@@ -12,7 +11,7 @@ interface TriggerInput {
 }
 
 export const postNotificationCreation = async ({ notificationImage, dbClient, logger }: TriggerInput) => {
-  const notification = unmarshall(notificationImage as any) as Notification;
+  const notification = notificationImage as any as Notification;
 
   const message = await generateMessages({ notification })
   if (!message) return;
