@@ -44,7 +44,7 @@ export const createDeliveryTaskDriverUpdateNotification = async ({ delivery, pat
     id: generateUUIDv4(),
     userId: patient.userId,
     templateKey: NotificationTemplateKey.DELIVERY_TASK_DRIVER_UPDATE,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: patient.name,
       deliveryNumber: deliveryNumber,
       orderNumber: order.orderNumber,
@@ -52,7 +52,7 @@ export const createDeliveryTaskDriverUpdateNotification = async ({ delivery, pat
       pharmacyName: pharmacy.name,
       pharmacyAddressSnippet: `${pharmacyAddress.neighborhoodOrDistrict}, ${pharmacyAddress.city}, ${pharmacyAddress.province}`,
       patientAddressSnippet: `${destinationAddress.neighborhoodOrDistrict}, ${destinationAddress.city}, ${destinationAddress.province}`,
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.MEDIUM,
     bypassPreferences: false,
@@ -61,7 +61,7 @@ export const createDeliveryTaskDriverUpdateNotification = async ({ delivery, pat
     payload: {
       href: driverStatsDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

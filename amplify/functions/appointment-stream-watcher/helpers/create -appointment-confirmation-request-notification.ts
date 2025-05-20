@@ -52,7 +52,7 @@ export const createAppointmentConfirmationRequestNotification = async ({ appoint
     id: generateUUIDv4(),
     userId: recipient.userId,
     templateKey: NotificationTemplateKey.APPOINTMENT_CONFIRMATION_REQUIRED,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: recipient.name,
       requesterName: requester.name,
       requesterType: requesterType,
@@ -61,7 +61,7 @@ export const createAppointmentConfirmationRequestNotification = async ({ appoint
       duration: Number(duration),
       appointmentType: appointmentType,
       purpose: purpose
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.HIGH,
     bypassPreferences: false,
@@ -70,7 +70,7 @@ export const createAppointmentConfirmationRequestNotification = async ({ appoint
     payload: {
       href: appointmentDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

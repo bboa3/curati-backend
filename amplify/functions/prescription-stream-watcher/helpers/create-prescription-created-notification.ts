@@ -33,10 +33,10 @@ export const createPrescriptionCreatedNotification = async ({ admins, prescripti
       id: generateUUIDv4(),
       userId: recipient.userId,
       templateKey: NotificationTemplateKey.PRESCRIPTION_VALIDATION_REQUIRED,
-      templateData: {
+      templateData: JSON.stringify({
         recipientName: recipient.name,
         prescriptionNumber: prescription.prescriptionNumber,
-      },
+      }),
       type: NotificationType.UPDATE,
       priority: Priority.HIGH,
       bypassPreferences: false,
@@ -44,7 +44,7 @@ export const createPrescriptionCreatedNotification = async ({ admins, prescripti
       relatedItemType: NotificationRelatedItemType.PRESCRIPTION,
       payload: {
       },
-      channels: channels,
+      channels: JSON.stringify(channels),
       status: NotificationStatus.PENDING,
     })
 

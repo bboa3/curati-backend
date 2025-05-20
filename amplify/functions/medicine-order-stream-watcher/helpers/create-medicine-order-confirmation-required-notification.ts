@@ -44,22 +44,21 @@ export const createMedicineOrderConfirmationRequiredNotification = async ({ phar
       id: generateUUIDv4(),
       userId: recipient.userId,
       templateKey: NotificationTemplateKey.MEDICINE_ORDER_CREATED,
-      templateData: {
+      templateData: JSON.stringify({
         recipientName: recipient.name,
         recipientRole: UserRole.PROFESSIONAL,
         orderNumber: order.orderNumber,
         orderDate: order.createdAt,
         pharmacyName: pharmacy.name,
         deliveryType: delivery.type,
-      },
+      }),
       type: NotificationType.UPDATE,
       priority: Priority.HIGH,
       bypassPreferences: false,
       relatedItemId: order.id,
       relatedItemType: NotificationRelatedItemType.ORDER,
-      payload: {
-      },
-      channels: channels,
+      payload: {},
+      channels: JSON.stringify(channels),
       status: NotificationStatus.PENDING,
     })
 

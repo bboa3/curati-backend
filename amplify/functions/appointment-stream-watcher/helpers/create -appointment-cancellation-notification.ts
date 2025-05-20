@@ -81,7 +81,7 @@ export const createAppointmentCancellationNotification = async ({ appointment, p
       id: generateUUIDv4(),
       userId: recipient.userId,
       templateKey: NotificationTemplateKey.APPOINTMENT_CANCELLED,
-      templateData: {
+      templateData: JSON.stringify({
         recipientName: recipient.name,
         recipientType: recipient.type,
         otherPartyName: recipient.otherPartyName,
@@ -91,7 +91,7 @@ export const createAppointmentCancellationNotification = async ({ appointment, p
         purpose: purpose,
         cancellationReason: appointment.cancellationReason,
         newAppointmentDeepLink: newAppointmentDeepLink
-      },
+      }),
       type: NotificationType.PERSONAL,
       priority: Priority.HIGH,
       bypassPreferences: false,
@@ -100,7 +100,7 @@ export const createAppointmentCancellationNotification = async ({ appointment, p
       payload: {
         href: recipient.deepLink
       },
-      channels: channels,
+      channels: JSON.stringify(channels),
       status: NotificationStatus.PENDING,
     })
 

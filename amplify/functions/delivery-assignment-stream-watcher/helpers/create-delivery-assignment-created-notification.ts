@@ -34,11 +34,11 @@ export const createDeliveryAssignmentCreatedNotification = async ({ delivery, dr
     id: generateUUIDv4(),
     userId: driver.userId,
     templateKey: NotificationTemplateKey.DELIVERY_ASSIGNMENT_AVAILABLE,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: driver.name,
       deliveryNumber: delivery.deliveryNumber,
       offerExpiryInfo: "Disponível por tempo muito limitado."
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.HIGH,
     bypassPreferences: false,
@@ -47,7 +47,7 @@ export const createDeliveryAssignmentCreatedNotification = async ({ delivery, dr
     payload: {
       href: deliveryOpportunityDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

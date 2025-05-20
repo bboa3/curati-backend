@@ -80,7 +80,7 @@ export const createDeliveryDriverAssignedNotification = async ({ delivery, drive
       id: generateUUIDv4(),
       userId: recipient.userId,
       templateKey: NotificationTemplateKey.DELIVERY_DRIVER_ASSIGNED,
-      templateData: {
+      templateData: JSON.stringify({
         recipientName: recipient.name,
         recipientType: recipient.type,
         deliveryNumber: deliveryNumber,
@@ -90,7 +90,7 @@ export const createDeliveryDriverAssignedNotification = async ({ delivery, drive
         pharmacyName: pharmacy.name,
         pharmacyAddressSnippet: assignment.pickupSnippet,
         patientGeneralLocationSnippet: assignment.destinationSnippet
-      },
+      }),
       type: NotificationType.PERSONAL,
       priority: Priority.HIGH,
       bypassPreferences: false,
@@ -99,7 +99,7 @@ export const createDeliveryDriverAssignedNotification = async ({ delivery, drive
       payload: {
         href: recipient.deepLink
       },
-      channels: channels,
+      channels: JSON.stringify(channels),
       status: NotificationStatus.PENDING,
     })
 

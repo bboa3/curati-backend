@@ -45,12 +45,12 @@ export const createPrescriptionValidatedNotification = async ({ prescription, pa
     id: generateUUIDv4(),
     userId: patient.userId,
     templateKey: NotificationTemplateKey.PRESCRIPTION_STATUS_UPDATED,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: name,
       prescriptionNumber: prescriptionNumber,
       prescriptionStatus: prescriptionStatus,
       statusReason: notes || "Validada pelo farmacéutico",
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.HIGH,
     bypassPreferences: false,
@@ -59,7 +59,7 @@ export const createPrescriptionValidatedNotification = async ({ prescription, pa
     payload: {
       href: prescriptionDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

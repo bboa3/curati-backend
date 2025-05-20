@@ -46,7 +46,7 @@ export const createContractStatusProfessionalUpdateNotification = async ({ contr
     id: generateUUIDv4(),
     userId: professional.userId,
     templateKey: NotificationTemplateKey.CONTRACT_STATUS_PROFESSIONAL_UPDATE,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: professional.name,
       contractNumber: contract.contractNumber,
       newContractStatus: contract.status,
@@ -59,7 +59,7 @@ export const createContractStatusProfessionalUpdateNotification = async ({ contr
       terminationReason: contract.terminationReason,
       terminatedBy: contract.terminatedBy,
       additionalMessage: contract.notes
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.HIGH,
     bypassPreferences: false,
@@ -68,7 +68,7 @@ export const createContractStatusProfessionalUpdateNotification = async ({ contr
     payload: {
       href: contractDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

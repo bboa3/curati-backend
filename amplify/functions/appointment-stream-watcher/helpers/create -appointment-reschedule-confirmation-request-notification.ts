@@ -53,7 +53,7 @@ export const createAppointmentRescheduleConfirmationRequestNotification = async 
     id: generateUUIDv4(),
     userId: recipient.userId,
     templateKey: NotificationTemplateKey.APPOINTMENT_RESCHEDULE_REQUIRED,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: recipient.name,
       reschedulerName: requester.name,
       reschedulerType: requesterType,
@@ -63,7 +63,7 @@ export const createAppointmentRescheduleConfirmationRequestNotification = async 
       duration: Number(duration),
       appointmentType: appointmentType,
       purpose: purpose
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.HIGH,
     bypassPreferences: false,
@@ -72,7 +72,7 @@ export const createAppointmentRescheduleConfirmationRequestNotification = async 
     payload: {
       href: appointmentDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

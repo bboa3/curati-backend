@@ -42,7 +42,7 @@ export const createInvoiceCreatedNotification = async ({ invoice, service, contr
     id: generateUUIDv4(),
     userId: patient.userId,
     templateKey: NotificationTemplateKey.INVOICE_CREATED,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: patientUser.name,
       invoiceNumber: invoice.invoiceNumber,
       invoiceCreatedAt: invoice.createdAt,
@@ -59,7 +59,7 @@ export const createInvoiceCreatedNotification = async ({ invoice, service, contr
       orderNumber: order?.orderNumber,
       paymentTerms: invoice.paymentTerms,
       invoiceDocumentUrl: invoice.documentUrl
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.MEDIUM,
     bypassPreferences: false,
@@ -68,7 +68,7 @@ export const createInvoiceCreatedNotification = async ({ invoice, service, contr
     payload: {
       href: invoiceDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

@@ -45,7 +45,7 @@ export const createContractStatusPatientUpdateNotification = async ({ contract, 
     id: generateUUIDv4(),
     userId: patient.userId,
     templateKey: NotificationTemplateKey.CONTRACT_STATUS_PATIENT_UPDATE,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: patient.name,
       contractNumber: contract.contractNumber,
       newContractStatus: contract.status,
@@ -58,7 +58,7 @@ export const createContractStatusPatientUpdateNotification = async ({ contract, 
       terminationReason: contract.terminationReason,
       terminatedBy: contract.terminatedBy,
       additionalMessage: contract.notes
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.HIGH,
     bypassPreferences: false,
@@ -67,7 +67,7 @@ export const createContractStatusPatientUpdateNotification = async ({ contract, 
     payload: {
       href: contractDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 

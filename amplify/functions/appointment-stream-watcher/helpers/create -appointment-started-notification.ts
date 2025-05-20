@@ -47,12 +47,12 @@ export const createAppointmentStartedNotification = async ({ appointment, profes
     id: generateUUIDv4(),
     userId: patient.userId,
     templateKey: NotificationTemplateKey.APPOINTMENT_JOIN_READY,
-    templateData: {
+    templateData: JSON.stringify({
       recipientName: patient.name,
       professionalName: professional.name,
       appointmentDateTime: appointmentDateTime,
       appointmentType: appointmentType
-    },
+    }),
     type: NotificationType.PERSONAL,
     priority: Priority.HIGH,
     bypassPreferences: false,
@@ -61,7 +61,7 @@ export const createAppointmentStartedNotification = async ({ appointment, profes
     payload: {
       href: patientDeepLink
     },
-    channels: channels,
+    channels: JSON.stringify(channels),
     status: NotificationStatus.PENDING,
   })
 
