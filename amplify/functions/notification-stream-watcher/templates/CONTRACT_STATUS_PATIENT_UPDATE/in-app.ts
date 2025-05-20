@@ -14,7 +14,6 @@ export const generateInAppMessage = ({ templateData }: TemplateInput): InAppMess
   const shortMessage = `${textParts.line1.split('.')[0].replace(/<strong>|<\/strong>/g, '')}.`;
   const fullMessage = `${textParts.line1.replace(/<strong>|<\/strong>/g, '')}\n${textParts.line2?.replace(/<strong>|<\/strong>/g, '') || ''}\n${textParts.line3?.replace(/<strong>|<\/strong>/g, '') || ''}`;
 
-
   return {
     title,
     message: fullMessage,

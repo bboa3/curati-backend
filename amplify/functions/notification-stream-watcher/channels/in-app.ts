@@ -1,6 +1,5 @@
 import { InAppMessage } from "../helpers/types";
 
-
 interface SenderInput {
   notificationId: string
   message: InAppMessage
