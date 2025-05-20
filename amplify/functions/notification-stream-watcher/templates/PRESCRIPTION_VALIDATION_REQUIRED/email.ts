@@ -16,6 +16,7 @@ export const generateEmailMessage = ({ templateData, channel }: TemplateInput): 
   const {
     prescriptionNumber,
     patientName,
+    recipientName
   } = templateData;
 
   const brandConfig = getDefaultBrandConfig({ appName: "Cúrati" })
@@ -30,7 +31,7 @@ export const generateEmailMessage = ({ templateData, channel }: TemplateInput): 
     <mj-text font-size="22px" font-weight="bold" color="${brandConfig.colors.ORANGE}" padding-bottom="15px">
       Validação de Nova Receita Necessária
     </mj-text>
-    <mj-text padding-bottom="10px">Prezada Equipa de Validação Cúrati,</mj-text>
+    <mj-text padding-bottom="10px">Prezado(a) ${recipientName},</mj-text>
     <mj-text padding-bottom="20px">
       Uma nova prescrição (${prescriptionNumber}) foi submetida e requer a vossa validação na plataforma Cúrati.
     </mj-text>

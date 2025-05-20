@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { Invoice, MedicineOrder, Patient } from "../../../helpers/types/schema";
-import { newMedicineOrderInvoicePatientEmailNotifier } from "../../helpers/new-medicine-order-invoice-patient-email-notifier";
+import { createInvoiceCreatedNotification } from "../../helpers/create-invoice-created-notification";
 
 interface TriggerInput {
   invoiceImage: { [key: string]: AttributeValue; };
@@ -12,7 +12,7 @@ interface TriggerInput {
 
 export const postInvoiceCreationMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoice = unmarshall(invoiceImage as any) as Invoice;
-  const { invoiceNumber, invoiceSourceId, deliveryFee, status, patientId, createdAt, dueDate, subTotal, discount, taxes, totalAmount, documentUrl } = invoice
+  const { invoiceSourceId, patientId } = invoice
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -28,21 +28,10 @@ export const postInvoiceCreationMedicineOrderHandler = async ({ invoiceImage, db
   }
   const order = orderData as unknown as MedicineOrder
 
-  if (patient.email) {
-    await newMedicineOrderInvoicePatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      invoiceNumber,
-      invoiceDueDate: dueDate,
-      invoiceStatus: status,
-      invoiceSubTotal: subTotal,
-      invoiceDiscount: discount,
-      invoiceTotalTax: taxes,
-      invoiceTotalAmount: totalAmount,
-      totalDeliveryFee: deliveryFee,
-      invoiceDocumentUrl: documentUrl || undefined,
-      invoiceCreatedAt: createdAt
-    });
-  }
+  await createInvoiceCreatedNotification({
+    dbClient,
+    patient,
+    order,
+    invoice,
+  })
 };

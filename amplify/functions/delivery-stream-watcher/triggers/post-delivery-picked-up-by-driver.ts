@@ -1,11 +1,9 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import dayjs from "dayjs";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
-import { Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
-import { deliveryPickedUpByDriverPatientEmailNotifier } from "../helpers/delivery-picked-up-by-driver-patient-email-notifier";
-import { deliveryPickedUpByDriverPatientSMSNotifier } from "../helpers/delivery-picked-up-by-driver-patient-sms-notifier";
+import { Address, Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
+import { createDeliveryStatusPatientUpdateNotification } from "../helpers/create-delivery-status-patient-update-notification";
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
@@ -71,28 +69,20 @@ export const postDeliveryPickedUpByDriver = async ({ deliveryImage, dbClient }: 
     throw new Error(`Failed to update driver availability: ${JSON.stringify(availabilityUpdateErrors)}`);
   }
 
-  const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
+  const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: pharmacyId });
 
-  if (patient.email) {
-    await deliveryPickedUpByDriverPatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      deliveryNumber: deliveryNumber,
-      pharmacyName: pharmacy.name,
-      driverName: driver.name,
-      pickedUpAt: pickedUpAt || dayjs().utc().toISOString(),
-      estimatedDeliveryDuration: Number(estimatedDeliveryDuration),
-      trackingLink,
-    })
+  if (pharmacyAddressErrors || !pharmacyAddressData) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(pharmacyAddressErrors)}`);
   }
+  const pharmacyAddress = pharmacyAddressData as unknown as Address;
 
-  await deliveryPickedUpByDriverPatientSMSNotifier({
-    patientPhoneNumber: `+258${patient.phone.replace(/\D/g, '')}`,
-    orderNumber: order.orderNumber,
-    driverName: driver.name,
-    pickedUpAt: pickedUpAt || dayjs().utc().toISOString(),
-    estimatedDeliveryDuration: Number(estimatedDeliveryDuration),
-    trackingLink: trackingLink
-  })
+  await createDeliveryStatusPatientUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    driver,
+    order
+  });
 };

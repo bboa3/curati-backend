@@ -1,11 +1,9 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import dayjs from "dayjs";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
-import { Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
-import { deliveryInTransitPatientEmailNotifier } from "../helpers/delivery-in-transit-patient-email-notifier";
-import { deliveryInTransitPatientSMSNotifier } from "../helpers/delivery-in-transit-patient-sms-notifier";
+import { Address, Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
+import { createDeliveryStatusPatientUpdateNotification } from "../helpers/create-delivery-status-patient-update-notification";
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
@@ -15,7 +13,7 @@ interface TriggerInput {
 
 export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const delivery = unmarshall(deliveryImage as any) as Delivery;
-  const { orderId, patientId, driverId, estimatedDeliveryDuration, departedAt, deliveryNumber } = delivery;
+  const { orderId, patientId, driverId, pharmacyId } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
@@ -45,6 +43,20 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: Trigger
   }
   const driverCurrentLocation = driverCurrentLocationData as unknown as DriverCurrentLocation;
 
+  const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: pharmacyId });
+
+  if (pharmacyAddressErrors || !pharmacyAddressData) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(pharmacyAddressErrors)}`);
+  }
+  const pharmacyAddress = pharmacyAddressData as unknown as Address;
+
+  const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.business.get({ id: pharmacyId });
+
+  if (pharmacyErrors || !pharmacyData) {
+    throw new Error(`Failed to fetch pharmacy: ${JSON.stringify(pharmacyErrors)}`);
+  }
+  const pharmacy = pharmacyData as unknown as Business;
+
   await createDeliveryStatusHistory({
     client: dbClient,
     patientId: patientId,
@@ -54,27 +66,13 @@ export const postDeliveryInTransit = async ({ deliveryImage, dbClient }: Trigger
     longitude: driverCurrentLocation.longitude
   })
 
-  const trackingLink = `curati://life.curati.www/(app)/profile/deliveries/${orderId}`;
-
-  if (patient.email) {
-    await deliveryInTransitPatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      deliveryNumber: deliveryNumber,
-      driverName: driver.name,
-      departedAt: departedAt || dayjs().utc().toISOString(),
-      estimatedDeliveryDuration: Number(estimatedDeliveryDuration),
-      trackingLink,
-    })
-  }
-
-  await deliveryInTransitPatientSMSNotifier({
-    patientPhoneNumber: `+258${patient.phone.replace(/\D/g, '')}`,
-    orderNumber: order.orderNumber,
-    driverName: driver.name,
-    departedAt: departedAt || dayjs().utc().toISOString(),
-    estimatedDeliveryDuration: Number(estimatedDeliveryDuration),
-    trackingLink: trackingLink
-  })
+  await createDeliveryStatusPatientUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    driver,
+    order
+  });
 };

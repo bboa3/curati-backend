@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { BusinessService, Contract, Invoice, Patient } from "../../../helpers/types/schema";
-import { newContractInvoicePatientEmailNotifier } from "../../helpers/new-contract-invoice-patient-email-notifier";
+import { createInvoiceCreatedNotification } from "../../helpers/create-invoice-created-notification";
 
 interface TriggerInput {
   invoiceImage: { [key: string]: AttributeValue; };
@@ -12,7 +12,7 @@ interface TriggerInput {
 
 export const postInvoiceCreationContractHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoice = unmarshall(invoiceImage as any) as Invoice;
-  const { id: invoiceId, invoiceNumber, invoiceSourceId, paymentTerms, status, patientId, createdAt, dueDate, subTotal, discount, taxes, totalAmount, documentUrl } = invoice
+  const { invoiceSourceId, patientId } = invoice
 
   const { data: patientData, errors: patientErrors } = await dbClient.models.patient.get({ userId: patientId });
 
@@ -35,26 +35,11 @@ export const postInvoiceCreationContractHandler = async ({ invoiceImage, dbClien
   }
   const service = serviceData as unknown as BusinessService;
 
-  const invoiceDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoiceId}`
-
-  if (patient.email) {
-    await newContractInvoicePatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      contractNumber: contract.contractNumber,
-      invoiceNumber,
-      invoiceCreatedAt: createdAt,
-      invoiceDueDate: dueDate,
-      invoiceStatus: status,
-      invoiceSubTotal: subTotal,
-      invoiceDiscount: discount,
-      invoiceTotalTax: taxes,
-      invoiceTotalAmount: totalAmount,
-      invoiceDocumentUrl: documentUrl || undefined,
-      serviceName: service.serviceName,
-      paymentTerms: paymentTerms,
-      professionalName: service.professionalName,
-      invoiceDeepLink: invoiceDeepLink
-    });
-  }
+  await createInvoiceCreatedNotification({
+    dbClient,
+    patient,
+    invoice,
+    contract,
+    service,
+  })
 };

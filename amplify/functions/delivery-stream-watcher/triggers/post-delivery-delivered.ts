@@ -1,12 +1,10 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import dayjs from "dayjs";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
 import { Address, Business, Delivery, DeliveryStatus, DriverCurrentLocation, MedicineOrder, MedicineOrderStatus, Patient, Professional, ProfessionalAvailabilityStatus } from "../../helpers/types/schema";
-import { deliveryDeliveredDriverEmailNotifier } from "../helpers/delivery-delivered-driver-email-notifier";
-import { deliveryDeliveredPatientEmailNotifier } from "../helpers/delivery-delivered-patient-email-notifier";
-import { deliveryDeliveredPharmacyEmailNotifier } from "../helpers/delivery-delivered-pharmacy-email-notifier";
+import { createDeliveryStatusPatientUpdateNotification } from "../helpers/create-delivery-status-patient-update-notification";
+import { createDeliveryTaskDriverUpdateNotification } from "../helpers/create-delivery-task-driver-update-notification";
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
@@ -16,7 +14,7 @@ interface TriggerInput {
 
 export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const delivery = unmarshall(deliveryImage as any) as Delivery;
-  const { orderId, patientId, driverId, pharmacyId, deliveryNumber, deliveredAt } = delivery;
+  const { orderId, patientId, driverId, pharmacyId } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
@@ -45,6 +43,13 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
     throw new Error(`Failed to fetch delivery address: ${JSON.stringify(deliveryAddressErrors)}`);
   }
   const deliveryAddress = deliveryAddressData as unknown as Address;
+
+  const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: pharmacyId });
+
+  if (pharmacyAddressErrors || !pharmacyAddressData) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(pharmacyAddressErrors)}`);
+  }
+  const pharmacyAddress = pharmacyAddressData as unknown as Address;
 
   const { data: driverCurrentLocationData, errors: driverCurrentLocationErrors } = await dbClient.models.driverCurrentLocation.get({ driverId: driverId });
 
@@ -87,43 +92,23 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
     longitude: driverCurrentLocation.longitude
   })
 
-  const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;
-  const ratingDeepLink = `curati://life.curati.www/(app)/pharmacies/${pharmacyId}`;
-  const driverStatsDeepLink = `curati://life.curati.go/(app)/`;
+  await createDeliveryStatusPatientUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    driver,
+    order
+  });
 
-  if (patient.email) {
-    await deliveryDeliveredPatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      deliveryNumber: deliveryNumber,
-      driverName: driver.name,
-      deliveredAt: deliveredAt || dayjs().utc().toISOString(),
-      deliveryAddress,
-      ratingDeepLink,
-      orderDeepLink
-    })
-  }
-
-  await deliveryDeliveredDriverEmailNotifier({
-    driverName: driver.name,
-    driverEmail: driver.email,
-    pharmacyName: pharmacy.name,
-    patientName: patient.name,
-    orderNumber: order.orderNumber,
-    deliveryNumber,
-    deliveredAt: deliveredAt || dayjs().utc().toISOString(),
-    deliveryAddress,
-    driverStatsDeepLink
-  })
-
-  await deliveryDeliveredPharmacyEmailNotifier({
-    pharmacyName: pharmacy.name,
-    pharmacyEmail: pharmacy.email,
-    patientName: patient.name,
-    orderNumber: order.orderNumber,
-    deliveryNumber,
-    driverName: driver.name,
-    deliveredAt: deliveredAt || dayjs().utc().toISOString()
-  })
+  await createDeliveryTaskDriverUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    destinationAddress: deliveryAddress,
+    order
+  });
 };

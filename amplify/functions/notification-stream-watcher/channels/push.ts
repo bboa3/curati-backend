@@ -18,10 +18,9 @@ export const sendPush = async ({ message, logger, dbClient, userId }: SenderInpu
   const { pushTokens, title, body, payload, priority } = message;
   const messages: ExpoPushMessage[] = [];
 
-  for (const token of pushTokens) {
-    const pushToken = token.split(' ')[0];
+  for (const pushToken of pushTokens) {
 
-    if (!token || !Expo.isExpoPushToken(pushToken)) {
+    if (!pushToken || !Expo.isExpoPushToken(pushToken)) {
       logger.error(`Push token ${pushToken} is not a valid Expo push token`);
       continue;
     }

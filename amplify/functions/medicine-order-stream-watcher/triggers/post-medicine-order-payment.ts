@@ -1,9 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import { DeliveryStatus, MedicineOrder, Professional } from '../../helpers/types/schema';
-import { newOrderPharmacyEmailNotifier } from '../helpers/new-order-pharmacy-email-notifier';
-import { newOrderPharmacySMSNotifier } from '../helpers/new-order-pharmacy-sms-notifier';
+import { Business, Delivery, DeliveryStatus, MedicineOrder, Professional } from '../../helpers/types/schema';
+import { createMedicineOrderConfirmationRequiredNotification } from "../helpers/create-medicine-order-confirmation-required-notification";
 
 interface TriggerInput {
   medicineOrderImage: { [key: string]: AttributeValue; };
@@ -13,7 +12,21 @@ interface TriggerInput {
 
 export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient }: TriggerInput) => {
   const order = unmarshall(medicineOrderImage as any) as MedicineOrder;
-  const { id: orderId, orderNumber, businessId: pharmacyId } = order;
+  const { id: orderId, businessId: pharmacyId } = order;
+
+  const { data: deliveryData, errors: deliveryErrors } = await dbClient.models.delivery.get({ orderId });
+
+  if (deliveryErrors || !deliveryData) {
+    throw new Error(`Failed to fetch delivery: ${JSON.stringify(deliveryErrors)}`);
+  }
+  const delivery = deliveryData as unknown as Delivery;
+
+  const { data: pharmacyData, errors: pharmacyErrors } = await dbClient.models.business.get({ id: pharmacyId });
+  const pharmacy = pharmacyData as unknown as Business;
+
+  if (pharmacyErrors || !pharmacy) {
+    throw new Error(`Failed to fetch pharmacy: ${JSON.stringify(pharmacyErrors)}`);
+  }
 
   const { data: pharmacistsData, errors: pharmacistErrors } = await dbClient.models.professional.list({
     filter: { businessId: { eq: pharmacyId } }
@@ -29,16 +42,11 @@ export const postMedicineOrderPayment = async ({ medicineOrderImage, dbClient }:
     status: DeliveryStatus.PHARMACY_PREPARING
   });
 
-  const emails = pharmacists.map((p: Professional) => p.email).filter(Boolean);
-  const phones = pharmacists.map((p) => `+258${p.phone.replace(/\D/g, '')}`).filter(Boolean);
-  if (emails.length > 0) {
-    await newOrderPharmacyEmailNotifier(
-      emails,
-      orderNumber
-    );
-  }
-
-  if (phones.length > 0) {
-    await Promise.all(phones.map((phone) => newOrderPharmacySMSNotifier(phone, orderNumber)));
-  }
+  await createMedicineOrderConfirmationRequiredNotification({
+    dbClient,
+    pharmacists,
+    order,
+    pharmacy,
+    delivery
+  });
 };

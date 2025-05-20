@@ -75,19 +75,21 @@ const notificationTemplateKey = [
   // ========== Deliveries ==========
   'DELIVERY_ASSIGNMENT_AVAILABLE',
   'DELIVERY_DRIVER_ASSIGNED',
-  'DELIVERY_STATUS_UPDATED',
-  'DELIVERY_FAILED',
+  'DELIVERY_STATUS_PATIENT_UPDATE',
+  'DELIVERY_TASK_DRIVER_UPDATE',
+  'DELIVERY_EVENT_ADMIN_ALERT',
 
   // ========== Medicine Orders ==========
   'MEDICINE_ORDER_CREATED',
-  'MEDICINE_ORDER_INVOICE_GENERATED',
-  'MEDICINE_ORDER_INVOICE_PAID',
-  'MEDICINE_ORDER_INVOICE_FAILED',
+
+  // =========== Invoice ===========
+  'INVOICE_CREATED',
+  'INVOICE_STATUS_UPDATED',
 
   // ========== Contracts ==========
-  'CONTRACT_CONFIRMATION_REQUIRED',
-  'CONFIRMATION_CONFIRMATION_EXPIRED',
-  'CONTRACT_CANCELLED',
+  'CONTRACT_STATUS_PATIENT_UPDATE',
+  'CONTRACT_STATUS_PROFESSIONAL_UPDATE',
+  'CONTRACT_CONFIRMATION_EXPIRED',
   'CONTRACT_EXPIRY_WARNING',
 
   // ========== Health Monitoring ==========
@@ -277,7 +279,7 @@ const schema = a.schema({
     authId: a.string().required(),
     role: a.enum(userRole),
     email: a.string(),
-    phone: a.string(),
+    phone: a.string().required(),
     name: a.string(),
     profilePicture: a.string(),
     pushTokens: a.string().array().required(),
@@ -539,13 +541,14 @@ const schema = a.schema({
     renewalNoticeDays: a.integer().required().default(7),
     appointmentsAllowed: a.integer().required(),
     appointmentsUsed: a.integer().required().default(0),
-    appliedPricingConditions: a.string().required().array().required(),
+    appliedPricingConditions: a.string().array().required(),
     purpose: a.string().required(),
     notes: a.string(),
     signatureImage: a.string(),
     terminationReason: a.string(),
     terminatedBy: a.enum(contractTerminatedBy),
     terminatedAt: a.datetime(),
+    confirmationDueAt: a.datetime(),
     patient: a.belongsTo('patient', 'patientId'),
     business: a.belongsTo('business', 'businessId'),
     businessService: a.belongsTo('businessService', 'businessServiceId'),
@@ -1283,6 +1286,7 @@ const schema = a.schema({
     paymentMethodId: a.id().required(),
     subTotal: a.float().required(),
     discount: a.float().required(),
+    amountPaid: a.float().default(0),
     deliveryFee: a.float().required().default(0),
     taxes: a.float().required(),
     totalAmount: a.float().required(),

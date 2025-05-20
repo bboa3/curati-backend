@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { BusinessService, Contract, ContractStatus, Invoice, Patient } from "../../../helpers/types/schema";
-import { paidContractInvoicePatientEmailNotifier } from "../../helpers/paid-contract-invoice-patient-email-notifier";
+import { createInvoiceStatusPatientUpdateNotification } from "../../helpers/create-invoice-status-patient-update-notification";
 
 interface TriggerInput {
   invoiceImage: { [key: string]: AttributeValue; };
@@ -12,7 +12,7 @@ interface TriggerInput {
 
 export const postInvoicePaymentContractHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoice = unmarshall(invoiceImage as any) as Invoice;
-  const { invoiceNumber, invoiceSourceId, patientId, totalAmount, documentUrl } = invoice
+  const { invoiceSourceId, patientId } = invoice
 
   const { errors: contractUpdateErrors } = await dbClient.models.contract.update({
     id: invoiceSourceId,
@@ -44,16 +44,11 @@ export const postInvoicePaymentContractHandler = async ({ invoiceImage, dbClient
   }
   const service = serviceData as unknown as BusinessService;
 
-  if (patient.email) {
-    await paidContractInvoicePatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      contractNumber: contract.contractNumber,
-      invoiceNumber,
-      invoiceTotalAmount: totalAmount,
-      invoiceDocumentUrl: documentUrl || undefined,
-      professionalName: service.professionalName,
-      serviceName: service.serviceName
-    });
-  }
+  await createInvoiceStatusPatientUpdateNotification({
+    dbClient,
+    patient,
+    invoice,
+    contract,
+    service,
+  })
 };

@@ -2,8 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { Delivery, DeliveryAssignment, Professional } from "../../helpers/types/schema";
-import { sendDeliveryOpportunityEmailNotifier } from "../helpers/send-delivery-opportunity-email-notifier";
-import { sendDeliveryOpportunitySMSNotifier } from "../helpers/send-delivery-opportunity-sms-notifier";
+import { createDeliveryAssignmentCreatedNotification } from "../helpers/create-delivery-assignment-created-notification";
 
 interface TriggerInput {
   deliveryAssignmentImage: { [key: string]: AttributeValue; };
@@ -29,18 +28,9 @@ export const postDeliveryAssignmentCreation = async ({ deliveryAssignmentImage, 
   }
   const delivery = deliveryData as unknown as Delivery;
 
-  const deliveryOpportunityDeepLink = `curati://life.curati.www/(app)/(tabs)/`;
-
-  await sendDeliveryOpportunityEmailNotifier({
-    toAddresses: [driver.email],
-    deliveryNumber: delivery.deliveryNumber,
-    driverName: driver.name,
-    deliveryOpportunityDeepLink
-  })
-
-  await sendDeliveryOpportunitySMSNotifier({
-    phoneNumber: `+258${driver.phone.replace(/\D/g, '')}`,
-    deliveryNumber: delivery.deliveryNumber,
-    deliveryOpportunityDeepLink
-  })
+  await createDeliveryAssignmentCreatedNotification({
+    dbClient,
+    delivery,
+    driver
+  });
 };

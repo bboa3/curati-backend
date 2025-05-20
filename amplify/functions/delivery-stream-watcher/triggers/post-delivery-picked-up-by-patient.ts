@@ -1,11 +1,9 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
-import dayjs from "dayjs";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
-import { Business, Delivery, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../helpers/types/schema";
-import { deliveryPickedUpPatientEmailNotifier } from "../helpers/delivery-picked-up-patient-email-notifier";
-import { deliveryPickedUpPharmacyEmailNotifier } from "../helpers/delivery-picked-up-pharmacy-email-notifier";
+import { Address, Business, Delivery, DeliveryStatus, MedicineOrder, MedicineOrderStatus, Patient } from "../../helpers/types/schema";
+import { createDeliveryStatusPatientUpdateNotification } from "../helpers/create-delivery-status-patient-update-notification";
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
@@ -38,6 +36,13 @@ export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient }:
   }
   const pharmacy = pharmacyData as unknown as Business;
 
+  const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: pharmacyId });
+
+  if (pharmacyAddressErrors || !pharmacyAddressData) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(pharmacyAddressErrors)}`);
+  }
+  const pharmacyAddress = pharmacyAddressData as unknown as Address;
+
   await createDeliveryStatusHistory({
     client: dbClient,
     patientId: patientId,
@@ -47,28 +52,15 @@ export const postDeliveryPickedUpByPatient = async ({ deliveryImage, dbClient }:
     longitude: pharmacy.businessLongitude
   })
 
-  const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;
-  const ratingDeepLink = `curati://life.curati.www/(app)/pharmacies/${pharmacyId}`;
-
-  if (patient.email) {
-    await deliveryPickedUpPatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      pharmacyName: pharmacy.name,
-      pickupTimestamp: deliveredAt || dayjs().utc().toISOString(),
-      ratingDeepLink,
-      orderDeepLink
-    })
-  }
-
-  await deliveryPickedUpPharmacyEmailNotifier({
-    pharmacyName: pharmacy.name,
-    pharmacyEmail: pharmacy.email,
-    patientName: patient.name,
-    orderNumber: order.orderNumber,
-    pickupTimestamp: deliveredAt || dayjs().utc().toISOString()
-  })
+  await createDeliveryStatusPatientUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    driver: null,
+    order
+  });
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
     id: orderId,

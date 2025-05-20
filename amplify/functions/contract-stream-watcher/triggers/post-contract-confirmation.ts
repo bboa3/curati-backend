@@ -2,8 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "aws-lambda";
 import { BusinessService, Contract, Patient, PricingCondition } from '../../helpers/types/schema';
-import { confirmedContractPatientEmailNotifier } from '../helpers/confirmed-contract-patient-email-notifier';
-import { confirmedContractPatientSMSNotifier } from '../helpers/confirmed-contract-patient-sms-notifier';
+import { createContractStatusPatientUpdateNotification } from "../helpers/create-contract-status-patient-update-notification";
 import { createContractInvoice } from "../helpers/create-invoice";
 
 interface TriggerInput {
@@ -14,7 +13,7 @@ interface TriggerInput {
 
 export const postContractConfirmation = async ({ contractImage, dbClient }: TriggerInput) => {
   const contract = unmarshall(contractImage as any) as Contract;
-  const { id: contractId, contractNumber, status: contractStatus, patientId, paymentMethodId, businessId, businessServiceId, appliedPricingConditions } = contract;
+  const { id: contractId, patientId, paymentMethodId, businessId, businessServiceId, appliedPricingConditions } = contract;
 
   const { data: serviceData, errors: serviceErrors } = await dbClient.models.businessService.get({ id: businessServiceId });
 
@@ -30,7 +29,7 @@ export const postContractConfirmation = async ({ contractImage, dbClient }: Trig
   }
   const patient = patientData as unknown as Patient
 
-  const invoice = await createContractInvoice({
+  await createContractInvoice({
     client: dbClient,
     contractId: contractId,
     patientId: patientId,
@@ -40,33 +39,10 @@ export const postContractConfirmation = async ({ contractImage, dbClient }: Trig
     appliedPricingConditions: appliedPricingConditions as unknown as PricingCondition[]
   });
 
-  const contractDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoice.id}`;
-
-  if (patient?.email) {
-    await confirmedContractPatientEmailNotifier({
-      patientName: patient.name,
-      serviceName: service.serviceName,
-      professionalName: service.professionalName,
-      contractStatus: contractStatus,
-      toAddresses: [patient.email],
-      contractNumber: contractNumber,
-      invoiceNumber: invoice.invoiceNumber,
-      invoiceTotalAmount: invoice.totalAmount,
-      paymentDeepLink: contractDeepLink,
-      invoiceDueDate: invoice.dueDate
-    });
-  }
-
-  if (patient?.phone) {
-    await confirmedContractPatientSMSNotifier({
-      phoneNumber: `+258${patient.phone.replace(/\D/g, '')}`,
-      patientName: patient.name,
-      serviceName: service.serviceName,
-      professionalName: service.professionalName,
-      contractStatus: contractStatus,
-      contractNumber: contractNumber,
-      invoiceNumber: invoice.invoiceNumber,
-      paymentDeepLink: contractDeepLink
-    });
-  }
+  await createContractStatusPatientUpdateNotification({
+    dbClient,
+    contract,
+    patient,
+    service
+  });
 };

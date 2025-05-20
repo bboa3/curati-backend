@@ -1,5 +1,5 @@
 import { v4 as generateUUIDv4 } from "uuid";
-import { Appointment, NotificationChannel, NotificationChannelType, NotificationRelatedItemType, NotificationStatus, NotificationTemplateKey, NotificationType, Patient, Priority, Professional, User } from "../../helpers/types/schema";
+import { Appointment, NotificationChannel, NotificationChannelType, NotificationRelatedItemType, NotificationStatus, NotificationTemplateKey, NotificationType, Patient, Priority, Professional, User, UserRole } from "../../helpers/types/schema";
 
 interface NotifierInput {
   dbClient: any;
@@ -20,6 +20,9 @@ export const createAppointmentStartedNotification = async ({ appointment, profes
   }
   const user = userData as unknown as User;
 
+  const professionalPushTokens = user.pushTokens?.filter(token => token?.split(' ')[1] === UserRole.PATIENT)
+  const pushTokens = professionalPushTokens.map(token => token?.split(' ')[0]) as string[];
+
   const channels: NotificationChannel[] = [
     {
       type: NotificationChannelType.SMS,
@@ -27,7 +30,7 @@ export const createAppointmentStartedNotification = async ({ appointment, profes
     },
     {
       type: NotificationChannelType.PUSH,
-      targets: user.pushTokens as string[],
+      targets: pushTokens,
     },
     {
       type: NotificationChannelType.IN_APP,

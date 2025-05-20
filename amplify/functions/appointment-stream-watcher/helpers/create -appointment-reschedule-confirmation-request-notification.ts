@@ -26,6 +26,9 @@ export const createAppointmentRescheduleConfirmationRequestNotification = async 
   }
   const recipientUser = recipientUserData as unknown as User;
 
+  const professionalPushTokens = recipientUser.pushTokens?.filter(token => token?.split(' ')[1] === requesterType)
+  const pushTokens = professionalPushTokens.map(token => token?.split(' ')[0]) as string[];
+
   const channels: NotificationChannel[] = [
     {
       type: NotificationChannelType.SMS,
@@ -33,7 +36,7 @@ export const createAppointmentRescheduleConfirmationRequestNotification = async 
     },
     {
       type: NotificationChannelType.PUSH,
-      targets: recipientUser.pushTokens as string[],
+      targets: pushTokens,
     },
     {
       type: NotificationChannelType.IN_APP,

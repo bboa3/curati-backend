@@ -54,6 +54,9 @@ export const createAppointmentCancellationNotification = async ({ appointment, p
   ]
 
   await Promise.all(recipients.map(async recipient => {
+    const professionalPushTokens = recipient.pushTokens?.filter(token => token?.split(' ')[1] === recipient.type)
+    const pushTokens = professionalPushTokens.map(token => token?.split(' ')[0]) as string[];
+
     const channels: NotificationChannel[] = [
       {
         type: NotificationChannelType.SMS,
@@ -61,7 +64,7 @@ export const createAppointmentCancellationNotification = async ({ appointment, p
       },
       {
         type: NotificationChannelType.PUSH,
-        targets: recipient.pushTokens as string[],
+        targets: pushTokens,
       },
       {
         type: NotificationChannelType.IN_APP,

@@ -2,10 +2,9 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
-import { Business, Delivery, DeliveryStatus, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
-import { deliveryFailedDriverEmailNotifier } from "../helpers/delivery-failed-driver-email-notifier";
-import { deliveryFailedPatientEmailNotifier } from "../helpers/delivery-failed-patient-email-notifier";
-import { deliveryFailedPharmacyEmailNotifier } from "../helpers/delivery-failed-pharmacy-email-notifier";
+import { Address, Business, Delivery, DeliveryStatus, MedicineOrder, Patient, Professional } from "../../helpers/types/schema";
+import { createDeliveryStatusPatientUpdateNotification } from "../helpers/create-delivery-status-patient-update-notification";
+import { createDeliveryTaskDriverUpdateNotification } from "../helpers/create-delivery-task-driver-update-notification";
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
@@ -15,7 +14,7 @@ interface TriggerInput {
 
 export const postDeliveryFailed = async ({ deliveryImage, dbClient }: TriggerInput) => {
   const delivery = unmarshall(deliveryImage as any) as Delivery;
-  const { orderId, patientId, pharmacyId, driverId, status: deliveryStatus, deliveryNumber } = delivery;
+  const { orderId, patientId, pharmacyId, driverId } = delivery;
 
   const { data: orderData, errors: orderErrors } = await dbClient.models.medicineOrder.get({ id: orderId });
 
@@ -45,6 +44,20 @@ export const postDeliveryFailed = async ({ deliveryImage, dbClient }: TriggerInp
   }
   const pharmacy = pharmacyData as unknown as Business;
 
+  const { data: deliveryAddressData, errors: deliveryAddressErrors } = await dbClient.models.address.get({ addressOwnerId: orderId });
+
+  if (deliveryAddressErrors || !deliveryAddressData) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(deliveryAddressErrors)}`);
+  }
+  const deliveryAddress = deliveryAddressData as unknown as Address;
+
+  const { data: pharmacyAddressData, errors: pharmacyAddressErrors } = await dbClient.models.address.get({ addressOwnerId: pharmacyId });
+
+  if (pharmacyAddressErrors || !pharmacyAddressData) {
+    throw new Error(`Failed to fetch delivery address: ${JSON.stringify(pharmacyAddressErrors)}`);
+  }
+  const pharmacyAddress = pharmacyAddressData as unknown as Address;
+
   await createDeliveryStatusHistory({
     client: dbClient,
     patientId: patientId,
@@ -54,39 +67,23 @@ export const postDeliveryFailed = async ({ deliveryImage, dbClient }: TriggerInp
     longitude: pharmacy.businessLongitude
   })
 
-  const orderDeepLink = `curati://life.curati.www/(app)/profile/orders/${orderId}`;
-  const deliveryDeepLink = `curati://life.curati.go/(app)/profile/deliveries/${orderId}`;
+  await createDeliveryStatusPatientUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    driver,
+    order
+  });
 
-  if (patient.email) {
-    await deliveryFailedPatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      deliveryNumber: deliveryNumber,
-      orderDeepLink,
-      finalStatus: deliveryStatus,
-    })
-  }
-
-  if (driver) {
-    await deliveryFailedDriverEmailNotifier({
-      driverName: driver.name,
-      driverEmail: driver.email,
-      patientName: patient.name,
-      orderNumber: order.orderNumber,
-      deliveryNumber,
-      finalStatus: deliveryStatus,
-      deliveryDeepLink,
-    })
-  }
-
-  await deliveryFailedPharmacyEmailNotifier({
-    pharmacyName: pharmacy.name,
-    pharmacyEmail: pharmacy.email,
-    patientName: patient.name,
-    orderNumber: order.orderNumber,
-    deliveryNumber,
-    driverName: driver?.name,
-    finalStatus: deliveryStatus,
-  })
+  await createDeliveryTaskDriverUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    destinationAddress: deliveryAddress,
+    order
+  });
 };

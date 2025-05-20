@@ -3,8 +3,7 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { createDeliveryStatusHistory } from "../../helpers/create-delivery-status-history";
 import { Address, Business, Delivery, DeliveryStatus, MedicineOrder, Patient } from "../../helpers/types/schema";
-import { deliveryReadyForPickupPatientEmailNotifier } from "../helpers/delivery-ready-for-pickup-patient-email-notifier";
-import { deliveryReadyForPickupPatientSMSNotifier } from "../helpers/delivery-ready-for-pickup-patient-sms-notifier";
+import { createDeliveryStatusPatientUpdateNotification } from "../helpers/create-delivery-status-patient-update-notification";
 
 interface TriggerInput {
   deliveryImage: { [key: string]: AttributeValue; };
@@ -55,19 +54,13 @@ export const postDeliveryReadyForPatientPickup = async ({ deliveryImage, dbClien
     longitude: pharmacyAddressLongitude
   })
 
-  if (patient.email) {
-    await deliveryReadyForPickupPatientEmailNotifier({
-      patientEmail: patient.email,
-      pharmacyAddress: pharmacyAddress,
-      pharmacyName: pharmacy.name,
-      orderNumber: order.orderNumber,
-      patientName: patient.name,
-    })
-  }
-
-  await deliveryReadyForPickupPatientSMSNotifier({
-    phoneNumber: `+258${patient.phone.replace(/\D/g, '')}`,
-    pharmacyName: pharmacy.name,
-    orderNumber: order.orderNumber,
-  })
+  await createDeliveryStatusPatientUpdateNotification({
+    dbClient,
+    delivery,
+    patient,
+    pharmacy,
+    pharmacyAddress,
+    driver: null,
+    order
+  });
 };

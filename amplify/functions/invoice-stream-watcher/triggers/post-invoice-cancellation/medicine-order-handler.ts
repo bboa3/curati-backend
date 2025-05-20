@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import type { AttributeValue } from "aws-lambda";
 import { Invoice, MedicineOrder, MedicineOrderStatus, Patient } from "../../../helpers/types/schema";
-import { failedMedicineOrderInvoicePatientEmailNotifier } from "../../helpers/failed-medicine-order-invoice-patient-email-notifier";
+import { createInvoiceStatusPatientUpdateNotification } from "../../helpers/create-invoice-status-patient-update-notification";
 
 interface TriggerInput {
   invoiceImage: { [key: string]: AttributeValue; };
@@ -12,7 +12,7 @@ interface TriggerInput {
 
 export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage, dbClient }: TriggerInput) => {
   const invoice = unmarshall(invoiceImage as any) as Invoice;
-  const { id: invoiceId, invoiceNumber, invoiceSourceId, patientId, dueDate, totalAmount } = invoice
+  const { invoiceSourceId, patientId } = invoice
 
   const { errors: orderUpdateErrors } = await dbClient.models.medicineOrder.update({
     id: invoiceSourceId,
@@ -37,17 +37,10 @@ export const postInvoiceCancellationMedicineOrderHandler = async ({ invoiceImage
   }
   const order = orderData as unknown as MedicineOrder
 
-  const invoiceDeepLink = `curati://life.curati.www/(app)/profile/invoices/${invoiceId}`
-
-  if (patient.email) {
-    await failedMedicineOrderInvoicePatientEmailNotifier({
-      patientName: patient.name,
-      patientEmail: patient.email,
-      orderNumber: order.orderNumber,
-      invoiceNumber,
-      invoiceDueDate: dueDate,
-      invoiceDeepLink,
-      invoiceTotalAmount: totalAmount,
-    });
-  }
+  await createInvoiceStatusPatientUpdateNotification({
+    dbClient,
+    patient,
+    order,
+    invoice,
+  })
 };
