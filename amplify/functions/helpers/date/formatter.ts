@@ -14,32 +14,32 @@ type DateType = dayjs.Dayjs | number | string | Date | undefined;
 
 export const formatTimeWithHourSuffix = (date: DateType) => {
   if (!date) return '';
-  return dayjs(date).utc().tz(MAPUTO_TZ).format('HH[h]mm'); // UTC -> Local, explicit format
+  return dayjs.utc(date).tz(MAPUTO_TZ).format('HH[h]mm'); // UTC -> Local, explicit format
 };
 
 export const formatDateNumeric = (date: DateType) => {
   if (!date) return '';
-  return dayjs(date).utc().tz(MAPUTO_TZ).format('DD/MM/YYYY'); // UTC -> Local
+  return dayjs.utc(date).tz(MAPUTO_TZ).format('DD/MM/YYYY'); // UTC -> Local
 };
 
 export const formatDateFullTextual = (date: DateType) => {
   if (!date) return '';
-  return dayjs(date).utc().tz(MAPUTO_TZ).format('DD [de] MMMM [de] YYYY'); // UTC -> Local
+  return dayjs.utc(date).tz(MAPUTO_TZ).format('DD [de] MMMM [de] YYYY'); // UTC -> Local
 };
 
 export const formatDateAbbreviatedMonth = (date: DateType) => {
   if (!date) return '';
-  return dayjs(date).utc().tz(MAPUTO_TZ).format('DD MMM YYYY'); // UTC -> Local
+  return dayjs.utc(date).tz(MAPUTO_TZ).format('DD MMM YYYY'); // UTC -> Local
 };
 
 export const formatDateTimeNumeric = (date: DateType) => {
   if (!date) return '';
-  return dayjs(date).utc().tz(MAPUTO_TZ).format('DD/MM/YYYY [às] HH:mm'); // UTC -> Local
+  return dayjs.utc(date).tz(MAPUTO_TZ).format('DD/MM/YYYY [às] HH:mm'); // UTC -> Local
 };
 
 export const formatTime = (date: DateType) => {
   if (!date) return '';
-  return dayjs(date).utc().tz(MAPUTO_TZ).format('HH:mm');
+  return dayjs.utc(date).tz(MAPUTO_TZ).format('HH:mm');
 };
 
 export const formatDayOfWeek = (dayIndex: number): string => {
