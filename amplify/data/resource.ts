@@ -1055,6 +1055,27 @@ const schema = a.schema({
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'create', 'update']),
     ]).disableOperations(['subscriptions', 'delete']),
 
+  reminder: a.model({
+    id: a.id().required(),
+    userId: a.id().required(),
+    relatedItemRemindedId: a.id().required(),
+    remindedItemType: a.enum(remindedItemType),
+    templateKey: a.enum(notificationTemplateKey),
+    templateData: a.json().required(),
+    payload: a.customType({
+      href: a.string(),
+      actionData: a.json()
+    }),
+    triggerDateTime: a.datetime().required(),
+    status: a.enum(reminderStatus),
+    repeat: a.enum(repeatType),
+    // user: a.belongsTo('user', 'userId'),
+  })
+    .authorization(allow => [
+      allow.owner().to(['read', 'create', 'update', 'delete']),
+      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create', 'delete']),
+    ]),
+
   notification: a.model({
     id: a.id().required(),
     userId: a.id().required(),
@@ -1259,22 +1280,6 @@ const schema = a.schema({
       allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
     ]).disableOperations(['subscriptions']),
 
-  reminder: a.model({
-    id: a.id().required(),
-    userId: a.id().required(),
-    relatedItemRemindedId: a.id().required(),
-    remindedItemType: a.enum(remindedItemType),
-    title: a.string().required(),
-    message: a.string().required(),
-    dateTime: a.datetime().required(),
-    status: a.enum(reminderStatus),
-    repeat: a.enum(repeatType),
-    // user: a.belongsTo('user', 'userId'),
-  })
-    .authorization(allow => [
-      allow.owner().to(['read', 'create', 'update', 'delete']),
-      allow.groups(['ADMIN', 'PROFESSIONAL']).to(['read', 'update', 'create', 'delete']),
-    ]),
 
   invoice: a.model({
     id: a.id().required(),
