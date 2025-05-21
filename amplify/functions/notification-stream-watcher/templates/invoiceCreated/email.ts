@@ -13,9 +13,9 @@ import { TemplateData } from './schema';
 import { getInvoiceCreatedTextParts } from './text-helper';
 
 interface TemplateInput {
-  channel: NotificationChannel,
-  templateData: TemplateData,
-  payload: NotificationPayload,
+  channel: NotificationChannel;
+  templateData: TemplateData;
+  payload: NotificationPayload;
 }
 
 export const generateEmailMessage = ({ templateData, channel, payload }: TemplateInput): EmailMessage => {
