@@ -34,6 +34,11 @@ export const generateInvoiceCreatedMessages = async ({ notification }: TemplateI
   const pushChannel = channels.find(channel => channel.type === NotificationChannelType.PUSH);
   const inAppChannel = channels.find(channel => channel.type === NotificationChannelType.IN_APP);
 
+  logger.info(`Generating messages for notification: ${notification.templateKey}`, { emailChannel });
+  logger.info(`Generating messages for notification: ${notification.templateKey}`, { smsChannel });
+  logger.info(`Generating messages for notification: ${notification.templateKey}`, { pushChannel });
+  logger.info(`Generating messages for notification: ${notification.templateKey}`, { inAppChannel });
+
   // if (emailChannel) {
   //   emailMessage = generateEmailMessage({
   //     channel: emailChannel,
