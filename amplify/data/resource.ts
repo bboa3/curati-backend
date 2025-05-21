@@ -1093,7 +1093,7 @@ const schema = a.schema({
       href: a.string(),
       actionData: a.json()
     }),
-    channels: a.json().array().required(), // [{type: string, targets: string[]}]
+    channels: a.json().required(), // [{type: string, targets: string[]}]
     status: a.enum(notificationStatus),
     isInAppEnabled: a.boolean().default(false),
     sentAt: a.datetime(),
