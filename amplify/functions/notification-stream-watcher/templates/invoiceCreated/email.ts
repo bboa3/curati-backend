@@ -1,4 +1,4 @@
-import mjml2html from 'mjml';
+import mjml2html from 'mjml-core';
 import { formatDateTimeNumeric } from '../../../helpers/date/formatter';
 import { formatToMZN } from '../../../helpers/number-formatter';
 import { InvoiceSourceType, InvoiceStatus, NotificationChannel, NotificationPayload } from "../../../helpers/types/schema";
