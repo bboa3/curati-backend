@@ -1,6 +1,7 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { Notification, NotificationChannel, NotificationChannelType } from '../../../helpers/types/schema';
 import { EmailMessage, InAppMessage, Message, PushMessage, SmsMessage } from '../../helpers/types';
+import { generateEmailMessage } from './email';
 import { TemplateData, TemplateValidatorSchema } from './schema';
 
 interface TemplateInput {
@@ -31,13 +32,13 @@ export const generateInvoiceCreatedMessages = async ({ notification }: TemplateI
   const pushChannel = channels.find(channel => channel.type === NotificationChannelType.PUSH);
   const inAppChannel = channels.find(channel => channel.type === NotificationChannelType.IN_APP);
 
-  // if (emailChannel) {
-  //   emailMessage = generateEmailMessage({
-  //     channel: emailChannel,
-  //     templateData: templateData,
-  //     payload: notification.payload
-  //   });
-  // }
+  if (emailChannel) {
+    emailMessage = generateEmailMessage({
+      channel: emailChannel,
+      templateData: templateData,
+      payload: notification.payload
+    });
+  }
 
   // if (smsChannel) {
   //   smsMessage = generateSmsMessage({
