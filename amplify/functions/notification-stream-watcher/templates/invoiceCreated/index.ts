@@ -1,8 +1,10 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { Notification, NotificationChannel, NotificationChannelType } from '../../../helpers/types/schema';
 import { EmailMessage, InAppMessage, Message, PushMessage, SmsMessage } from '../../helpers/types';
-import { generateEmailMessage } from './email';
+import { generateInAppMessage } from './in-app';
+import { generatePushMessage } from './push';
 import { TemplateData, TemplateValidatorSchema } from './schema';
+import { generateSmsMessage } from './sms';
 
 interface TemplateInput {
   notification: Notification
@@ -32,37 +34,37 @@ export const generateInvoiceCreatedMessages = async ({ notification }: TemplateI
   const pushChannel = channels.find(channel => channel.type === NotificationChannelType.PUSH);
   const inAppChannel = channels.find(channel => channel.type === NotificationChannelType.IN_APP);
 
-  if (emailChannel) {
-    emailMessage = generateEmailMessage({
-      channel: emailChannel,
-      templateData: templateData,
-      payload: notification.payload
-    });
-  }
-
-  // if (smsChannel) {
-  //   smsMessage = generateSmsMessage({
-  //     channel: smsChannel,
+  // if (emailChannel) {
+  //   emailMessage = generateEmailMessage({
+  //     channel: emailChannel,
   //     templateData: templateData,
   //     payload: notification.payload
   //   });
   // }
 
-  // if (pushChannel) {
-  //   pushMessage = generatePushMessage({
-  //     channel: pushChannel,
-  //     templateData: templateData,
-  //     payload: notification.payload,
-  //     priority: notification.priority
-  //   });
-  // }
+  if (smsChannel) {
+    smsMessage = generateSmsMessage({
+      channel: smsChannel,
+      templateData: templateData,
+      payload: notification.payload
+    });
+  }
 
-  // if (inAppChannel) {
-  //   inAppMessage = generateInAppMessage({
-  //     channel: inAppChannel,
-  //     templateData: templateData
-  //   });
-  // }
+  if (pushChannel) {
+    pushMessage = generatePushMessage({
+      channel: pushChannel,
+      templateData: templateData,
+      payload: notification.payload,
+      priority: notification.priority
+    });
+  }
+
+  if (inAppChannel) {
+    inAppMessage = generateInAppMessage({
+      channel: inAppChannel,
+      templateData: templateData
+    });
+  }
 
   return {
     email: emailMessage,
