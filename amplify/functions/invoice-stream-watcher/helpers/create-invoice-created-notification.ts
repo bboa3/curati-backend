@@ -24,6 +24,10 @@ export const createInvoiceCreatedNotification = async ({ invoice, service, contr
 
   const channels: NotificationChannel[] = [
     {
+      type: NotificationChannelType.SMS,
+      targets: [`+258${patient.phone.replace(/\D/g, '')}`],
+    },
+    {
       type: NotificationChannelType.PUSH,
       targets: pushTokens,
     },
