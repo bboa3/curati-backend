@@ -7,8 +7,8 @@ interface TemplateInput {
 }
 
 export const generateInvoiceCreatedMessages = async ({ notification }: TemplateInput): Promise<Message> => {
-  const channels = JSON.parse(notification.channels as unknown as string) as NotificationChannel[];
-  const templateData = JSON.parse(notification.templateData as string) as TemplateData;
+  const channels = notification.channels as NotificationChannel[];
+  const templateData = notification.templateData as TemplateData;
 
   await TemplateValidatorSchema.validate(templateData);
 
