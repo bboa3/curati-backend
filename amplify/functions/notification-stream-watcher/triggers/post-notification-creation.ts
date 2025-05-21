@@ -16,6 +16,8 @@ export const postNotificationCreation = async ({ notificationImage, dbClient, lo
 
   const message = await generateMessages({ notification })
 
+  logger.info("Notification message", { message });
+
   await sendMessage({
     message: message,
     logger: logger,

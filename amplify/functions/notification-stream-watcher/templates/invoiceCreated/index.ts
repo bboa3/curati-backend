@@ -24,9 +24,6 @@ export const generateInvoiceCreatedMessages = async ({ notification }: TemplateI
 
   await TemplateValidatorSchema.validate(templateData);
 
-  logger.info(`Validated template data messages for notification: ${notification.templateKey}`, channels as any);
-  logger.info(`Validated template data messages for notification: ${notification.templateKey}`, templateData as any);
-
   let emailMessage: EmailMessage | null = null;
   let smsMessage: SmsMessage | null = null;
   let pushMessage: PushMessage | null = null;
