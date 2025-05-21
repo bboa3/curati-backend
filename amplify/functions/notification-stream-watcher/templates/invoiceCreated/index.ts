@@ -19,8 +19,8 @@ export const generateInvoiceCreatedMessages = async ({ notification }: TemplateI
   const channels = notification.channels as NotificationChannel[];
   const templateData = notification.templateData as TemplateData;
 
-  logger.debug(`Generating messages for notification: ${notification.templateKey}`, JSON.stringify(templateData));
-  logger.debug(`Generating messages for notification: ${notification.templateKey}`, JSON.stringify(channels));
+  logger.info(`Generating messages for notification: ${notification.templateKey}`, JSON.stringify(templateData));
+  logger.info(`Generating messages for notification: ${notification.templateKey}`, JSON.stringify(channels));
 
   await TemplateValidatorSchema.validate(templateData);
 
