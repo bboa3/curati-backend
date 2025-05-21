@@ -16,8 +16,8 @@ const logger = new Logger({
 });
 
 export const generateInvoiceCreatedMessages = async ({ notification }: TemplateInput): Promise<Message> => {
-  const channels = JSON.parse(notification.channels as unknown as string) as NotificationChannel[];
-  const templateData = JSON.parse(notification.templateData as unknown as string) as TemplateData;
+  const channels = JSON.parse(JSON.stringify(notification.channels)) as NotificationChannel[];
+  const templateData = JSON.parse(JSON.stringify(notification.templateData)) as TemplateData;
 
   logger.info(`Generating messages for notification: ${notification.templateKey}`, { templateData });
   logger.info(`Generating messages for notification: ${notification.templateKey}`, { channels });
