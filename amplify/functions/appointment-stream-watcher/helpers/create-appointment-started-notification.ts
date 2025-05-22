@@ -24,10 +24,10 @@ export const createAppointmentStartedNotification = async ({ appointment, profes
   const pushTokens = professionalPushTokens.map(token => token?.split(' ')[0]) as string[];
 
   const channels: NotificationChannel[] = [
-    {
-      type: NotificationChannelType.SMS,
-      targets: [`+258${patient.phone.replace(/\D/g, '')}`],
-    },
+    // {
+    //   type: NotificationChannelType.SMS,
+    //   targets: [`+258${patient.phone.replace(/\D/g, '')}`],
+    // },
     {
       type: NotificationChannelType.PUSH,
       targets: pushTokens,

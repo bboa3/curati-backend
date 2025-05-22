@@ -57,10 +57,10 @@ export const createDeliveryDriverAssignedNotification = async ({ delivery, drive
     const pushTokens = driverPushTokens.map(token => token?.split(' ')[0]) as string[];
 
     const channels: NotificationChannel[] = [
-      {
-        type: NotificationChannelType.SMS,
-        targets: [`+258${recipient.phone.replace(/\D/g, '')}`],
-      },
+      // {
+      //   type: NotificationChannelType.SMS,
+      //   targets: [`+258${recipient.phone.replace(/\D/g, '')}`],
+      // },
       {
         type: NotificationChannelType.PUSH,
         targets: pushTokens,
