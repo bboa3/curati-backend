@@ -25,7 +25,7 @@ export const generateEmailButton = ({
   const bg = customBackgroundColor || brandConfig.colors.PRIMARY;
   const fg = customTextColor || brandConfig.colors.WHITE;
   return `
-    < table border = "0" cellpadding = "0" cellspacing = "0" align = "center" role = "presentation" style = "margin:15px auto;" >
+    <table border = "0" cellpadding = "0" cellspacing = "0" align = "center" role = "presentation" style = "margin:15px auto;" >
       <tr>
       <td align="center" bgcolor = "${bg}" style = "border-radius:5px;" >
         <a href="${url}" target = "_blank"
