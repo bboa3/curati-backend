@@ -22,21 +22,21 @@ export const generateEmailButton = ({
   customBackgroundColor,
   customTextColor,
 }: ButtonProps): string => {
-  const bgColor = customBackgroundColor || brandConfig.colors.PRIMARY;
-  const textColor = customTextColor || brandConfig.colors.WHITE;
-
+  const bg = customBackgroundColor || brandConfig.colors.PRIMARY;
+  const fg = customTextColor || brandConfig.colors.WHITE;
   return `
-    <mj-button href="${url}"
-               background-color="${bgColor}"
-               color="${textColor}"
-               font-weight="500"
-               border-radius="5px"
-               padding="12px 25px"
-               inner-padding="12px 25px" 
-               text-transform="none">
-      ${text}
-    </mj-button>
-  `;
+  <table border="0" cellpadding="0" cellspacing="0" align="center" role="presentation" style="margin:20px auto;">
+    <tr>
+      <td align="center" bgcolor="${bg}" style="border-radius:5px;">
+        <a href="${url}" target="_blank"
+           style="display:inline-block;padding:12px 25px;
+                  font-family:'Segoe UI',sans-serif;font-weight:500;
+                  color:${fg};text-decoration:none;">
+          ${text}
+        </a>
+      </td>
+    </tr>
+  </table>`;
 };
 
 

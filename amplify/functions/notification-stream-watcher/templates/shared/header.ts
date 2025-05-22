@@ -5,80 +5,49 @@ interface HeaderProps {
   preheaderText?: string;
 }
 
-export const generateEmailHeader = ({ brandConfig, preheaderText }: HeaderProps): string => {
-  let mjml = '<mjml><mj-head>';
-
-  if (preheaderText) {
-    mjml += `<mj-preview>${preheaderText}</mj-preview>`;
-  }
-
-  mjml += `
-    <mj-attributes>
-      <mj-all font-family="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" />
-      <mj-text color="${brandConfig.colors.BLACK}" line-height="1.6" />
-      <mj-button background-color="${brandConfig.colors.PRIMARY}" color="${brandConfig.colors.WHITE}" font-weight="500" border-radius="5px" />
-    </mj-attributes>
-    <mj-style inline="inline">
-      .container {
-        background-color: ${brandConfig.colors.WHITE};
-      }
-      h1 {
-        color: ${brandConfig.colors.PRIMARY}; 
-        font-size: 1.6em;
-        border-bottom: 2px solid ${brandConfig.colors.PRIMARY4};
-        padding-bottom: 10px;
-        margin-bottom: 20px;
+export const generateEmailHeader = ({
+  brandConfig,
+  preheaderText = '',
+}: HeaderProps): string => `<!DOCTYPE html>
+  <html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>${brandConfig.appName}</title>
+    <style>
+      @media only screen and (max-width:600px) {
+        .container { width:100% !important; padding:0 15px !important; }
+        h2{font-size:1.4em!important;}
       }
       h2 {
         color: ${brandConfig.colors.PRIMARY};
-        font-size: 1.3em;
-        margin-top: 25px;
-        margin-bottom: 10px;
+        font-size: 1.6em;
+        margin:0 0 16px;
+        border-bottom:2px solid ${brandConfig.colors.PRIMARY4};
+        padding-bottom:8px;
       }
-      strong.highlight-strong { /* More specific selector */
-        font-weight: 600;
-        color: ${brandConfig.colors.PRIMARY};
-      }
-      ul.custom-list {
-         margin: 15px 0;
-         padding-left: 0px; /* Reset padding */
-         list-style: none;
-      }
-      ul.custom-list li {
-        margin-bottom: 8px;
-        padding-left: 20px; 
-        position: relative;
-       }
-       ul.custom-list li::before {
-         content: '•';
-         color: ${brandConfig.colors.PRIMARY};
-         font-weight: bold;
-         display: inline-block;
-         position: absolute;
-         left: 0;
-         top: 0px; /* Adjust for alignment */
-       }
-       ul.custom-list li strong {
-        display: inline-block;
-        min-width: 100px;
-        color: ${brandConfig.colors.PRIMARY};
-       }
-      .highlight-box {
-        background-color: ${brandConfig.colors.PRIMARY4};
-        padding: 15px 20px;
-        border-radius: 5px;
-        border-left: 5px solid ${brandConfig.colors.PRIMARY};
-        margin: 25px 0;
-        color: ${brandConfig.colors.PRIMARY};
-      }
-      .highlight-box p { margin-bottom: 5px; }
-    </mj-style>
-  </mj-head><mj-body background-color="${brandConfig.colors.DARK_THEME4}"><mj-section><mj-column><mj-spacer height="20px" /></mj-column></mj-section>`;
-
-  mjml += `<mj-section background-color="${brandConfig.colors.WHITE}" css-class="container" padding-left="15px" padding-right="15px" padding-top="15px" padding-bottom="15px"> 
-            <mj-column>`;
-  return mjml;
-};
+      p, td { font-family:'Segoe UI',sans-serif; line-height:1.6; color:${brandConfig.colors.BLACK}; }
+    </style>
+  </head>
+  <body style="margin:0;background:${brandConfig.colors.BLACK4};">
+    <div style="display:none;max-height:0;overflow:hidden;color:${brandConfig.colors.BLACK4};">
+      ${preheaderText}
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr><td align="center" style="background:${brandConfig.colors.BLACK4};">
+        <table class="container" width="600" cellpadding="0" cellspacing="0" role="presentation"
+               style="background:${brandConfig.colors.WHITE};margin:0 auto;border-radius:4px;overflow:hidden;">
+          <tr>
+            <td style="padding:20px;text-align:center;">
+              <img src="https://your.cdn/curati-logo.png" width="120" alt="${brandConfig.appName}" style="display:block;margin:0 auto;" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <hr style="border:none;border-top:1px solid ${brandConfig.colors.BLACK4};margin:0;" />
+            </td>
+          </tr>
+          <tr><td style="padding:30px 40px;">`;
 
 
 export const generateSmsHeaderPrefix = ({ brandConfig }: { brandConfig: BrandConfig }): string => {

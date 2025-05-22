@@ -13,39 +13,41 @@ export const generateEmailFooter = ({
   unsubscribeLink,
   showSupportEmail = true,
   showAddress = true,
-}: FooterProps): string => {
-  const currentYear = new Date().getFullYear();
-  let footerContent = `<mj-text align="center" font-size="12px" color="${brandConfig.colors.BLACK2}" line-height="18px">`;
-
-  footerContent += `Copyright © ${brandConfig.copyrightYearStart}-${currentYear} ${brandConfig.appNameLegal}. Todos os direitos reservados.<br />`;
-  if (showAddress) {
-    footerContent += `${brandConfig.companyAddress}<br />`;
-  }
-  if (showSupportEmail && brandConfig.supportEmail) {
-    footerContent += `<a href="mailto:${brandConfig.supportEmail}" style="color: ${brandConfig.colors.BLACK2}; text-decoration: none;">${brandConfig.supportEmail}</a>`;
-  }
-  if (brandConfig.termsUrl && brandConfig.privacyPolicyUrl) {
-    footerContent += ` | <a href="${brandConfig.termsUrl}" style="color: ${brandConfig.colors.BLACK2}; text-decoration: none;">Termos</a> | <a href="${brandConfig.privacyPolicyUrl}" style="color: ${brandConfig.colors.BLACK2}; text-decoration: none;">Privacidade</a>`;
-  }
-
-  if (unsubscribeLink) {
-    footerContent += `<br /><br /><a href="${unsubscribeLink}" style="color: ${brandConfig.colors.BLACK2}; text-decoration: underline;">Cancelar subscrição</a>`;
-  }
-  footerContent += `</mj-text>`;
-
-  return `
-        </mj-column> 
-      </mj-section> 
-      <mj-section padding-top="0px">
-        <mj-column>
-          <mj-divider border-color="${brandConfig.colors.PRIMARY4}" border-width="1px" padding-top="10px" padding-bottom="10px" />
-          ${footerContent}
-          <mj-spacer height="20px" />
-        </mj-column>
-      </mj-section>
-    </mj-body>
-  </mjml>`;
-};
+}: FooterProps): string => `
+        </td></tr>
+        <tr><td style="padding:20px;">
+          <hr style="border:none;border-top:1px solid ${brandConfig.colors.PRIMARY4};" />
+          <p style="font-size:12px;color:${brandConfig.colors.BLACK2};line-height:18px;text-align:center;">
+            © ${brandConfig.copyrightYearStart}—
+            ${new Date().getFullYear()} ${brandConfig.appNameLegal}.<br/>
+            ${showAddress ? brandConfig.companyAddress + '<br/>' : ''}
+            ${showSupportEmail && brandConfig.supportEmail
+    ? `<a href="mailto:${brandConfig.supportEmail}"
+                    style="color:${brandConfig.colors.BLACK2};text-decoration:none;">
+                   ${brandConfig.supportEmail}
+                 </a><br/>`
+    : ''}
+            <a href="${brandConfig.termsUrl}" style="color:${brandConfig.colors.BLACK2};text-decoration:none;">
+              Termos
+            </a> |
+            <a href="${brandConfig.privacyPolicyUrl}" style="color:${brandConfig.colors.BLACK2};text-decoration:none;">
+              Privacidade
+            </a>
+          </p>
+          ${unsubscribeLink
+    ? `<p style="text-align:center;font-size:12px;">
+                 <a href="${unsubscribeLink}"
+                    style="color:${brandConfig.colors.BLACK2};text-decoration:underline;">
+                   Cancelar subscrição
+                 </a>
+               </p>`
+    : ''}
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 
 export const generateSmsFooter = ({ brandConfig }: { brandConfig: BrandConfig }): string => {
   return "";
