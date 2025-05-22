@@ -1,3 +1,4 @@
+import { Logger } from '@aws-lambda-powertools/logger';
 import mjml2html from 'mjml-core';
 import { formatDateTimeNumeric } from '../../../helpers/date/formatter';
 import { formatToMZN } from '../../../helpers/number-formatter';
@@ -17,6 +18,13 @@ interface TemplateInput {
   templateData: TemplateData;
   payload: NotificationPayload;
 }
+
+
+const logger = new Logger({
+  logLevel: "INFO",
+  serviceName: "dynamodb-stream-handler",
+});
+
 
 export const generateEmailMessage = ({ templateData, channel, payload }: TemplateInput): EmailMessage => {
   const brandConfig = getDefaultBrandConfig({ appName: 'Cúrati' })
@@ -111,10 +119,21 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
   textBody += `\n\nObrigado,\nEquipa ${brandConfig.appName}`;
   textBody += `\n\n---\nCopyright © ${brandConfig.copyrightYearStart}-${currentYear} Cúrati Saúde, LDA. Todos os direitos reservados.`;
 
+  logger.info(`MJML Body`, { mjmlBody });
+  logger.info(`MJML Body`, { htmlBody: mjml2html(mjmlBody) });
+
   return {
     emailAddresses: channel.targets,
     subject: textParts.subject,
-    htmlBody: mjml2html(mjmlBody).html,
+    htmlBody: `
+    <html>
+      <head>
+      </head>
+      <body>
+        <p>Test email</p>
+      </body>
+    </html>
+    `,
     textBody,
   };
 };
