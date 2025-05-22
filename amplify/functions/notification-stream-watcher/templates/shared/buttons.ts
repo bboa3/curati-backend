@@ -25,18 +25,16 @@ export const generateEmailButton = ({
   const bg = customBackgroundColor || brandConfig.colors.PRIMARY;
   const fg = customTextColor || brandConfig.colors.WHITE;
   return `
-  <table border="0" cellpadding="0" cellspacing="0" align="center" role="presentation" style="margin:20px auto;">
-    <tr>
-      <td align="center" bgcolor="${bg}" style="border-radius:5px;">
-        <a href="${url}" target="_blank"
-           style="display:inline-block;padding:12px 25px;
-                  font-family:'Segoe UI',sans-serif;font-weight:500;
-                  color:${fg};text-decoration:none;">
-          ${text}
-        </a>
-      </td>
+    < table border = "0" cellpadding = "0" cellspacing = "0" align = "center" role = "presentation" style = "margin:15px auto;" >
+      <tr>
+      <td align="center" bgcolor = "${bg}" style = "border-radius:5px;" >
+        <a href="${url}" target = "_blank"
+  style = "display:inline-block;padding:12px 25px;font-family:'Segoe UI',sans-serif;font-weight:500;color:${fg};text-decoration:none;" >
+    ${text}
+  </a>
+    </td>
     </tr>
-  </table>`;
+    </table>`;
 };
 
 
