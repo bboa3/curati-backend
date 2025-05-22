@@ -14,7 +14,6 @@
     "@aws-amplify/backend-cli": "^1.7.2",
     "@aws-lambda-powertools/logger": "^2.20.0",
     "@types/aws-lambda": "^8.10.149",
-    "@types/mjml": "^4.7.4",
     "aws-cdk": "^2.1016.0",
     "aws-cdk-lib": "^2.196.1",
     "constructs": "^10.4.2",

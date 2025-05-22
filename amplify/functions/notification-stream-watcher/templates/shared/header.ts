@@ -67,8 +67,6 @@ export const generateEmailHeader = ({
             <td style="padding:20px 20px;">
 `;
 
-
-
 export const generateSmsHeaderPrefix = ({ brandConfig }: { brandConfig: BrandConfig }): string => {
   return `${brandConfig.appName}: `;
 };

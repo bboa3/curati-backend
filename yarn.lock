@@ -6775,18 +6775,6 @@
   resolved "https://registry.yarnpkg.com/@types/lru-cache/-/lru-cache-5.1.1.tgz#c48c2e27b65d2a153b19bfc1a317e30872e01eef"
   integrity sha512-ssE3Vlrys7sdIzs5LOxCzTVMsU7i9oa/IaW92wF32JFb3CVczqOkru2xspuKczHEbG3nvmPY7IFqVmGGHdNbYw==
 
-"@types/mjml-core@*":
-  version "4.15.1"
-  resolved "https://registry.yarnpkg.com/@types/mjml-core/-/mjml-core-4.15.1.tgz#4c1c80ab14f5a4db0db22a43a4f0e21a65bd0ea8"
-  integrity sha512-qu8dUksU8yXX18qMTFINkM4uoz7WQYC5F14lcWeSNmWbulaGG0KG19yeZwpx75b9RJXr8WI/FRHH0LyQTU9JbA==
-
-"@types/mjml@^4.7.4":
-  version "4.7.4"
-  resolved "https://registry.yarnpkg.com/@types/mjml/-/mjml-4.7.4.tgz#f486c9e39dd1e5cf52e13e64bdc762be116e957d"
-  integrity sha512-vyi1vzWgMzFMwZY7GSZYX0GU0dmtC8vLHwpgk+NWmwbwRSrlieVyJ9sn5elodwUfklJM7yGl0zQeet1brKTWaQ==
-  dependencies:
-    "@types/mjml-core" "*"
-
 "@types/ms@*":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-2.1.0.tgz#052aa67a48eccc4309d7f0191b7e41434b90bb78"

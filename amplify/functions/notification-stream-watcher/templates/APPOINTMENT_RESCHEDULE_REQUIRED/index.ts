@@ -9,9 +9,10 @@ import { generateSmsMessage } from './sms';
 interface TemplateInput {
   notification: Notification
 }
-export const generateInvoiceCreatedMessages = async ({ notification }: TemplateInput): Promise<Message> => {
-  const channels = JSON.parse(JSON.stringify(notification.channels)) as NotificationChannel[];
-  const templateData = JSON.parse(JSON.stringify(notification.templateData)) as TemplateData;
+
+export const generateAppointmentRescheduleRequiredMessages = async ({ notification }: TemplateInput): Promise<Message> => {
+  const channels = JSON.parse(notification.channels as unknown as string) as NotificationChannel[];
+  const templateData = JSON.parse(notification.templateData as string) as TemplateData;
 
   await TemplateValidatorSchema.validate(templateData);
 
