@@ -16,6 +16,7 @@ const phoneCode = '+258';
 export const handler: PostConfirmationTriggerHandler = async (event) => {
   try {
     const authId = event.request.userAttributes.sub;
+    const name = event.request.userAttributes.name;
     const email = event.request.userAttributes.email;
     const phoneNumber = event.request.userAttributes.phone_number;
 
@@ -31,7 +32,7 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
 
     await (client.models as any).user.create({
       authId: authId,
-      name: event.userName,
+      name: name,
       email: email,
       phone: phone,
       pushTokens: [],
