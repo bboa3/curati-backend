@@ -11,9 +11,17 @@ Amplify.configure(resourceConfig, libraryOptions);
 
 const client = generateClient<Schema>();
 
+const phoneCode = '+258';
+
 export const handler: PostConfirmationTriggerHandler = async (event) => {
   try {
     const authId = event.request.userAttributes.sub;
+    const email = event.request.userAttributes.email;
+    const phoneNumber = event.request.userAttributes.phone_number;
+
+    const phone = phoneNumber.startsWith(phoneCode)
+      ? phoneNumber.slice(phoneCode.length)
+      : phoneNumber;
 
     const { data: user } = await (client.models as any).user.get({ authId });
 
@@ -24,8 +32,8 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
     await (client.models as any).user.create({
       authId: authId,
       name: event.userName,
-      email: event.request.userAttributes.email,
-      phone: event.request.userAttributes.phone_number,
+      email: email,
+      phone: phone,
       pushTokens: [],
       role: 'PATIENT',
       isDeleted: false
