@@ -931,7 +931,7 @@ const schema = a.schema({
     .authorization(allow => [
       allow.owner().to(['read', 'create', 'update']),
       allow.groups(['PROFESSIONAL', 'ADMIN']).to(['read', 'update', 'create']),
-    ]).disableOperations(['delete']),
+    ]),
 
   deliveryStatusHistory: a.model({
     id: a.id().required(),
