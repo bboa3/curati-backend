@@ -1102,7 +1102,7 @@ const schema = a.schema({
     lastAttemptError: a.string(),
     createdBy: a.string(),
   }).authorization(allow => [
-    allow.authenticated().to(['read']),
+    allow.authenticated().to(['read', 'update']),
     allow.groups(['ADMIN', 'PROFESSIONAL']).to(['create', 'read', 'update', 'delete']),
   ]).disableOperations(['subscriptions']),
 
