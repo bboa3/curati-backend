@@ -1,28 +1,28 @@
 import { v4 as generateUUIDv4 } from "uuid";
-import { Address, Business, Delivery, MedicineOrder, NotificationChannel, NotificationChannelType, NotificationRelatedItemType, NotificationStatus, NotificationTemplateKey, NotificationType, Patient, Priority, User, UserRole } from "../../helpers/types/schema";
+import { Address, Business, Delivery, MedicineOrder, NotificationChannel, NotificationChannelType, NotificationRelatedItemType, NotificationStatus, NotificationTemplateKey, NotificationType, Priority, Professional, User, UserRole } from "../../helpers/types/schema";
 
 interface NotifierInput {
   dbClient: any;
   delivery: Delivery;
-  patient: Patient;
+  driver: Professional;
   pharmacy: Business;
   pharmacyAddress: Address;
   destinationAddress: Address;
   order: MedicineOrder;
 }
 
-export const createDeliveryTaskDriverUpdateNotification = async ({ delivery, patient, pharmacy, pharmacyAddress, destinationAddress, order, dbClient }: NotifierInput) => {
+export const createDeliveryTaskDriverUpdateNotification = async ({ delivery, driver, pharmacy, pharmacyAddress, destinationAddress, order, dbClient }: NotifierInput) => {
   const { orderId: deliveryId, deliveryNumber } = delivery;
   const driverStatsDeepLink = `curati://life.curati.go/(app)/`;
 
-  const { data: patientUserData, errors: patientUserErrors } = await dbClient.models.user.get({ authId: patient.userId });
+  const { data: driverUserData, errors: driverUserErrors } = await dbClient.models.user.get({ authId: driver.userId });
 
-  if (patientUserErrors || !patientUserData) {
-    throw new Error(`Failed to fetch notification patient user: ${JSON.stringify(patientUserErrors)}`);
+  if (driverUserErrors || !driverUserData) {
+    throw new Error(`Failed to fetch notification driver user: ${JSON.stringify(driverUserErrors)}`);
   }
-  const patientUser = patientUserData as unknown as User;
-  const patientPushTokens = patientUser.pushTokens?.filter(token => token?.split(' ')[1] === UserRole.PATIENT)
-  const pushTokens = patientPushTokens.map(token => token?.split(' ')[0]) as string[];
+  const driverUser = driverUserData as unknown as User;
+  const driverPushTokens = driverUser.pushTokens?.filter(token => token?.split(' ')[1] === UserRole.PROFESSIONAL)
+  const pushTokens = driverPushTokens.map(token => token?.split(' ')[0]) as string[];
 
   const channels: NotificationChannel[] = [
     {
@@ -35,17 +35,17 @@ export const createDeliveryTaskDriverUpdateNotification = async ({ delivery, pat
     }
   ];
 
-  if (patient.email) channels.push({
+  if (driver.email) channels.push({
     type: NotificationChannelType.EMAIL,
-    targets: [patient.email],
+    targets: [driver.email],
   })
 
   const { errors: createNotificationErrors } = await dbClient.models.notification.create({
     id: generateUUIDv4(),
-    userId: patient.userId,
+    userId: driver.userId,
     templateKey: NotificationTemplateKey.DELIVERY_TASK_DRIVER_UPDATE,
     templateData: JSON.stringify({
-      recipientName: patient.name,
+      recipientName: driver.name,
       deliveryNumber: deliveryNumber,
       orderNumber: order.orderNumber,
       newDeliveryStatus: delivery.status,

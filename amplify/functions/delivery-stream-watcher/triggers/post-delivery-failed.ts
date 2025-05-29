@@ -77,13 +77,15 @@ export const postDeliveryFailed = async ({ deliveryImage, dbClient }: TriggerInp
     order
   });
 
-  await createDeliveryTaskDriverUpdateNotification({
-    dbClient,
-    delivery,
-    patient,
-    pharmacy,
-    pharmacyAddress,
-    destinationAddress: deliveryAddress,
-    order
-  });
+  if (driver) {
+    await createDeliveryTaskDriverUpdateNotification({
+      dbClient,
+      delivery,
+      driver,
+      pharmacy,
+      pharmacyAddress,
+      destinationAddress: deliveryAddress,
+      order
+    });
+  }
 };

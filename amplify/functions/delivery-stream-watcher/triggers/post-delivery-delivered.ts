@@ -105,7 +105,7 @@ export const postDeliveryDelivered = async ({ deliveryImage, dbClient }: Trigger
   await createDeliveryTaskDriverUpdateNotification({
     dbClient,
     delivery,
-    patient,
+    driver,
     pharmacy,
     pharmacyAddress,
     destinationAddress: deliveryAddress,
