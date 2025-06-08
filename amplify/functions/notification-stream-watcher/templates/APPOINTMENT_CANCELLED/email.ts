@@ -34,8 +34,9 @@ export const generateEmailMessage = ({
     cancellationReason,
     newAppointmentDeepLink,
   } = templateData;
+  const appName = recipientType === AppointmentParticipantType.PROFESSIONAL ? 'Cúrati RX' : 'Cúrati';
 
-  const brandConfig = getDefaultBrandConfig({ appName: 'Cúrati' });
+  const brandConfig = getDefaultBrandConfig({ appName });
   const subject = `${brandConfig.appName}: Agendamento #${appointmentNumber} Cancelado`;
   const formattedDateTime = formatDateTimeNumeric(
     new Date(appointmentDateTime)

@@ -33,9 +33,10 @@ export const generateEmailMessage = ({
     appointmentType,
     purpose,
   } = templateData;
+  const appName = requesterType === AppointmentParticipantType.PROFESSIONAL ? 'Cúrati' : 'Cúrati RX';
 
-  const brandConfig = getDefaultBrandConfig({ appName: 'Cúrati' });
-  const subject = `Cúrati: Confirmação Necessária - Agendamento #${appointmentNumber}`;
+  const brandConfig = getDefaultBrandConfig({ appName });
+  const subject = `${brandConfig.appName}: Confirmação Necessária - Agendamento #${appointmentNumber}`;
   const currentYear = new Date().getFullYear();
   const formattedDateTime = formatDateTimeNumeric(
     new Date(appointmentDateTime)

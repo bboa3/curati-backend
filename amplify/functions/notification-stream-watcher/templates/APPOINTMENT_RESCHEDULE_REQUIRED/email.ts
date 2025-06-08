@@ -25,8 +25,9 @@ export const generateEmailMessage = ({ templateData, channel, payload }: Templat
     appointmentType,
     purpose,
   } = templateData;
+  const appName = reschedulerType === AppointmentParticipantType.PROFESSIONAL ? 'Cúrati' : 'Cúrati RX';
 
-  const brandConfig = getDefaultBrandConfig({ appName: 'Cúrati' });
+  const brandConfig = getDefaultBrandConfig({ appName });
   const subject = `${brandConfig.appName}: Agendamento #${appointmentNumber} Reagendado`;
   const original = formatDateTimeNumeric(originalAppointmentDateTime);
   const updated = formatDateTimeNumeric(newAppointmentDateTime);
