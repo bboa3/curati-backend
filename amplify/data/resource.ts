@@ -39,7 +39,7 @@ export const medicineForm = [
   'Gel',
   'Lotion',
   'Oral_drops',
-  'Eye_drop',
+  'Eye_drops',
   'Ear_drops',
   'colirio',
   'Suppository',
