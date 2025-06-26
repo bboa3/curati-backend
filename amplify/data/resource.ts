@@ -45,7 +45,7 @@ export const medicineForm = [
   'Suppository',
   'Spray',
   'Powder',
-  'Vaginal ovule',
+  'Vaginal_ovule',
   'Vaginal_foam',
   'chewable',
   'Ampoule',
