@@ -52,7 +52,7 @@ const { cfnUserPool } = backend.auth.resources.cfnResources
 
 cfnUserPool.policies = {
   passwordPolicy: {
-    minimumLength: 8,
+    minimumLength: 6,
     requireLowercase: false,
     requireNumbers: false,
     requireSymbols: false,
