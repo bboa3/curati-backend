@@ -607,7 +607,7 @@ export interface ArticleSearchBody {
 
 export interface MedicineSearchBody {
   name: string
-  brand: string
+  brand?: string
   description?: string
   composition: string
   administrationRoute: string
