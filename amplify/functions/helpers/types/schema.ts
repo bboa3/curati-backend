@@ -101,6 +101,33 @@ export enum InsuranceItemType {
   PATIENT = 'PATIENT'
 }
 
+export enum MedicineForm {
+  TABLET = 'tablet',
+  CAPSULE = 'capsule',
+  SYRUP = 'syrup',
+  SUSPENSION = 'suspension',
+  INJECTION = 'injection',
+  CREAM = 'cream',
+  OINTMENT = 'ointment',
+  GEL = 'gel',
+  LOTION = 'lotion',
+  ORAL_DROPS = 'oral_drops',
+  EYE_DROPS = 'eye_drops',
+  EAR_DROPS = 'ear_drops',
+  COLIRIO = 'colirio',
+  SUPPOSITORY = 'suppository',
+  SPRAY = 'spray',
+  POWDER = 'powder',
+  VAGINAL_OVULE = 'vaginal_ovule',
+  VAGINAL_FOAM = 'vaginal_foam',
+  CHEWABLE = 'chewable',
+  AMPOULE = 'ampoule',
+  EMULSION = 'emulsion',
+  ENEMA = 'enema',
+  SOLUTION = 'solution',
+  OTHER = 'other'
+};
+
 export enum DeliveryStatus {
   PENDING = 'PENDING',
   PHARMACY_PREPARING = 'PHARMACY_PREPARING',
