@@ -828,6 +828,7 @@ type MedicineSchema = Schema['medicine']['type'];
 export interface Medicine extends MedicineSchema {
   prescriptionLevel: PrescriptionLevel
   publicationStatus: PublicationStatus
+  form: MedicineForm
 };
 
 type PharmacyInventorySchema = Schema['pharmacyInventory']['type'];
