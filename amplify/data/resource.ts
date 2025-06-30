@@ -1061,7 +1061,6 @@ const schema = a.schema({
     stock: a.integer().required(),
     reservedStock: a.integer().required().default(0),
     publicationStatus: a.enum(publicationStatus),
-    specialDeliveryHandlingFee: a.float().required().default(0),
     pharmacyLatitude: a.float().required(),
     pharmacyLongitude: a.float().required(),
     pharmacyName: a.string().required(),
